@@ -1,0 +1,165 @@
+{
+  "fileBytes": 7699456,
+  "triangles": 199999,
+  "vertices": 131704,
+  "primitives": 3,
+  "bounds": {
+    "min": [
+      3576.3644545598945,
+      -278.4389082801192,
+      -769.3512548734751
+    ],
+    "max": [
+      4858.111184265988,
+      470.41801461486557,
+      570.9169464213285
+    ]
+  },
+  "nodes": [
+    {
+      "index": 0,
+      "name": "Sketchfab_model",
+      "parent": "Scene",
+      "mesh": "—",
+      "primitives": 0,
+      "vertices": 0,
+      "triangles": 0,
+      "depth": 0,
+      "bounds": null,
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    },
+    {
+      "index": 1,
+      "name": "billyCam_v011_6-12_200K.fbx",
+      "parent": "0: Sketchfab_model",
+      "mesh": "—",
+      "primitives": 0,
+      "vertices": 0,
+      "triangles": 0,
+      "depth": 1,
+      "bounds": null,
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    },
+    {
+      "index": 2,
+      "name": "RootNode",
+      "parent": "1: billyCam_v011_6-12_200K.fbx",
+      "mesh": "—",
+      "primitives": 0,
+      "vertices": 0,
+      "triangles": 0,
+      "depth": 2,
+      "bounds": null,
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    },
+    {
+      "index": 3,
+      "name": "Model",
+      "parent": "2: RootNode",
+      "mesh": "—",
+      "primitives": 0,
+      "vertices": 0,
+      "triangles": 0,
+      "depth": 3,
+      "bounds": null,
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    },
+    {
+      "index": 4,
+      "name": "Model_material0_0",
+      "parent": "3: Model",
+      "mesh": "Model_material0_0",
+      "primitives": 1,
+      "vertices": 65532,
+      "triangles": 107769,
+      "depth": 4,
+      "bounds": {
+        "min": [
+          3576.3644545598945,
+          -278.4389082801192,
+          -766.8935899945121
+        ],
+        "max": [
+          4858.111184265988,
+          470.41801461486557,
+          570.9169464213285
+        ]
+      },
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    },
+    {
+      "index": 5,
+      "name": "Model_material0_0",
+      "parent": "3: Model",
+      "mesh": "Model_material0_0",
+      "primitives": 1,
+      "vertices": 65533,
+      "triangles": 91857,
+      "depth": 4,
+      "bounds": {
+        "min": [
+          3580.1707652053738,
+          -278.3711313578248,
+          -769.3512548734751
+        ],
+        "max": [
+          4854.116190919303,
+          260.0425780136718,
+          569.0478970069929
+        ]
+      },
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    },
+    {
+      "index": 6,
+      "name": "Model_material0_0",
+      "parent": "3: Model",
+      "mesh": "Model_material0_0",
+      "primitives": 1,
+      "vertices": 639,
+      "triangles": 373,
+      "depth": 4,
+      "bounds": {
+        "min": [
+          3585.471764227026,
+          -278.3529852646724,
+          -103.94067852709846
+        ],
+        "max": [
+          3814.2819368809287,
+          -116.46627955545935,
+          179.75880724675443
+        ]
+      },
+      "origin": [
+        -15.988560676574707,
+        -0.7071640491485631,
+        15.98669147491455
+      ]
+    }
+  ]
+}
