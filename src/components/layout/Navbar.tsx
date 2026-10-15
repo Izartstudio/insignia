@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { navigation, navMotion as motion } from "@/config/navigation";
 import { NavLabel } from "./NavLabel";
 import { MenuIcon } from "./MenuIcon";
+import { LumikaiLogo } from "./LumikaiLogo";
 
 function MenuText({ text }: { text: string }) {
   return <span className="menu-text" aria-hidden="true">{[...text].map((letter, index) => <span key={index} className="menu-char" style={{ transitionDelay: `${index * motion.hoverStagger}s` }}>{letter}<span className="menu-char-copy">{letter}</span></span>)}</span>;
@@ -104,12 +105,12 @@ export function Navbar() {
 
   return <header ref={root} className="site-header">
     <nav aria-label="Main navigation" className="site-navigation">
-      <a ref={logo} href={navigation.home} className="site-logo" aria-label="Lumikai home" inert={open}><img src="/assets/insignia/lumikai-logo.svg" width="116" height="35" alt="Lumikai" /></a>
+      <a ref={logo} href={navigation.home} className="site-logo" aria-label="Lumikai home" inert={open}><LumikaiLogo alt="Lumikai" /></a>
       <div className="desktop-navigation" inert={open}>{navigation.primary.map((item, index) => item.href === "/" ? <Link key={item.label} href="/" className="nav-cell" aria-label={item.label} aria-current="page"><NavLabel index={index} /></Link> : <a key={item.label} href={item.href} className="nav-cell" aria-label={item.label}><NavLabel index={index} /></a>)}</div>
       <div ref={layer} className="menu-layer" role={open ? "dialog" : undefined} aria-modal={open || undefined} aria-label={open ? "Site navigation" : undefined}>
         <div ref={backdrop} className="menu-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
         <div ref={panel} className="menu-panel" id="site-menu" inert={!open}>
-          <a href={navigation.home} className="menu-logo" onClick={() => setOpen(false)}><img src="/assets/insignia/lumikai-logo.svg" width="116" height="35" alt="Lumikai home" /></a>
+          <a href={navigation.home} className="menu-logo" onClick={() => setOpen(false)}><LumikaiLogo alt="Lumikai home" /></a>
           <div className="menu-links">{[...navigation.primary, ...navigation.secondary].map(item => <div className="menu-link-row" key={item.label}>{item.href === "/" ? <Link href="/" onClick={() => setOpen(false)} aria-current="page" aria-label={item.label}><MenuText text={item.label} /></Link> : <a href={item.href} onClick={() => setOpen(false)} aria-label={item.label}><MenuText text={item.label} /></a>}</div>)}</div>
           <div className="menu-footer"><a href={navigation.pitch} onClick={() => setOpen(false)}>Pitch To Us <span aria-hidden="true">+</span></a></div>
         </div>

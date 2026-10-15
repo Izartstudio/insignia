@@ -7,6 +7,7 @@ import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
 import { WorldCategory } from './WorldCategory';
 
 const sources = [...new Set(galleryStates.flatMap(state => state.photos.map(photo => photo.src)))];
+const initialSources = [...new Set(galleryStates[0].photos.map(photo => photo.src))];
 
 export default function SpatialGalleryScene({ motion, onFailure }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void }) {
   const { camera, invalidate } = useThree();
@@ -15,18 +16,33 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
 
   useEffect(() => {
     let disposed = false;
+    let idleHandle = 0;
     const owned: Texture[] = [];
     const loader = new TextureLoader();
-    Promise.all(sources.map(async src => {
+    const load = async (items: string[]) => Promise.all(items.map(async src => {
       const texture = await loader.loadAsync(src);
       if (disposed) { texture.dispose(); return [src, texture] as const; }
       texture.colorSpace = SRGBColorSpace;
       owned.push(texture);
       return [src, texture] as const;
-    })).then(entries => {
-      if (!disposed) { setTextures(Object.fromEntries(entries)); invalidate(); }
+    }));
+    const loadDeferred = () => {
+      const remaining = sources.filter(src => !initialSources.includes(src));
+      load(remaining).then(entries => {
+        if (!disposed) { setTextures(current => ({ ...current, ...Object.fromEntries(entries) })); invalidate(); }
+      }).catch((error: unknown) => { if (!disposed) console.error("Deferred gallery texture loading failed", error); });
+    };
+    load(initialSources).then(entries => {
+      if (disposed) return;
+      setTextures(Object.fromEntries(entries));
+      invalidate();
+      idleHandle = window.setTimeout(loadDeferred, 300);
     }).catch((error: unknown) => { if (!disposed) { console.error("Spatial gallery texture loading failed", error); onFailure(); } });
-    return () => { disposed = true; owned.forEach(texture => texture.dispose()); };
+    return () => {
+      disposed = true;
+      window.clearTimeout(idleHandle);
+      owned.forEach(texture => texture.dispose());
+    };
   }, [invalidate, onFailure]);
 
   useEffect(() => {
@@ -49,7 +65,7 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
   if (!textures) return null;
   return <>
     <GalleryEnvironment motion={motion} />
-    {galleryStates.map(world => <group key={world.id}>
+    {galleryStates.filter(world => world.photos.every(photo => textures[photo.src])).map(world => <group key={world.id}>
       <WorldCategory world={world} />
       <InfiniteCanvasPlane world={world} textures={textures} />
     </group>)}

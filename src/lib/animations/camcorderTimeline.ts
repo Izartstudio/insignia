@@ -164,7 +164,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
         if (indicator) master.to(indicator, { opacity: 0, duration: 1 - timing.indicatorFadeStart }, timing.indicatorFadeStart);
 
         renderCamera();
-        refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+        refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh(true));
         return () => cancelAnimationFrame(refreshFrame);
       },
     );

@@ -47,6 +47,12 @@ export function InsigniaIntroduction() {
             .from(sun, { autoAlpha: 0, scale: 0.85, duration: 1 }, 0.35)
             .from(stageOneRays, { autoAlpha: 0, scaleX: 0.5, duration: 0.7, stagger: 0.045 }, 0.5)
             .from(copyEntrances, { autoAlpha: 0, y: 20, duration: 0.9 }, 0.65);
+          let entranceStarted = false;
+          const revealEntrance = () => {
+            if (entranceStarted) return;
+            entranceStarted = true;
+            entrance.play(0);
+          };
 
           const transition = (timeline: gsap.core.Timeline, from: number, to: number, start: number, end: number, raysToReveal: HTMLElement[], coreOpacity: number, coreScale: number) => {
             const duration = end - start;
@@ -70,13 +76,8 @@ export function InsigniaIntroduction() {
               pinSpacing: false,
               anticipatePin: 1,
               invalidateOnRefresh: true,
-              onEnter: () => entrance.play(),
-              onEnterBack: () => entrance.progress(1),
-              onUpdate: (trigger) => {
-                if (trigger.progress >= introductionConfig.firstTransition.start && entrance.progress() < 1) {
-                  entrance.progress(1).pause();
-                }
-              },
+              onEnter: revealEntrance,
+              onEnterBack: revealEntrance,
             },
           });
           transition(master, 0, 1, introductionConfig.firstTransition.start, introductionConfig.firstTransition.end, stageTwoRays, 0.72, 0.95);
@@ -84,6 +85,7 @@ export function InsigniaIntroduction() {
           master.to({}, { duration: 1 - introductionConfig.secondTransition.end }, introductionConfig.secondTransition.end);
 
           return () => entrance.kill();
+
         },
       );
     }, section);

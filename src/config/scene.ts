@@ -2,13 +2,13 @@ const radians = (degrees: number) => degrees * Math.PI / 180;
 
 export const sceneConfig = {
   modelUrl: "/models/camcorder-realism-v2.glb",
-  dpr: [1, 2] as [number, number],
+  dpr: [1, 1.5] as [number, number],
   model: {
     normalizedRadius: 1,
     orientation: [0, radians(200), 0] as [number, number, number],
   },
   hero: {
-    rotation: { initialY: radians(10), finalY: 0 },
+    rotation: { initialY: radians(18), finalY: 0 },
     scroll: { start: "top top", distanceInViewports: 1.8, scrub: 0.65, anticipatePin: 1 },
     timeline: {
       rotationEnd: 0.2,

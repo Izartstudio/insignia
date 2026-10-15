@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Component, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -31,17 +31,19 @@ export function SpatialGallery() {
   const panOffsets = useRef(galleryStates.map(() => ({ x: 0, y: 0 })));
   const [preview, setPreview] = useState<number | null>(null);
   const [enhanced, setEnhanced] = useState(false);
+  const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const onFailure = useCallback(() => { console.error("Spatial gallery entered WebGL/asset fallback"); setFailed(true); }, []);
   const animated = enhanced && !failed;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
     const requested = new URLSearchParams(window.location.search).get('galleryPreview');
     const index = process.env.NODE_ENV === 'development' ? galleryStates.findIndex(s => s.id === requested) : -1;
     setPreview(index >= 0 ? index : null);
     const update = () => setEnhanced(index >= 0 || !query.matches);
     update();
+    setReady(true);
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
   }, []);
@@ -77,7 +79,7 @@ export function SpatialGallery() {
           // Measure upstream pins first, regardless of asynchronous mount order.
           refreshPriority: 20,
           trigger: section, start: 'top top', end: () => `+=${section.clientHeight * galleryConfig.scrollViewports}`,
-          pin: true, scrub: galleryConfig.scrub, anticipatePin: 1, invalidateOnRefresh: true,
+          pin: true, pinSpacing: false, scrub: galleryConfig.scrub, anticipatePin: 1, invalidateOnRefresh: true,
         },
         onUpdate: syncPan,
       });
@@ -141,7 +143,7 @@ export function SpatialGallery() {
     section.addEventListener('lostpointercapture', release);
     section.addEventListener('pointermove', move);
     section.addEventListener('pointerleave', leave);
-    const refresh = requestAnimationFrame(() => ScrollTrigger.refresh());
+    const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     return () => {
       cancelAnimationFrame(refresh);
       observer.disconnect();
@@ -157,7 +159,7 @@ export function SpatialGallery() {
     };
   }, [animated, preview]);
 
-  return <section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''}`} aria-label="Who's Been At Insignia">
+  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(galleryConfig.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''}`} aria-label="Who's Been At Insignia">
     <AccessibleGallery visible={!animated} />
     {animated && <>
       <div className="spatial-canvas" aria-hidden="true">
@@ -178,5 +180,5 @@ export function SpatialGallery() {
         <p className="spatial-explore"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move To Explore The Canvas</p>
       </div>
     </>}
-  </section>;
+  </section></div>;
 }

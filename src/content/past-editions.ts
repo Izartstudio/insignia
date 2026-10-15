@@ -30,6 +30,9 @@ export function editionCells(edition: Edition): (EditionMarqueeItem | null)[] {
     type: "image", id: `${edition.year}-${index}`, src: `/assets/insignia/past-editions/${name}.png`, alt: descriptions[name],
   }));
   if (edition.labelRow === "top") return [label, ...photos];
-  if (photos.length === 4) return [null, label, ...photos];
+  if (photos.length === 4) {
+    const closingPhoto = { ...photos[0], id: `${edition.year}-closing` };
+    return [photos[0], label, ...photos.slice(1), closingPhoto];
+  }
   return [photos[0], label, ...photos.slice(1)];
 }

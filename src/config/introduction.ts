@@ -1,7 +1,7 @@
 export const introductionSlides = [
   {
     number: "01",
-    text: "Once A Year, Lumika Hosts Insignia, India’s Signature Event For Interactive Media And Annual LP Summit.",
+    text: "Once A Year, Lumikai Hosts Insignia, India’s Signature Event For Interactive Media And Annual LP Summit.",
   },
   {
     number: "02",

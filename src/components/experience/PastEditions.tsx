@@ -47,7 +47,7 @@ export function PastEditions() {
       if (width === previousWidth) return;
       previousWidth = width;
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => ScrollTrigger.refresh());
+      frame = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     });
     observer.observe(viewport);
     observer.observe(track);

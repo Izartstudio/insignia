@@ -2,6 +2,7 @@
 
 import { navigation, navMotion } from "@/config/navigation";
 import "./site-footer.css";
+import { LumikaiLogo } from "../layout/LumikaiLogo";
 
 const base = "https://lumikai.webflow.io";
 
@@ -36,7 +37,7 @@ export function SiteFooter() {
           <div><span>ADD:</span><span>Gurugram, Haryana</span></div>
         </div>
         <div className="footer-brand">
-          <a href={navigation.home} aria-label="Lumikai home"><img src="/assets/insignia/footer-logo.svg" alt="Lumikai" /></a>
+          <a href={navigation.home} aria-label="Lumikai home"><LumikaiLogo /></a>
           <p>India&apos;s first specialist interactive media, digital platforms, and games VC.</p>
         </div>
         <nav className="footer-social" aria-label="Social media">

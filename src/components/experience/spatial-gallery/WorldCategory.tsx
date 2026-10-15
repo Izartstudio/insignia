@@ -44,6 +44,10 @@ export function WorldCategory({ world }: { world: GalleryState }) {
 
   useFrame(({ camera }) => {
     if (!mesh.current) return;
+    // Follow only the camera's exploration offset so the watermark remains
+    // screen-centred while its world depth keeps every photograph above it.
+    mesh.current.position.x = camera.position.x;
+    mesh.current.position.y = camera.position.y;
     const separation = camera.position.z - world.depth;
     mesh.current.visible = separation > -1 && separation < galleryConfig.distance + galleryConfig.depthStep;
     const material = mesh.current.material;

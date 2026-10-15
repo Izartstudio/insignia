@@ -1,3 +1,5 @@
+@font-face { font-family: "Aeonik Trial"; src: url('/fonts/aeonik-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+
 :root {
   --ui-yellow: #fed201;
   --ui-menu-yellow: #ffd407;
@@ -22,14 +24,14 @@
 .scroll-indicator-track { position: absolute; top: 0; left: 40.5px; width: 2px; height: 20px; overflow: hidden; background: rgb(254 210 1 / .25); }
 .scroll-indicator-line { position: absolute; top: 0; left: 0; width: 2px; height: 12px; background: #fed201; animation: scroll-line var(--scroll-cycle) linear infinite; will-change: transform; }
 .fullscreen-heading { position: absolute; inset: 0; z-index: var(--layer-heading); display: flex; align-items: flex-end; justify-content: center; padding: 0 clamp(24px, 5vw, 72px) max(9.25svh, calc(env(safe-area-inset-bottom) + 32px)); pointer-events: none; visibility: hidden; opacity: 0; }
-.fullscreen-heading::before { content: ""; position: absolute; inset: 42% 0 0; background: linear-gradient(to bottom, transparent, rgb(0 0 0 / .62)); z-index: -1; }
-.fullscreen-heading h1 { margin: 0; max-width: 760px; color: #fff; text-align: center; font-family: Arial, Helvetica, sans-serif; font-size: clamp(2rem, 3.9vw, 3.5rem); font-weight: 300; line-height: 1.25; letter-spacing: -.025em; text-wrap: balance; }
+.fullscreen-heading::before { content: ""; position: absolute; inset: 8% 0 0; background: linear-gradient(180deg, transparent 0%, rgb(0 0 0 / .1) 28%, rgb(0 0 0 / .72) 63%, #000 100%); z-index: -1; }
+.fullscreen-heading h1 { margin: 0; max-width: 48rem; color: #fff; text-align: center; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(2rem, 3.9vw, 3.5rem); font-weight: 400; line-height: 1.25; letter-spacing: 0; text-wrap: balance; }
 .fullscreen-heading h1 span { display: block; }
 @keyframes scroll-line { from { transform: translate3d(0, -13.2px, 0); } to { transform: translate3d(0, 66px, 0); } }
 .site-header { position: fixed; inset: 0 0 auto; z-index: var(--layer-navbar); pointer-events: none; }
 .site-navigation { position: relative; height: 70px; }
 .site-logo { position: absolute; left: 35px; top: 35px; width: 116px; height: 35px; pointer-events: auto; }
-.site-logo img, .menu-logo img { display: block; }
+.brand-logo { display: block; width: 100%; height: auto; overflow: hidden; }
 .desktop-navigation { position: absolute; top: 0; right: var(--menu-width); display: flex; }
 .nav-cell { display: block; position: relative; width: var(--nav-cell-width); height: var(--nav-cell-height); background: #000; border: 1px solid var(--ui-border); border-right: 0; pointer-events: auto; }
 .nav-label { position: absolute; inset: -1px; width: var(--nav-cell-width); height: var(--nav-cell-height); }
@@ -59,7 +61,7 @@
 @media (max-width: 767px) {
   :root { --menu-width: 60px; --menu-height: 50px; }
   .site-logo { left: 24px; top: 24px; width: 82px; height: 25px; }
-  .site-logo img { width: 82px; height: 25px; }
+  .site-logo .brand-logo { width: 82px; height: 25px; }
   .menu-panel { padding: 30px; }
   .menu-link-row a { font-size: 16px; }
   .fullscreen-heading { padding-right: 20px; padding-bottom: max(8svh, calc(env(safe-area-inset-bottom) + 24px)); padding-left: 20px; }
@@ -78,16 +80,25 @@ html { scrollbar-gutter: stable; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .introduction-track { position: relative; z-index: 10; height: 320dvh; background: #000; }
 .introduction { position: relative; width: 100%; height: 100dvh; overflow: hidden; background: #000; }
-.introduction-composition { width: 100%; height: 100%; padding: 0 5.2vw; display: grid; grid-template-columns: 120px minmax(220px, 323px) 272px minmax(300px, 1fr); column-gap: 33px; align-items: center; }
+.introduction-composition { position: relative; z-index: 1; width: min(100%, 1920px); height: 100%; margin-inline: auto; padding: 0 clamp(52px, 5.2vw, 100px); display: grid; grid-template-columns: clamp(86px, 8.3vw, 140px) minmax(220px, 323px) clamp(210px, 18.9vw, 300px) minmax(300px, 1fr); column-gap: clamp(22px, 2.3vw, 40px); align-items: center; }
 .introduction-slide { display: contents; }
+.introduction-slide:not(:first-child) .introduction-number,
+.introduction-slide:not(:first-child) .introduction-copy { visibility: hidden; opacity: 0; transform: translateY(15px); }
 .introduction-number { grid-column: 1; grid-row: 1; color: #fed201; font-size: 24px; font-weight: 400; line-height: 1; letter-spacing: .24em; font-variant-numeric: tabular-nums; white-space: pre; }
 .introduction-divider { grid-column: 2; grid-row: 1; display: block; width: 100%; height: 1px; background: #fed201; transform-origin: left center; }
 .introduction-sun { grid-column: 3; grid-row: 1; position: relative; justify-self: center; width: 176px; height: 176px; }
 .sun-core { position: absolute; top: 50%; left: 50%; width: 112px; height: 112px; border: 1px solid rgb(217 217 217 / .15); border-radius: 5.625rem; opacity: .9; background: linear-gradient(180deg, #fed201 0%, #d13536 37.02%, #aa0009 60.14%, #000 100%); filter: blur(12.5px); transform: translate(-50%, -50%); transform-origin: center; }
 .sun-rays { position: absolute; inset: 0; }
 .sun-ray { --ray-angle: 0deg; position: absolute; top: 50%; left: 50%; width: 18px; height: 1px; background: #fed201; transform-origin: 0 50%; transform: rotate(var(--ray-angle)) translateX(68px); }
-.introduction-copy { grid-column: 4; grid-row: 1; align-self: center; width: min(100%, 400px); margin: 0; padding-left: 31px; color: #fff; font-size: clamp(18px, 1.4vw, 20px); font-weight: 300; line-height: 1.5; letter-spacing: -.025em; }
+.introduction-copy { grid-column: 4; grid-row: 1; align-self: center; width: min(100%, 400px); margin: 0; padding-left: 31px; color: #fff; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(18px, 1.4vw, 20px); font-weight: 400; line-height: 1.5; letter-spacing: 0; }
 .introduction-reduced-list { display: none; }
+
+@media (min-width: 1440px) and (max-height: 820px) {
+  .fullscreen-heading { padding-bottom: max(6svh, 32px); }
+  .fullscreen-heading h1 { font-size: clamp(32px, 5.8svh, 48px); }
+  .introduction-sun { width: clamp(148px, 20svh, 176px); height: clamp(148px, 20svh, 176px); }
+  .introduction-copy { font-size: clamp(16px, 2.25svh, 19px); }
+}
 
 @media (max-width: 1024px) {
   .introduction-composition { padding: 0 4vw; grid-template-columns: 72px minmax(130px, 1fr) 210px minmax(280px, 1.3fr); column-gap: 24px; }
@@ -116,7 +127,7 @@ html { scrollbar-gutter: stable; }
 
 /* Shared measurements keep both rows and their edition labels aligned. */
 .past-editions {
-  --edition-image-width: min(clamp(180px, 18.75vw, 360px), calc((100svh - 150px) * .529));
+  --edition-image-width: min(clamp(180px, 18.75vw, 360px), calc((100svh - 150px) * .529), 22rem);
   --edition-image-height: calc(var(--edition-image-width) * 255 / 270);
   --edition-row-gap: clamp(12px, 1.39vw, 24px);
   --edition-gutter: clamp(20px, 4.1vw, 80px);
@@ -125,8 +136,8 @@ html { scrollbar-gutter: stable; }
   background: #000;
 }
 .past-editions-heading { padding: 0 24px; text-align: center; }
-.past-editions-heading > p { margin: 0 0 25px; color: #fed201; font-size: 11px; line-height: 1; letter-spacing: .42em; }
-.past-editions-heading h2 { margin: 0; color: #fff; font-size: clamp(36px, 4.15vw, 60px); font-weight: 300; line-height: 1.14; letter-spacing: -.035em; }
+.past-editions-heading > p { margin: 0 0 25px; color: #fed201; font-family: "PP Neue Montreal", "Aeonik Trial", Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 1.5; letter-spacing: .5em; }
+.past-editions-heading h2 { margin: 0; color: #fff; font-family: "Aeonik Trial", Arial, sans-serif; font-size: 32px; font-weight: 400; line-height: 1.25; letter-spacing: 0; }
 .past-editions-stage {
   height: 100svh;
   display: flex;
@@ -149,8 +160,17 @@ html { scrollbar-gutter: stable; }
 .edition-image { position: relative; width: var(--edition-image-width); height: var(--edition-image-height); overflow: hidden; background: #080808; }
 .edition-image img { object-fit: cover; border-radius: 0; pointer-events: none; }
 .edition-label { width: var(--edition-image-width); height: var(--edition-image-height); padding: 10px 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
-.edition-label span { color: #fff; font-size: 24px; font-weight: 300; line-height: 1.2; }
-.edition-label p { margin: 10px 0 0; color: #fed201; font-size: 18px; font-weight: 300; line-height: 1.35; }
+.edition-label span { color: #fff; font-family: "Aeonik Trial", Arial, sans-serif; font-size: 24px; font-weight: 400; line-height: 1.5; }
+.edition-label p { margin: 10px 0 0; color: #fed201; font-family: "Aeonik Trial", Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 1.5; }
+
+@media (min-width: 1440px) {
+  .fullscreen-heading h1 { max-width: 54rem; font-size: clamp(3.5rem, 3.889vw, 4.5rem); }
+  .introduction-copy { font-size: clamp(1.25rem, 1.389vw, 1.5rem); }
+  .past-editions-heading > p { font-size: clamp(.875rem, .972vw, 1rem); }
+  .past-editions-heading h2 { font-size: clamp(2rem, 2.222vw, 2.5rem); }
+  .edition-label span { font-size: clamp(1.5rem, 1.667vw, 1.75rem); }
+  .edition-label p { font-size: clamp(1.125rem, 1.25vw, 1.375rem); }
+}
 
 @media (max-width: 767px) {
   .past-editions { --edition-image-width: min(180px, calc((100svh - 130px) * .529)); --edition-row-gap: 14px; }
