@@ -1,19 +1,35 @@
 export type EditionMarqueeItem =
-  | { type: "image"; id: string; src: string; alt: string; narrow?: boolean }
+  | { type: "image"; id: string; src: string; alt: string }
   | { type: "edition"; id: string; year: string; title: string };
 
-export const topRowItems: readonly EditionMarqueeItem[] = [
-  { type: "edition", id: "2025", year: "2025", title: "The Interactive Era" },
-  { type: "image", id: "2025-red-carpet", src: "/assets/insignia/past-editions/image-2.png", alt: "Guests at the Lumikai Insignia 2025 red carpet" },
-  { type: "image", id: "2025-panel", src: "/assets/insignia/past-editions/image-3.png", alt: "Speakers in conversation on the Insignia stage" },
-  { type: "image", id: "2025-conversation", src: "/assets/insignia/past-editions/image-4.png", alt: "Insignia guests speaking during the gathering", narrow: true },
-  { type: "image", id: "2025-ballroom", src: "/assets/insignia/past-editions/imagew.png", alt: "Insignia audience attending a ballroom session" },
+type Edition = { year: string; title: string; labelRow: "top" | "bottom"; photos: readonly string[] };
+
+// Photos are deliberately reused until the remaining edition assets are supplied.
+// Column-major order: top, bottom, then the next column, as in the reference.
+export const pastEditions: readonly Edition[] = [
+  { year: "2025", title: "The Interactive Era", labelRow: "top", photos: ["imagerow2", "imagew", "imagerow2-2", "image-2", "imagerow2-3"] },
+  { year: "2024", title: "Finding Alpha", labelRow: "bottom", photos: ["image-3", "image-4", "imagerow2-4", "imagew", "imagerow2-2"] },
+  { year: "2023", title: "India’s Digital Destiny", labelRow: "top", photos: ["imagerow2", "imagew", "image-2", "image-3", "imagerow2-4"] },
+  { year: "2022", title: "Let The Games Begin", labelRow: "bottom", photos: ["image-4", "imagerow2-3", "image-2", "imagerow2"] },
 ];
 
-export const bottomRowItems: readonly EditionMarqueeItem[] = [
-  { type: "image", id: "2024-stage", src: "/assets/insignia/past-editions/imagerow2.png", alt: "Industry leaders participating in an Insignia stage session" },
-  { type: "image", id: "2024-speaker", src: "/assets/insignia/past-editions/imagerow2-2.png", alt: "An Insignia speaker addressing the audience" },
-  { type: "edition", id: "2024", year: "2024", title: "Finding Alpha" },
-  { type: "image", id: "2024-reception", src: "/assets/insignia/past-editions/imagerow2-3.png", alt: "Guests in conversation at the Insignia reception" },
-  { type: "image", id: "2024-vr", src: "/assets/insignia/past-editions/imagerow2-4.png", alt: "An Insignia guest trying a virtual reality headset", narrow: true },
-];
+const descriptions: Record<string, string> = {
+  imagew: "Audience watching an Insignia ballroom session",
+  "image-2": "Guests at the Insignia red carpet",
+  "image-3": "Speakers in conversation on stage",
+  "image-4": "Guests talking at the gathering",
+  imagerow2: "Industry leaders participating in a stage session",
+  "imagerow2-2": "A speaker addressing the audience",
+  "imagerow2-3": "Guests in conversation at the reception",
+  "imagerow2-4": "A guest trying a virtual reality headset",
+};
+
+export function editionCells(edition: Edition): (EditionMarqueeItem | null)[] {
+  const label: EditionMarqueeItem = { type: "edition", id: edition.year, year: edition.year, title: edition.title };
+  const photos: EditionMarqueeItem[] = edition.photos.map((name, index) => ({
+    type: "image", id: `${edition.year}-${index}`, src: `/assets/insignia/past-editions/${name}.png`, alt: descriptions[name],
+  }));
+  if (edition.labelRow === "top") return [label, ...photos];
+  if (photos.length === 4) return [null, label, ...photos];
+  return [photos[0], label, ...photos.slice(1)];
+}

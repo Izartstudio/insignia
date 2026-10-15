@@ -6,7 +6,9 @@ import { HeroBackground } from "./HeroBackground";
 import { ScrollIndicator } from "./ScrollIndicator";
 import { FullscreenHeading, type FullscreenHeadingHandle } from "./FullscreenHeading";
 import { InsigniaIntroduction } from "./InsigniaIntroduction";
+import { SpatialGallery } from "./spatial-gallery/SpatialGallery";
 import { PastEditions } from "./PastEditions";
+import { SiteFooter } from "./SiteFooter";
 import { sceneConfig } from "@/config/scene";
 
 const ExperienceCanvas = dynamic(() => import("./ExperienceCanvas"), {
@@ -49,11 +51,9 @@ export function InsigniaExperience() {
         </section>
       </div>
       <InsigniaIntroduction />
-      <PastEditions hasContinuation />
-      <PastEditions id="past-editions-second" continuation />
-      <footer className="caption">
-        <a href="https://sketchfab.com/3d-models/camcorder-953afa3f7e7e4ad687a0bf19a05ec294" target="_blank" rel="noopener noreferrer">Camcorder by omegadarling</a> / <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>
-      </footer>
+      <SpatialGallery />
+      <PastEditions />
+      <SiteFooter />
     </main>
   );
 }

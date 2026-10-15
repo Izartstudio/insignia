@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "rea
 import { useThree } from "@react-three/fiber";
 import { BufferGeometry, Float32BufferAttribute, CanvasTexture, Group, Mesh, SRGBColorSpace, Vector3 } from "three";
 import { lcdConfig } from "@/lib/three/lcd-config";
-import surface from "@/lib/three/lcd-surface.json";
+import surface from "@/lib/three/lcd-surface-v2.json";
 import type { LCDVideoResource } from "@/lib/three/useLCDVideo";
 
 const debug = process.env.NODE_ENV === "development" && lcdConfig.debug.enabled;

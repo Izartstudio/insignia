@@ -60,6 +60,8 @@ export function InsigniaIntroduction() {
           const master = gsap.timeline({
             defaults: { ease: "none" },
             scrollTrigger: {
+          // Measure upstream pins first, regardless of asynchronous mount order.
+          refreshPriority: 30,
               trigger: section,
               start: "top top",
               end: () => `+=${section.clientHeight * introductionConfig.scrollDistanceInViewports}`,

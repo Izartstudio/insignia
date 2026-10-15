@@ -1,7 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-import { PerspectiveCamera, type Group } from "three";
+import { Mesh, MeshStandardMaterial, PerspectiveCamera, type Group } from "three";
+import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { sceneConfig } from "@/config/scene";
 import { measureModel } from "@/lib/three/modelUtils";
 import { createCamcorderTimeline } from "@/lib/animations/camcorderTimeline";
@@ -12,7 +13,41 @@ import type { FullscreenHeadingHandle } from "@/components/experience/Fullscreen
 
 export function CamcorderModel({ heroRef, scrollIndicatorRef, fullscreenHeadingRef, video, hasFrame }: { heroRef: RefObject<HTMLElement | null>; scrollIndicatorRef: RefObject<HTMLDivElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null>; video: LCDVideoResource | null; hasFrame: boolean }) {
   const { scene } = useGLTF(sceneConfig.modelUrl);
-  const model = useMemo(() => scene.clone(true), [scene]);
+  const gl = useThree((state) => state.gl);
+  const model = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      // Smooth curved surfaces while retaining sharp casing and bezel edges.
+      // Work at a larger scale so the utility's vertex tolerance does not
+      // merge the small model's nearby bezel and body details.
+      const geometry = object.geometry.clone().scale(100, 100, 100);
+      object.geometry = toCreasedNormals(geometry, Math.PI / 3);
+      if (object.geometry !== geometry) geometry.dispose();
+      object.geometry.scale(0.01, 0.01, 0.01);
+      const refine = (source: MeshStandardMaterial) => {
+        const material = source.clone();
+        if (material instanceof MeshStandardMaterial) {
+          material.roughness = Math.max(material.roughness, 0.42);
+          material.normalScale?.setScalar(0.08);
+          if (material.map) {
+            material.map.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+            material.map.needsUpdate = true;
+          }
+        }
+        return material;
+      };
+      object.material = Array.isArray(object.material) ? object.material.map(refine) : refine(object.material);
+    });
+    return clone;
+  }, [scene, gl]);
+  useLayoutEffect(() => () => {
+    model.traverse((object) => {
+      if (!(object instanceof Mesh)) return;
+      object.geometry.dispose();
+      (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => material.dispose());
+    });
+  }, [model]);
   const bounds = useMemo(() => measureModel(model), [model]);
   const animationGroup = useRef<Group>(null);
   const lcdSurface = useRef<LCDSurfaceHandle>(null);

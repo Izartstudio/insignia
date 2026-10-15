@@ -78,6 +78,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
   const debug = cameraScene ? createDebugPath(cameraScene) : null;
   const zoom = { value: 0 };
   const approach = new Vector3();
+  const focus = new Vector3();
   let startPose = getStartCameraPose(camera, viewport.width, viewport.height, radius, halfHeight);
   let endPose = startPose;
   let endDistance = 0;
@@ -101,12 +102,13 @@ export function createCamcorderTimeline(options: TimelineOptions) {
 
   const renderCamera = () => {
     const progress = smoothProgress(Math.min(zoom.value / timing.fullscreenThreshold, 1));
-    if (progress < 0.72) {
-      camera.position.lerpVectors(startPose.position, approach, progress / 0.72);
-    } else {
-      camera.position.lerpVectors(approach, endPose.position, (progress - 0.72) / 0.28);
-    }
-    camera.quaternion.slerpQuaternions(startPose.quaternion, endPose.quaternion, progress);
+    // A single direct approach avoids the high waypoint and late correction.
+    camera.position.lerpVectors(startPose.position, endPose.position, progress);
+    // Center the LCD early, then keep looking at its center throughout the
+    // approach. Interpolating endpoint rotations lets it drift toward the bottom.
+    const focusProgress = smoothProgress(Math.min(zoom.value / 0.25, 1));
+    focus.lerpVectors(startPose.target, endPose.target, focusProgress);
+    camera.lookAt(focus);
     camera.fov = sceneConfig.camera.fov;
     camera.near = radius * sceneConfig.camera.nearRadiusRatio;
     camera.far = radius * (sceneConfig.camera.distanceInRadii + sceneConfig.camera.farRadiusPadding);
@@ -139,6 +141,8 @@ export function createCamcorderTimeline(options: TimelineOptions) {
         const master = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
+          // Measure upstream pins first, regardless of asynchronous mount order.
+          refreshPriority: 40,
             trigger: section,
             start: scroll.start,
             end: () => `+=${section.clientHeight * scroll.distanceInViewports}`,
