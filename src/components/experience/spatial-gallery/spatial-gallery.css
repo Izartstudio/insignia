@@ -22,7 +22,7 @@
 .spatial-progress-item span { color: white; }
 .spatial-progress-item i { display: block; width: 25px; height: 2px; background: #fed201; }
 .spatial-progress-item:not(:first-child) span { visibility: visible; }
-.spatial-explore { position: absolute; bottom: max(5.8%, env(safe-area-inset-bottom)); right: 3.2%; margin: 0; display: flex; align-items: center; gap: 16px; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(10px, .83vw, 12px); font-weight: 400; line-height: 1.5; }
+.spatial-explore { margin: clamp(8px, 1.5svh, 16px) 0 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(10px, .83vw, 12px); font-weight: 400; line-height: 1.5; }
 .spatial-gallery .scroll-indicator { bottom: max(3.2%, env(safe-area-inset-bottom)); }
 .spatial-static { padding: 64px 5vw; background: radial-gradient(ellipse at center, #a52200, #210000); }
 .spatial-static article { padding-block: 36px; }
@@ -51,3 +51,5 @@
 
 .spatial-gallery.is-spatial { touch-action: pan-y; user-select: none; cursor: grab; }
 .spatial-gallery.is-dragging { cursor: grabbing; }
+
+.spatial-explore[hidden] { display: none; }

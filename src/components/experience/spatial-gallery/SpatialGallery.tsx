@@ -10,6 +10,12 @@ import SpatialGalleryScene from './SpatialGalleryScene';
 import type { GalleryMotion } from './GalleryEnvironment';
 import './spatial-gallery.css';
 
+// Share the landing tolerance between the instruction and pointer interaction.
+function getExplorableState(travel: number) {
+  const state = Math.round(travel);
+  return state >= 0 && state < galleryStates.length && Math.abs(travel - state) <= .015 ? state : -1;
+}
+
 class GalleryBoundary extends Component<{ children: ReactNode; onFailure: () => void }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
@@ -52,7 +58,14 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     const section = sectionRef.current;
     if (!animated || !section) return;
     gsap.registerPlugin(ScrollTrigger);
+    const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
+    let lastExplorableState: number | undefined;
     const syncPan = () => {
+      const explorableState = getExplorableState(motion.current.travel);
+      if (explorableState !== lastExplorableState) {
+        hints.forEach((hint, index) => { hint.hidden = index !== explorableState; });
+        lastExplorableState = explorableState;
+      }
       const travel = motion.current.travel;
       const from = Math.min(Math.floor(travel), galleryStates.length - 1);
       const to = Math.min(from + 1, galleryStates.length - 1);
@@ -100,6 +113,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       });
       timeline.to({}, { duration: 1 - motionProfile.stops[galleryStates.length - 1] }, motionProfile.stops[galleryStates.length - 1]);
     }, section);
+    syncPan();
     const observer = new IntersectionObserver(([entry]) => {
       motion.current.active = entry.isIntersecting;
       if (entry.isIntersecting) motion.current.invalidate();
@@ -108,8 +122,8 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     let drag: { id: number; x: number; y: number; state: number; captured: boolean; touch: boolean } | null = null;
     const down = (event: PointerEvent) => {
       if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest('button,a,input')) return;
-      const state = Math.round(motion.current.travel);
-      if (Math.abs(motion.current.travel-state) > .015) return;
+      const state = getExplorableState(motion.current.travel);
+      if (state < 0) return;
       drag = { id: event.pointerId, x: event.clientX, y: event.clientY, state, captured: false, touch: event.pointerType === 'touch' };
     };
     const release = () => {
@@ -120,7 +134,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     };
     const move = (event: PointerEvent) => {
       if (!drag || event.pointerId !== drag.id) return;
-      if (Math.abs(motion.current.travel-drag.state) > .015) { release(); return; }
+      if (getExplorableState(motion.current.travel) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
       if (!drag.captured) {
         if (Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
@@ -155,6 +169,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       section.removeEventListener('pointermove', move);
       section.removeEventListener('pointerleave', leave);
       context.revert();
+      hints.forEach(hint => { hint.hidden = true; });
       motion.current.active = false;
     };
   }, [animated, preview, motionProfile]);
@@ -173,11 +188,11 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         {galleryStates.map((state, index) => <div className="spatial-state" key={state.id}>
           <div className={`spatial-heading ${index === 0 ? 'is-first' : ''}`}>
             <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
+        <div className="spatial-explore" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move To Explore The Canvas</div>
           </div>
         </div>)}
         <div className="spatial-progress">{galleryStates.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>
         <ScrollIndicator />
-        <p className="spatial-explore"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move To Explore The Canvas</p>
       </div>
     </>}
   </section></div>;
