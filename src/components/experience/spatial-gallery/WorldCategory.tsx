@@ -5,7 +5,7 @@ import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 
 /** The category belongs to the world, behind its photograph planes. */
 export function WorldCategory({ world }: { world: GalleryState }) {
-  const { size } = useThree();
+  const { size, gl } = useThree();
   const mesh = useRef<Mesh>(null);
   const depth = 1.5;
   const distance = galleryConfig.distance + depth;
@@ -13,15 +13,17 @@ export function WorldCategory({ world }: { world: GalleryState }) {
   const width = height * size.width / size.height;
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(size.width * 2));
-    canvas.height = Math.max(1, Math.round(size.height * 2));
+    const pixelRatio = Math.min(2, gl.capabilities.maxTextureSize / Math.max(size.width, 1));
+    canvas.width = Math.max(1, Math.round(size.width * pixelRatio));
+    // Only the text strip needs a texture, not four full-screen bitmaps.
+    canvas.height = 128;
     const context = canvas.getContext('2d');
     if (context) {
       const mobile = size.width < 768;
       const fontSize = mobile
-        ? Math.min(28, Math.max(18, size.width * .052))
+        ? Math.min(10, Math.max(7, size.width * .022))
         : Math.min(34, Math.max(22, size.width * .0222));
-      context.font = `${fontSize * 2}px Arial, Helvetica, sans-serif`;
+      context.font = `${fontSize * pixelRatio}px Arial, Helvetica, sans-serif`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
@@ -39,7 +41,7 @@ export function WorldCategory({ world }: { world: GalleryState }) {
     const result = new CanvasTexture(canvas);
     result.colorSpace = SRGBColorSpace;
     return result;
-  }, [size.width, size.height, world.category]);
+  }, [size.width, world.category, gl]);
   useEffect(() => () => texture.dispose(), [texture]);
 
   useFrame(({ camera }) => {
@@ -56,7 +58,7 @@ export function WorldCategory({ world }: { world: GalleryState }) {
     }
   });
 
-  return <mesh ref={mesh} position={[0, 0, world.depth - depth]} scale={[width, height, 1]} renderOrder={-1}>
+  return <mesh ref={mesh} position={[0, 0, world.depth - depth]} scale={[width, height * 128 / Math.max(1, size.height * Math.min(2, gl.capabilities.maxTextureSize / Math.max(size.width, 1))), 1]} renderOrder={-1}>
     <planeGeometry args={[1, 1]} />
     <meshBasicMaterial map={texture} transparent depthWrite={false} toneMapped={false} />
   </mesh>;

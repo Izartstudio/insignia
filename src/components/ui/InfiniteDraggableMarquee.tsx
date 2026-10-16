@@ -91,7 +91,7 @@ export function InfiniteDraggableMarquee({
         if (Math.abs(state.velocity) < 1) state.velocity = 0;
         offset.current = wrapOffset(offset.current, sequenceWidth.current);
       }
-      if (trackRef.current) trackRef.current.style.transform = `translate3d(${offset.current}px,0,0)`;
+      if (trackRef.current && active.current && !document.hidden) trackRef.current.style.transform = `translate3d(${offset.current}px,0,0)`;
       frame = requestAnimationFrame(render);
     };
     frame = requestAnimationFrame(render);

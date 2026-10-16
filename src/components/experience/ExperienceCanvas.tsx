@@ -5,6 +5,7 @@ import { useProgress } from "@react-three/drei";
 import { sceneConfig } from "@/config/scene";
 import { CamcorderModel } from "@/components/three/CamcorderModel";
 import { useLCDVideo } from "@/lib/three/useLCDVideo";
+import { CanvasRuntime } from "@/components/three/CanvasRuntime";
 import { SceneLighting } from "@/components/three/SceneLighting";
 import type { FullscreenHeadingHandle } from "./FullscreenHeading";
 function LoadingIndicator() {
@@ -34,6 +35,7 @@ export default function ExperienceCanvas({ heroRef, scrollIndicatorRef, fullscre
           </div>
         }
       >
+        <CanvasRuntime />
         <SceneLighting />
         <Suspense fallback={null}>
           <CamcorderModel heroRef={heroRef} scrollIndicatorRef={scrollIndicatorRef} fullscreenHeadingRef={fullscreenHeadingRef} video={video.resource} hasFrame={video.hasFrame} />

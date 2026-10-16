@@ -16,7 +16,6 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
 
   useEffect(() => {
     let disposed = false;
-    let idleHandle = 0;
     const owned: Texture[] = [];
     const loader = new TextureLoader();
     const load = async (items: string[]) => Promise.all(items.map(async src => {
@@ -36,11 +35,10 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
       if (disposed) return;
       setTextures(Object.fromEntries(entries));
       invalidate();
-      idleHandle = window.setTimeout(loadDeferred, 300);
+      loadDeferred();
     }).catch((error: unknown) => { if (!disposed) { console.error("Spatial gallery texture loading failed", error); onFailure(); } });
     return () => {
       disposed = true;
-      window.clearTimeout(idleHandle);
       owned.forEach(texture => texture.dispose());
     };
   }, [invalidate, onFailure]);

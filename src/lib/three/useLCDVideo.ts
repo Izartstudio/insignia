@@ -28,7 +28,7 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
     video.setAttribute("webkit-playsinline", "");
     const texture = new VideoTexture(video);
     const poster = new TextureLoader().load(lcdConfig.posterUrl, () => {
-      if (!disposed) setResource({ ...owned });
+      if (!disposed) owned.poster.needsUpdate = true;
     });
     for (const map of [texture, poster]) {
       map.colorSpace = SRGBColorSpace;

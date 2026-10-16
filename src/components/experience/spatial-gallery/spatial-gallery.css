@@ -54,3 +54,24 @@
 .spatial-gallery.is-dragging { cursor: grabbing; }
 
 .spatial-explore[hidden] { display: none; }
+
+.spatial-touch-explore { display: none; }
+@media (max-width: 1024px) {
+ .spatial-heading, .spatial-heading.is-first { top: 12%; left: 7%; width: 86%; }
+ .spatial-heading.is-first h2 { font-size: clamp(20px, 5.13vw, 28px); }
+ .spatial-heading p, .spatial-heading:not(.is-first) h2 { font-size: clamp(16px, 4.1vw, 24px); line-height: 1.5; }
+ .spatial-heading.is-first p { margin-top: 14px; }
+ .spatial-gallery .scroll-indicator { bottom: max(12%, 90px); }
+ .spatial-progress { top: auto; right: 8%; left: 8%; bottom: 8%; display: flex; justify-content: space-between; transform: none; }
+ .spatial-progress-item { height: 20px; gap: 0; }
+ .spatial-progress-item span { display: none; }
+ .spatial-progress-item i { width: 1px; height: 20px; }
+}
+@media (max-width: 1024px), (pointer: coarse) {
+ .spatial-explore { display: none; }
+ .spatial-gallery.is-touch-exploring { touch-action: none; }
+ .spatial-touch-explore:not([hidden]) { display: block; position: absolute; z-index: 4; bottom: max(2%, env(safe-area-inset-bottom)); left: 5%; width: 90%; padding: 10px 0; border: 0; background: transparent; color: white; font: 400 clamp(14px, 4.1vw, 20px)/1.5 "Aeonik Trial", Arial, sans-serif; cursor: pointer; }
+ .spatial-touch-explore:focus-visible { outline: 1px solid #fed201; }
+}
+
+@media (max-width: 767px) { .spatial-heading.is-first p { max-width: 280px; margin-inline: auto; } }

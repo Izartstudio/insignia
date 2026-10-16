@@ -111,7 +111,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
     camera.lookAt(focus);
     camera.fov = sceneConfig.camera.fov;
     camera.near = radius * sceneConfig.camera.nearRadiusRatio;
-    camera.far = radius * (sceneConfig.camera.distanceInRadii + sceneConfig.camera.farRadiusPadding);
+    camera.far = Math.max(radius * (sceneConfig.camera.distanceInRadii + sceneConfig.camera.farRadiusPadding), startPose.position.distanceTo(startPose.target) + radius * sceneConfig.camera.farRadiusPadding);
     camera.updateProjectionMatrix();
     if (!headingVisible && zoom.value >= sceneConfig.heading.revealThreshold) {
       headingVisible = true;

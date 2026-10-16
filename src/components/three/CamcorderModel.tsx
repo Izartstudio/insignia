@@ -55,6 +55,12 @@ export function CamcorderModel({ heroRef, scrollIndicatorRef, fullscreenHeadingR
   const camera = useThree((state) => state.camera);
   const size = useThree((state) => state.size);
   const radius = sceneConfig.model.normalizedRadius;
+  // Keep timeline ownership stable across toolbar/orientation resize events.
+  const viewport = useRef({ width: size.width, height: size.height });
+  useLayoutEffect(() => {
+    viewport.current.width = size.width;
+    viewport.current.height = size.height;
+  }, [size.width, size.height]);
 
   useLayoutEffect(() => {
     const section = heroRef.current;
@@ -66,14 +72,14 @@ export function CamcorderModel({ heroRef, scrollIndicatorRef, fullscreenHeadingR
       modelGroup: group,
       screen,
       camera,
-      viewport: { width: size.width, height: size.height },
+      viewport: viewport.current,
       radius,
       halfHeight: bounds.halfHeight * radius / bounds.radius,
       indicator: scrollIndicatorRef.current,
       heading: fullscreenHeadingRef.current,
       invalidate,
     });
-  }, [heroRef, scrollIndicatorRef, fullscreenHeadingRef, video, camera, size.width, size.height, radius, bounds.halfHeight, bounds.radius, invalidate]);
+  }, [heroRef, scrollIndicatorRef, fullscreenHeadingRef, video, camera, radius, bounds.halfHeight, bounds.radius, invalidate]);
 
   return (
     <>
