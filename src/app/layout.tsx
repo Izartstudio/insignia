@@ -4,7 +4,13 @@ import "./globals.css";
 import "@/components/layout/ui.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { SmoothScrolling } from "@/components/layout/SmoothScrolling";
-export const metadata: Metadata = { title: "INSIGNIA — Lumikai", description: "A cinematic experience by Lumikai." };
+const description = "Insignia by Lumikai brings together leaders, founders, industry experts and investors for India’s signature interactive media event and annual LP summit.";
+export const metadata: Metadata = {
+  title: "Insignia — Interactive Media & Gaming Summit | Lumikai",
+  description,
+  openGraph: { title: "Insignia — Lumikai", description, type: "website", locale: "en_IN", siteName: "Lumikai" },
+  twitter: { card: "summary", title: "Insignia — Lumikai", description },
+};
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en">
     <head>

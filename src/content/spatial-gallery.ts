@@ -26,7 +26,7 @@ export const galleryConfig = {
 // Rectangles measured from the supplied 1440 × 3600 SVG, local to each 900px state.
 // Available portraits are intentionally reused across categories as requested.
 export const galleryStates: GalleryState[] = [
-  { id: 'leaders', category: 'LEADERS', label: 'Leaders', heading: "Who's Been At Insignia", subtitle: 'Leaders Shaping The Interactive Media Industry', depth: 0, tile: { width: 1600, height: 1100 }, radius: 1075.5 / 900, photos: [
+  { id: 'leaders', category: 'LEADERS', label: 'Leaders', heading: "Who's been at Insignia.", subtitle: 'Leaders shaping the interactive media industry.', depth: 0, tile: { width: 1600, height: 1100 }, radius: 1075.5 / 900, photos: [
     { src: "/assets/insignia/people/leaders-reference-1.png", alt: "An attendee in conversation at Insignia", layout: [113, 125, 160, 185], mobileLayout: [40, 200, 310, 270], depthOffset: 0.3, referenceCrop: true },
     { src: "/assets/insignia/people/leaders-reference-2.png", alt: "Guests speaking at a reception", layout: [1222, 219, 130, 150], mobileLayout: [1040, 220, 280, 245], depthOffset: -0.3, referenceCrop: true },
     { src: "/assets/insignia/people/leaders-reference-3.png", alt: "A speaker holding a microphone", layout: [448, 280, 51.7574, 59.72], mobileLayout: [540, 270, 140, 123], depthOffset: -0.7, referenceCrop: true },
@@ -37,7 +37,7 @@ export const galleryStates: GalleryState[] = [
     { src: "/assets/insignia/people/leaders-reference-8.png", alt: "An attendee seated at the summit", layout: [1063, 544.852, 209.11, 241.281], mobileLayout: [990, 620, 330, 288], depthOffset: 0.5, referenceCrop: true },
     { src: "/assets/insignia/people/leaders-reference-9.png", alt: "An attendee at an Insignia gathering", layout: [59, 654, 161, 185], mobileLayout: [40, 680, 260, 227], depthOffset: 0.4, referenceCrop: true },
   ] },
-  { id: 'founders', category: 'FOUNDERS', label: 'Founders', heading: 'Founders Driving Innovation', depth: -16, tile: { width: 1600, height: 1100 }, radius: 732 / 900, photos: [
+  { id: 'founders', category: 'FOUNDERS', label: 'Founders', heading: 'Founders driving innovation.', depth: -16, tile: { width: 1600, height: 1100 }, radius: 732 / 900, photos: [
     { src: "/assets/insignia/people/founders-reference-1.png", alt: "A seated summit attendee", layout: [1316.0, 562.0, 203.0, 235.0], mobileLayout: [1065.05, 562.00, 334.95, 235.00], depthOffset: 0.2, referenceCrop: true },
     { src: "/assets/insignia/people/founders-reference-2.png", alt: "A speaker holding a microphone", layout: [628.0, 156.0, 207.0, 239.0], mobileLayout: [560.73, 160.00, 341.55, 239.00], depthOffset: 0.4, referenceCrop: true },
     { src: "/assets/insignia/people/founders-reference-3.png", alt: "A panel speaker gesturing", layout: [61.0, 397.0, 127.0, 147.0], mobileLayout: [35.00, 397.00, 209.55, 147.00], depthOffset: -0.4, referenceCrop: true },
@@ -45,7 +45,7 @@ export const galleryStates: GalleryState[] = [
     { src: "/assets/insignia/people/founders-reference-5.png", alt: "Guests in conversation", layout: [870.0, 548.0, 114.0, 132.0], mobileLayout: [832.95, 548.00, 188.10, 132.00], depthOffset: 0.3, referenceCrop: true },
     { src: "/assets/insignia/people/founders-reference-6.png", alt: "Portrait of a summit guest", layout: [394.0, 566.0, 210.0, 243.0], mobileLayout: [325.75, 566.00, 346.50, 243.00], depthOffset: -0.8, referenceCrop: true },
   ] },
-  { id: 'experts', category: 'EXPERTS', label: 'Industry Experts', heading: 'Industry Experts Defining Trends', depth: -32, tile: { width: 1600, height: 1100 }, radius: 626 / 900, photos: [
+  { id: 'experts', category: 'EXPERTS', label: 'Industry Experts', heading: 'Industry experts defining trends.', depth: -32, tile: { width: 1600, height: 1100 }, radius: 626 / 900, photos: [
     { src: "/assets/insignia/people/experts-reference-1.png", alt: "A speaker holding a microphone", layout: [947.0, 411.0, 157.0, 181.0], mobileLayout: [895.98, 411.00, 259.05, 181.00], depthOffset: 0.2, referenceCrop: true },
     { src: "/assets/insignia/people/experts-reference-2.png", alt: "A panel speaker gesturing", layout: [56.0, 141.0, 234.0, 270.0], mobileLayout: [35.00, 160.00, 370.00, 270.00], depthOffset: 0.4, referenceCrop: true },
     { src: "/assets/insignia/people/experts-reference-3.png", alt: "A seated panel speaker", layout: [1215.0, 70.0, 175.0, 202.0], mobileLayout: [1111.25, 160.00, 288.75, 202.00], depthOffset: -0.4, referenceCrop: true },
@@ -54,7 +54,7 @@ export const galleryStates: GalleryState[] = [
     { src: "/assets/insignia/people/experts-reference-6.png", alt: "Guests in conversation", layout: [530.0, 392.0, 33.3722, 38.5064], mobileLayout: [519.15, 392.00, 55.06, 38.51], depthOffset: -0.8, referenceCrop: true },
     { src: "/assets/insignia/people/experts-reference-7.png", alt: "A seated summit attendee", layout: [263.0, 487.0, 56.0, 65.0], mobileLayout: [244.80, 487.00, 92.40, 65.00], depthOffset: -0.3, referenceCrop: true },
   ] },
-  { id: 'investors', category: 'INVESTORS', label: 'Investors', heading: 'Investors Catalysing Change', depth: -48, tile: { width: 1600, height: 1100 }, radius: .5, photos: [
+  { id: 'investors', category: 'INVESTORS', label: 'Investors', heading: 'Investors catalysing change.', depth: -48, tile: { width: 1600, height: 1100 }, radius: .5, photos: [
     { src: "/assets/insignia/people/investors-reference-1.png", alt: "Guests at a reception", layout: [1355.0, 92.0, 169.0, 194.0], mobileLayout: [1121.15, 160.00, 278.85, 194.00], depthOffset: 0.2, referenceCrop: true },
     { src: "/assets/insignia/people/investors-reference-2.png", alt: "A speaker holding a microphone", layout: [659.757, 230.0, 134.333, 155.0], mobileLayout: [616.10, 230.00, 221.65, 155.00], depthOffset: 0.4, referenceCrop: true },
     { src: "/assets/insignia/people/investors-reference-3.png", alt: "A panel speaker gesturing", layout: [142.757, 444.0, 111.0, 128.0], mobileLayout: [106.68, 444.00, 183.15, 128.00], depthOffset: -0.4, referenceCrop: true },

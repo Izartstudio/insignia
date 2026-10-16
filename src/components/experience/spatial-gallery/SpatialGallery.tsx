@@ -188,7 +188,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         {galleryStates.map((state, index) => <div className="spatial-state" key={state.id}>
           <div className={`spatial-heading ${index === 0 ? 'is-first' : ''}`}>
             <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-        <div className="spatial-explore" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move To Explore The Canvas</div>
+        <div className="spatial-explore" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move to explore the canvas.</div>
           </div>
         </div>)}
         <div className="spatial-progress">{galleryStates.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>

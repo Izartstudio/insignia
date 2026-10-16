@@ -62,7 +62,7 @@ export function PastEditions() {
     <section id="past-editions" className="past-editions" aria-labelledby="past-editions-title">
       <header className="past-editions-heading">
         <p>PAST EDITIONS</p>
-        <h2 id="past-editions-title">Every Edition Explores A Defining<br className="past-editions-desktop-break" /> Question For The Indian Industry</h2>
+        <h2 id="past-editions-title">Every edition explores a defining<br className="past-editions-desktop-break" /> question for the Indian industry.</h2>
       </header>
       <div ref={stageRef} className="past-editions-stage">
         <div className="past-editions-divider" aria-hidden="true"><span ref={progressRef} /></div>

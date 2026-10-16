@@ -112,7 +112,7 @@ export function Navbar() {
         <div ref={panel} className="menu-panel" id="site-menu" inert={!open}>
           <a href={navigation.home} className="menu-logo" onClick={() => setOpen(false)}><LumikaiLogo alt="Lumikai home" /></a>
           <div className="menu-links">{[...navigation.primary, ...navigation.secondary].map(item => <div className="menu-link-row" key={item.label}>{item.href === "/" ? <Link href="/" onClick={() => setOpen(false)} aria-current="page" aria-label={item.label}><MenuText text={item.label} /></Link> : <a href={item.href} onClick={() => setOpen(false)} aria-label={item.label}><MenuText text={item.label} /></a>}</div>)}</div>
-          <div className="menu-footer"><a href={navigation.pitch} onClick={() => setOpen(false)}>Pitch To Us <span aria-hidden="true">+</span></a></div>
+          <div className="menu-footer"><a href={navigation.pitch} onClick={() => setOpen(false)}>Pitch To Us <svg aria-hidden="true" viewBox="0 0 12 12" fill="currentColor"><path d="M5.32283 12V6.656H0V5.312H5.32283V0H6.70866V5.312H12V6.656H6.70866V12H5.32283Z" /></svg></a></div>
         </div>
         <button ref={button} type="button" className="menu-button" aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen(value => !value)}><MenuIcon open={open} /></button>
       </div>

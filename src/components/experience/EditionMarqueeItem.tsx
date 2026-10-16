@@ -3,7 +3,7 @@ import type { EditionMarqueeItem as EditionMarqueeItemData } from "@/content/pas
 
 export function EditionMarqueeItem({ item }: { item: EditionMarqueeItemData }) {
   if (item.type === "edition") {
-    return <div className="edition-label"><span>{item.year}</span><p>{item.title}</p></div>;
+    return <div className="edition-label"><h3>{item.year}</h3><p>{item.title}</p></div>;
   }
   return (
     <div className="edition-image">

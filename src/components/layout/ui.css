@@ -1,3 +1,6 @@
+@font-face { font-family: "Aeonik Trial"; src: url('/fonts/aeonik-bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "PP Neue Montreal"; src: url('/fonts/ppneuemontreal-book.otf') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "PP Neue Montreal"; src: url('/fonts/ppneuemontreal-medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "Aeonik Trial"; src: url('/fonts/aeonik-regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 
 :root {
@@ -44,32 +47,37 @@
 .menu-icon { position: relative; width: 24px; height: 24px; display: grid; place-items: center; }
 .menu-icon-player { position: absolute; inset: 0; opacity: 0; }
 .menu-backdrop { position: absolute; inset: 0; background: #0b0b0b59; backdrop-filter: blur(20px); visibility: hidden; pointer-events: auto; }
-.menu-panel { position: absolute; inset: 0 0 0 auto; width: min(37.9rem, 100%); height: 100dvh; padding: 2.1rem 2.1875rem; background: #000; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; visibility: hidden; pointer-events: auto; }
+.menu-panel { --menu-reference-rem: 16px; position: absolute; inset: 0 0 0 auto; width: min(37.9rem, 100%); height: 100dvh; padding: 2.1rem 2.1875rem; background: #000; display: flex; flex-direction: column; overflow-y: auto; overscroll-behavior: contain; visibility: hidden; pointer-events: auto; }
 .menu-logo { display: block; width: 116px; flex-shrink: 0; }
-.menu-links { padding-top: 3rem; }
-.menu-link-row { border-bottom: 1px solid var(--ui-border); }
-.menu-link-row a { display: block; padding: 13px 0; color: #fafafa; font-size: 18px; }
-.menu-link-row [aria-current] { color: var(--ui-yellow); }
+.menu-links { padding-top: 3rem; display: flex; flex-direction: column; gap: 1.125rem; }
+.menu-link-row { border-bottom: 1px solid #d9d9d933; padding-bottom: 1.125rem; }
+.menu-link-row:last-child { border-bottom: 0; }
+.menu-link-row a { display: block; padding: 0; color: #fafafa; font-family: "PP Neue Montreal", Arial, sans-serif; font-weight: 400; font-size: calc(var(--menu-reference-rem) * 1.125); line-height: 1.5; }
+.menu-link-row [aria-current] { color: #fafafa; }
 .menu-text { position: relative; display: inline-block; overflow: hidden; vertical-align: top; }
 .menu-char { display: inline-block; position: relative; white-space: pre; transition: transform var(--hover-duration) var(--hover-easing); }
 .menu-char-copy { position: absolute; top: 100%; left: 0; }
 .menu-link-row a:is(:hover,:focus-visible) .menu-char { transform: translateY(-100%); }
-.menu-footer { margin-top: auto; padding-top: 40px; }
-.menu-footer a { display: flex; justify-content: space-between; align-items: center; border: 1px solid #fafafa; padding: 16px; color: #fafafa; }
-.menu-footer span { font-size: 22px; }
+.menu-footer { margin-top: auto; padding-top: 4rem; flex-shrink: 0; }
+.menu-footer a { display: flex; justify-content: center; align-items: center; gap: .625rem; padding: 1.25rem 1.78125rem; background: #fed201; color: #000; font-family: "Aeonik Trial", Arial, sans-serif; font-size: var(--menu-reference-rem); font-weight: 700; line-height: 1.5; text-transform: uppercase; clip-path: polygon(0 0,95% 0,100% 30%,100% 100%,5% 100%,0 78%); transition: clip-path .4s ease; }
+.menu-footer a:is(:hover,:focus-visible) { clip-path: polygon(0 0,100% 0,100% 30%,100% 100%,100% 100%,0 100%); }
+.menu-footer svg { width: .75rem; height: .75rem; flex: none; }
 @media (max-width: 991px) { .desktop-navigation { display: none; } }
 @media (max-width: 767px) {
   :root { --menu-width: 60px; --menu-height: 50px; }
   .site-logo { left: 24px; top: 24px; width: 82px; height: 25px; }
   .site-logo .brand-logo { width: 82px; height: 25px; }
-  .menu-panel { padding: 30px; }
-  .menu-link-row a { font-size: 16px; }
+  .menu-panel { width: 100%; padding: 1.875rem; }
+  .menu-links { gap: 1rem; }
+  .menu-link-row { padding-bottom: 1rem; }
+  .menu-footer a { padding: 1rem 1.25rem; }
+  .menu-link-row a { font-size: var(--menu-reference-rem); }
   .fullscreen-heading { padding-right: 20px; padding-bottom: max(8svh, calc(env(safe-area-inset-bottom) + 24px)); padding-left: 20px; }
   .fullscreen-heading h1 { max-width: 22rem; font-size: clamp(2rem, 9.5vw, 2.75rem); line-height: 1.12; letter-spacing: -.03em; }
 }
 @media (prefers-reduced-motion: reduce) {
   .scroll-indicator-line { animation: none; transform: none; }
-  .nav-glyph, .menu-char { transition: none; }
+  .nav-glyph, .menu-char, .menu-footer a { transition: none; }
 }
 
 .nav-cell:last-child { border-right: 1px solid var(--ui-border); }
@@ -160,7 +168,7 @@ html { scrollbar-gutter: stable; }
 .edition-image { position: relative; width: var(--edition-image-width); height: var(--edition-image-height); overflow: hidden; background: #080808; }
 .edition-image img { object-fit: cover; border-radius: 0; pointer-events: none; }
 .edition-label { width: var(--edition-image-width); height: var(--edition-image-height); padding: 10px 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
-.edition-label span { color: #fff; font-family: "Aeonik Trial", Arial, sans-serif; font-size: 24px; font-weight: 400; line-height: 1.5; }
+.edition-label h3 { margin: 0; color: #fff; font-family: "Aeonik Trial", Arial, sans-serif; font-size: 24px; font-weight: 400; line-height: 1.5; }
 .edition-label p { margin: 10px 0 0; color: #fed201; font-family: "Aeonik Trial", Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 1.5; }
 
 @media (min-width: 1440px) {
@@ -168,7 +176,7 @@ html { scrollbar-gutter: stable; }
   .introduction-copy { font-size: clamp(1.25rem, 1.389vw, 1.5rem); }
   .past-editions-heading > p { font-size: clamp(.875rem, .972vw, 1rem); }
   .past-editions-heading h2 { font-size: clamp(2rem, 2.222vw, 2.5rem); }
-  .edition-label span { font-size: clamp(1.5rem, 1.667vw, 1.75rem); }
+  .edition-label h3 { font-size: clamp(1.5rem, 1.667vw, 1.75rem); }
   .edition-label p { font-size: clamp(1.125rem, 1.25vw, 1.375rem); }
 }
 
@@ -180,7 +188,7 @@ html { scrollbar-gutter: stable; }
   .past-editions-desktop-break { display: none; }
 
   .edition-label { padding: 8px 0; }
-  .edition-label span { font-size: 21px; }
+  .edition-label h3 { font-size: 21px; }
   .edition-label p { font-size: 16px; }
 }
 
@@ -190,7 +198,7 @@ html { scrollbar-gutter: stable; }
 }
 
 @media (max-height: 500px) {
-  .edition-label span { font-size: 18px; }
+  .edition-label h3 { font-size: 18px; }
   .edition-label p { font-size: 13px; margin-top: 6px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -198,4 +206,21 @@ html { scrollbar-gutter: stable; }
   .past-editions-viewport { overflow-x: auto; }
   .past-editions-track { transform: none !important; will-change: auto; }
   .past-editions-divider span { transform: none; }
+}
+
+/* Scope the reference site's fluid rem scale to the open menu typography. */
+@media (min-width: 240px) {
+  .menu-panel { --menu-reference-rem: calc(9.5px + (100vw - 240px) * .0433333333); }
+}
+@media (min-width: 768px) {
+  .menu-panel { --menu-reference-rem: calc(10.67px + (100vw - 768px) * .0239013453); }
+}
+@media (min-width: 992px) {
+  .menu-panel { --menu-reference-rem: calc(10.95px + (100vw - 992px) * .0112723214); }
+}
+@media (min-width: 1440px) {
+  .menu-panel { --menu-reference-rem: calc(16px + (100vw - 1440px) * .0109583333); }
+}
+@media (min-width: 1920px) {
+  .menu-panel { --menu-reference-rem: 20px; }
 }

@@ -7,10 +7,10 @@ type Edition = { year: string; title: string; labelRow: "top" | "bottom"; photos
 // Photos are deliberately reused until the remaining edition assets are supplied.
 // Column-major order: top, bottom, then the next column, as in the reference.
 export const pastEditions: readonly Edition[] = [
-  { year: "2025", title: "The Interactive Era", labelRow: "top", photos: ["imagerow2", "imagew", "imagerow2-2", "image-2", "imagerow2-3"] },
-  { year: "2024", title: "Finding Alpha", labelRow: "bottom", photos: ["image-3", "image-4", "imagerow2-4", "imagew", "imagerow2-2"] },
-  { year: "2023", title: "India’s Digital Destiny", labelRow: "top", photos: ["imagerow2", "imagew", "image-2", "image-3", "imagerow2-4"] },
-  { year: "2022", title: "Let The Games Begin", labelRow: "bottom", photos: ["image-4", "imagerow2-3", "image-2", "imagerow2"] },
+  { year: "2025", title: "The interactive era.", labelRow: "top", photos: ["imagerow2", "imagew", "imagerow2-2", "image-2", "imagerow2-3"] },
+  { year: "2024", title: "Finding alpha.", labelRow: "bottom", photos: ["image-3", "image-4", "imagerow2-4", "imagew", "imagerow2-2"] },
+  { year: "2023", title: "India’s digital destiny.", labelRow: "top", photos: ["imagerow2", "imagew", "image-2", "image-3", "imagerow2-4"] },
+  { year: "2022", title: "Let the games begin.", labelRow: "bottom", photos: ["image-4", "imagerow2-3", "image-2", "imagerow2"] },
 ];
 
 const descriptions: Record<string, string> = {

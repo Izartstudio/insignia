@@ -46,8 +46,8 @@ export const FullscreenHeading = forwardRef<FullscreenHeadingHandle>(function Fu
   return (
     <div ref={root} className="fullscreen-heading">
       <h1>
-        <span>The Conversations That</span>
-        <span>Define Market Shifts</span>
+        <span>The conversations that</span>
+        <span>define market shifts.</span>
       </h1>
     </div>
   );

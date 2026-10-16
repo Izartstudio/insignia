@@ -42,6 +42,7 @@
 @media (max-height: 500px) { .spatial-heading { top: 7%; } .spatial-heading p { margin-top: 5px; } .spatial-gallery .scroll-indicator { transform: translateX(-50%) scale(.65); transform-origin: bottom center; } }
 
 @media (min-width: 1440px) {
+  .spatial-progress-item { font-size: clamp(1.125rem, 1.25vw, 1.5rem); height: auto; min-height: 1.5em; line-height: 1.5; }
   .spatial-heading { top: clamp(48px, 7svh, 88px); }
   .spatial-heading.is-first { top: clamp(58px, 8.4svh, 96px); }
   .spatial-heading.is-first h2 { font-size: clamp(2.5rem, 2.778vw, 3.25rem); }
