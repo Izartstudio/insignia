@@ -1,6 +1,13 @@
 export type Placement = readonly [x: number, y: number, width: number, height: number];
 export type GalleryPhoto = { src: string; alt: string; layout: Placement; depthOffset: number; referenceCrop?: boolean; mobileLayout?: Placement };
 export type GalleryState = { id: string; category: string; label: string; heading: string; subtitle?: string; depth: number; tile: { width: number; height: number }; radius: number; photos: GalleryPhoto[] };
+export type GalleryMotionProfile = {
+  readonly scrollViewports: number;
+  readonly scrub: number;
+  readonly stops: readonly number[];
+  readonly exits: readonly number[];
+  readonly travelEase: 'none' | 'power1.inOut';
+};
 
 export const galleryConfig = {
   reference: { width: 1440, height: 900 },
@@ -63,3 +70,28 @@ export const mobilePlacements: readonly Placement[] = [
   [60,560,340,360], [1030,560,340,360], [570,670,175,200],
   [420,550,210,240], [760,510,210,240], [680,140,160,180],
 ];
+
+// The original pacing remains available through SpatialGalleryOriginal.
+export const originalGalleryMotionProfile: GalleryMotionProfile = {
+  scrollViewports: galleryConfig.scrollViewports,
+  scrub: galleryConfig.scrub,
+  stops: galleryConfig.stops,
+  exits: galleryConfig.exits,
+  travelEase: 'power1.inOut',
+};
+
+// Give each depth passage enough scroll to see photographs approaching and receding.
+// The short holds preserve a clear resting frame for every category.
+const categoryScrollViewports = 2.8;
+const categoryHoldViewports = 0.65;
+const extendedScrollViewports = categoryScrollViewports * (galleryStates.length - 1) + categoryHoldViewports;
+
+export const extendedGalleryMotionProfile: GalleryMotionProfile = {
+  scrollViewports: extendedScrollViewports,
+  scrub: galleryConfig.scrub,
+  stops: galleryStates.map((_, index) => index * categoryScrollViewports / extendedScrollViewports),
+  exits: galleryStates.map((_, index) => index === galleryStates.length - 1
+    ? 1
+    : (index * categoryScrollViewports + categoryHoldViewports) / extendedScrollViewports),
+  travelEase: 'none',
+};

@@ -4,7 +4,7 @@ import { Component, useCallback, useLayoutEffect, useRef, useState, type CSSProp
 import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { galleryConfig, galleryStates } from '@/content/spatial-gallery';
+import { extendedGalleryMotionProfile, galleryConfig, galleryStates, type GalleryMotionProfile } from '@/content/spatial-gallery';
 import { ScrollIndicator } from '../ScrollIndicator';
 import SpatialGalleryScene from './SpatialGalleryScene';
 import type { GalleryMotion } from './GalleryEnvironment';
@@ -25,7 +25,7 @@ function AccessibleGallery({ visible }: { visible: boolean }) {
   </div>;
 }
 
-export function SpatialGallery() {
+export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }: { motionProfile?: GalleryMotionProfile }) {
   const sectionRef = useRef<HTMLElement>(null);
   const motion = useRef<GalleryMotion>({ travel: 0, panX: 0, panY: 0, active: false, invalidate: () => {} });
   const panOffsets = useRef(galleryStates.map(() => ({ x: 0, y: 0 })));
@@ -78,19 +78,19 @@ export function SpatialGallery() {
         scrollTrigger: {
           // Measure upstream pins first, regardless of asynchronous mount order.
           refreshPriority: 20,
-          trigger: section, start: 'top top', end: () => `+=${section.clientHeight * galleryConfig.scrollViewports}`,
-          pin: true, pinSpacing: false, scrub: galleryConfig.scrub, anticipatePin: 1, invalidateOnRefresh: true,
+          trigger: section, start: 'top top', end: () => `+=${section.clientHeight * motionProfile.scrollViewports}`,
+          pin: true, pinSpacing: false, scrub: motionProfile.scrub, anticipatePin: 1, invalidateOnRefresh: true,
         },
         onUpdate: syncPan,
       });
       galleryStates.forEach((state, index) => {
-        const start = galleryConfig.stops[index];
-        const exit = galleryConfig.exits[index];
+        const start = motionProfile.stops[index];
+        const exit = motionProfile.exits[index];
         timeline.addLabel(state.id, start).addLabel(`${state.id}Exit`, exit);
         if (index === galleryStates.length - 1) return;
-        const end = galleryConfig.stops[index + 1];
+        const end = motionProfile.stops[index + 1];
         const duration = end - exit;
-        timeline.to(motion.current, { travel: index + 1, duration, ease: 'power1.inOut' }, exit)
+        timeline.to(motion.current, { travel: index + 1, duration, ease: motionProfile.travelEase }, exit)
           .to(overlays[index], { autoAlpha: 0, y: -12, duration: duration * .35, ease: 'none' }, exit)
           .fromTo(overlays[index + 1], { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: duration * .35, ease: 'none', immediateRender: false }, end - duration * .35)
           .to(labels[index], { autoAlpha: 0, duration: duration * .35 }, exit)
@@ -98,7 +98,7 @@ export function SpatialGallery() {
           .to(marks[index], { opacity: .2, duration: duration * .5 }, exit)
           .to(marks[index + 1], { opacity: 1, duration: duration * .5 }, exit + duration * .5);
       });
-      timeline.to({}, { duration: 1 - galleryConfig.stops[galleryStates.length - 1] }, galleryConfig.stops[galleryStates.length - 1]);
+      timeline.to({}, { duration: 1 - motionProfile.stops[galleryStates.length - 1] }, motionProfile.stops[galleryStates.length - 1]);
     }, section);
     const observer = new IntersectionObserver(([entry]) => {
       motion.current.active = entry.isIntersecting;
@@ -157,9 +157,9 @@ export function SpatialGallery() {
       context.revert();
       motion.current.active = false;
     };
-  }, [animated, preview]);
+  }, [animated, preview, motionProfile]);
 
-  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(galleryConfig.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''}`} aria-label="Who's Been At Insignia">
+  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''}`} aria-label="Who's Been At Insignia">
     <AccessibleGallery visible={!animated} />
     {animated && <>
       <div className="spatial-canvas" aria-hidden="true">
