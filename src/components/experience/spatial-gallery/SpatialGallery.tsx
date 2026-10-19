@@ -39,7 +39,9 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const motion = useRef<GalleryMotion>({ travel: 0, panX: 0, panY: 0, active: false, invalidate: () => {} });
   const panOffsets = useRef(galleryStates.map(() => ({ x: 0, y: 0 })));
   const [selection, setSelection] = useState<GallerySelection | null>(null);
-  const closePhoto = useCallback(() => setSelection(null), []);
+  const [photoClosing, setPhotoClosing] = useState(false);
+  const startClosingPhoto = useCallback(() => setPhotoClosing(true), []);
+  const closePhoto = useCallback(() => { setSelection(null); setPhotoClosing(false); }, []);
   useLayoutEffect(() => {
     motion.current.paused = selection !== null;
     motion.current.invalidate();
@@ -47,7 +49,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   }, [selection]);
   const [preview, setPreview] = useState<number | null>(null);
   const [enhanced, setEnhanced] = useState(false);
-  const [canvasReady, setCanvasReady] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const onFailure = useCallback(() => { console.error("Spatial gallery entered WebGL/asset fallback"); setFailed(true); }, []);
@@ -55,21 +56,12 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
 
   useLayoutEffect(() => {
     if (!animated) return;
-    // Warm the browser cache before the lazy WebGL canvas approaches the viewport.
+    // Warm later categories alongside the eagerly initialized WebGL canvas.
     galleryStates.forEach((state, index) => state.photos.forEach(photo => {
       preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
     }));
   }, [animated]);
 
-  useLayoutEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setCanvasReady(true); observer.disconnect(); }
-    }, { rootMargin: '100% 0px' });
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
   useLayoutEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -260,12 +252,12 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     };
   }, [animated, preview, motionProfile]);
 
-  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${selection ? 'has-photo-dialog' : ''}`} aria-label="Who's Been At Insignia">
+  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${selection && !photoClosing ? 'has-photo-dialog' : ''}`} aria-label="Who's Been At Insignia">
     <AccessibleGallery visible={!animated} onSelect={setSelection} />
     {animated && <>
       <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
         <GalleryBoundary onFailure={onFailure}>
-          {canvasReady && <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
+          {<Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
             <SpatialGalleryScene motion={motion} onFailure={onFailure} />
           </Canvas>}
@@ -287,5 +279,5 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         <ScrollIndicator />
       </div>
     </>}
-  </section>{selection && <GalleryPhotoDialog selection={selection} onClose={closePhoto} />}</div>;
+  </section>{selection && <GalleryPhotoDialog selection={selection} onClose={closePhoto} onCloseStart={startClosingPhoto} />}</div>;
 }

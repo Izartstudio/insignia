@@ -24,11 +24,11 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
     const geometry = new PlaneGeometry(1, 1);
     const photos = world.photos.map((photo, index) => {
       const texture = textures[photo.src];
-      const image = texture.image as HTMLImageElement;
-      const layout = mapPhoto(photo, index, size.height * aspect, size.height, image.width / image.height);
-      texture.repeat.set(...layout.repeat);
-      texture.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
-      return { bounds: null as string | null, layout, material: new MeshBasicMaterial({ map: texture, transparent: true, alphaTest: .02, toneMapped: false }) };
+      const image = texture?.image as HTMLImageElement | undefined;
+      const layout = mapPhoto(photo, index, size.height * aspect, size.height, image ? image.width / image.height : photo.layout[2] / photo.layout[3]);
+      texture?.repeat.set(...layout.repeat);
+      texture?.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
+      return { ready: !!texture, bounds: null as string | null, layout, material: new MeshBasicMaterial({ map: texture ?? null, transparent: true, alphaTest: .02, toneMapped: false }) };
     });
     const maxWidth = Math.max(...photos.map(({ layout }) => layout.scale[0]));
     const maxHeight = Math.max(...photos.map(({ layout }) => layout.scale[1]));
@@ -44,11 +44,11 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
     const distance = camera.position.z - world.depth;
     const visible = distance > -1 && distance < galleryConfig.distance + galleryConfig.depthStep;
     const opacity = 1 - MathUtils.smoothstep(distance, galleryConfig.distance, galleryConfig.distance + galleryConfig.depthStep);
-    resources.photos.forEach(({ layout, material }, index) => {
+    resources.photos.forEach(({ layout, material, ready }, index) => {
       const mesh = meshes.current[index];
       if (!mesh) return;
       mesh.visible = visible;
-      if (!visible || opacity <= 0) { mesh.visible = false; return; }
+      if (!ready || !visible || opacity <= 0) { mesh.visible = false; return; }
       material.opacity = opacity;
       const depth = distance - layout.position[2];
       if (depth <= .05) { mesh.count = 0; resources.photos[index].bounds = null; return; }

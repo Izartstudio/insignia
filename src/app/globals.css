@@ -24,3 +24,6 @@ body { margin: 0; }
 .film-controls button:disabled { opacity: .5; cursor: default; }
 
 .film-controls .film-volume { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; }
+
+/* Preserve viewport width when dialogs lock/unlock document scrolling. */
+html { scrollbar-gutter: stable; }

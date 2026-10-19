@@ -1,3 +1,4 @@
+import { galleryStates } from "@/content/spatial-gallery";
 import type { Metadata } from "next";
 import "lenis/dist/lenis.css";
 import "./globals.css";
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en">
     <head>
+      {galleryStates[0].photos.map(photo => <link key={photo.src} rel="preload" as="image" href={photo.src} fetchPriority="high" />)}
       <link rel="preload" href="/fonts/aeonik-regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       <link rel="preload" href="/fonts/aeonik-bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     </head>

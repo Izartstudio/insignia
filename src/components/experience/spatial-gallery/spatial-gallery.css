@@ -135,8 +135,7 @@
 /* Blur the actual scene: native dialog backdrop filtering is unreliable over WebGL. */
 .spatial-gallery.has-photo-dialog .spatial-canvas { filter: blur(24px); transform: scale(1.08); }
 .spatial-gallery.has-photo-dialog .spatial-overlays,
-.spatial-gallery.has-photo-dialog .spatial-scroll-zone { visibility: hidden; }
-.spatial-gallery.has-photo-dialog .spatial-state { visibility: hidden !important; }
+.spatial-gallery.has-photo-dialog .spatial-scroll-zone { opacity: 0; }
 .spatial-gallery.has-photo-dialog .spatial-static { filter: blur(24px); }
 .gallery-photo-dialog::backdrop { background: rgba(65, 17, 0, .22); }
 .gallery-photo-dialog h2 { margin: 0; text-align: center; font-size: clamp(1.5rem, 2.78vw, 3rem); line-height: 1.25; font-weight: 400; }
@@ -179,8 +178,8 @@
 @media (prefers-reduced-motion: reduce) { .gallery-dialog-content { animation: none; } }
 
 /* Native dialog stays fixed; animate opacity only so controls never acquire a transformed containing block. */
-body.gallery-photo-open .site-header { opacity: 0; visibility: hidden; pointer-events: none; }
-.site-header { transition: opacity 240ms ease, visibility 240ms; }
+body.gallery-photo-open:not(.gallery-photo-closing) .site-header { opacity: 0; pointer-events: none; }
+.site-header { opacity: 1; transition: opacity 160ms ease-out; }
 .gallery-photo-dialog { overflow-x: hidden; cursor: default; padding-top: max(5.25rem, env(safe-area-inset-top)); }
 .gallery-dialog-close {
  display: grid; place-items: center; padding: 0; line-height: 1;
@@ -261,3 +260,18 @@ body.gallery-photo-open .site-header { opacity: 0; visibility: hidden; pointer-e
 @media (prefers-reduced-motion: reduce) {
  .gallery-dialog-link, .gallery-dialog-link::before, .gallery-dialog-link::after { transition: none; }
 }
+
+/* Return the scene and controls while the detail view fades, before releasing its scroll lock. */
+.spatial-canvas { transition: filter 420ms ease, transform 420ms ease; }
+.spatial-overlays, .spatial-scroll-zone { transition: opacity 420ms ease; }
+.gallery-photo-dialog::backdrop { transition: background-color 420ms ease; }
+.gallery-photo-dialog[data-closing="true"]::backdrop { background-color: transparent; }
+body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+ .spatial-canvas, .spatial-overlays, .spatial-scroll-zone, .gallery-photo-dialog::backdrop { transition: none; }
+}
+
+/* Fade the close control early so it does not overlap the returning menu button. */
+.gallery-dialog-close { transition: opacity 120ms ease-out; }
+.gallery-photo-dialog[data-closing="true"] .gallery-dialog-close { opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .gallery-dialog-close { transition: none; } }

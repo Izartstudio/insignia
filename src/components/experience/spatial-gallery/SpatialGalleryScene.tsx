@@ -5,46 +5,53 @@ import { galleryConfig, galleryStates } from '@/content/spatial-gallery';
 import { GalleryEnvironment, type GalleryMotion } from './GalleryEnvironment';
 import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
 
-// Keep each world's texture map stable when another world finishes loading.
-function LoadedWorld({ world, textures }: { world: typeof galleryStates[number]; textures: Record<string, Texture> }) {
-  const [worldTextures] = useState(() => Object.fromEntries(world.photos.map(photo => [photo.src, textures[photo.src]])));
-  return <group><InfiniteCanvasPlane world={world} textures={worldTextures} /></group>;
-}
-
 export default function SpatialGalleryScene({ motion, onFailure }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void }) {
   const { camera, invalidate, scene, gl } = useThree();
-  const [textures, setTextures] = useState<Record<string, Texture> | null>(null);
+  const [textures, setTextures] = useState<Record<string, Record<string, Texture>>>({});
   const offset = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     let disposed = false;
     const owned: Texture[] = [];
     const loader = new TextureLoader();
-    const load = async (items: string[]) => Promise.all(items.map(async src => {
-      const texture = await loader.loadAsync(src);
-      if (disposed) { texture.dispose(); return [src, texture] as const; }
-      texture.colorSpace = SRGBColorSpace;
-      owned.push(texture);
-      return [src, texture] as const;
-    }));
-    // Publish categories independently: one slow download must not block all later worlds.
+    let publishFrame = 0;
+    const pending: Record<string, Record<string, Texture>> = {};
+    const publish = () => {
+      publishFrame = 0;
+      if (disposed) return;
+      const batch = { ...pending };
+      Object.keys(pending).forEach(key => { delete pending[key]; });
+      setTextures(current => {
+        const next = { ...current };
+        Object.entries(batch).forEach(([id, images]) => { next[id] = { ...current[id], ...images }; });
+        return next;
+      });
+      invalidate();
+    };
+    let initialFailures = 0;
+    // Publish decoded/uploaded photos as they arrive, batching updates to one per frame.
     galleryStates.forEach((world, index) => {
-      load([...new Set(world.photos.map(photo => photo.src))]).then(entries => {
-        if (!disposed) {
-          setTextures(current => ({ ...current, ...Object.fromEntries(entries) }));
-          invalidate();
-        }
-      }).catch((error: unknown) => {
-        if (disposed) return;
-        console.error(`Gallery textures failed for ${world.id}`, error);
-        if (index === 0) onFailure();
+      world.photos.forEach(photo => {
+        loader.loadAsync(photo.src).then(texture => {
+          if (disposed) { texture.dispose(); return; }
+          texture.colorSpace = SRGBColorSpace;
+          owned.push(texture);
+          gl.initTexture(texture);
+          (pending[world.id] ??= {})[photo.src] = texture;
+          if (!publishFrame) publishFrame = requestAnimationFrame(publish);
+        }).catch((error: unknown) => {
+          if (disposed) return;
+          console.error(`Gallery image failed: ${photo.src}`, error);
+          if (index === 0 && ++initialFailures === world.photos.length) onFailure();
+        });
       });
     });
     return () => {
       disposed = true;
+      cancelAnimationFrame(publishFrame);
       owned.forEach(texture => texture.dispose());
     };
-  }, [invalidate, onFailure]);
+  }, [gl, invalidate, onFailure]);
 
   useEffect(() => {
     motion.current.invalidate = invalidate;
@@ -82,9 +89,8 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
     if (state.active && (Math.abs(offset.current.x - targetX) > .0001 || Math.abs(offset.current.y - targetY) > .0001)) invalidate();
   }, -1); // Update the camera before the environment and tile visibility callbacks.
 
-  if (!textures) return null;
   return <>
     <GalleryEnvironment motion={motion} />
-    {galleryStates.filter(world => world.photos.every(photo => textures[photo.src])).map(world => <LoadedWorld key={world.id} world={world} textures={textures} />)}
+    {galleryStates.filter(world => textures[world.id]).map(world => <InfiniteCanvasPlane key={world.id} world={world} textures={textures[world.id]} />)}
   </>;
 }

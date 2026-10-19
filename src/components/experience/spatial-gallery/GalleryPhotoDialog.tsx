@@ -7,7 +7,7 @@ import { galleryStates } from '@/content/spatial-gallery';
 export type GallerySelection = { worldId: string; photoIndex: number };
 const entries = galleryStates.flatMap(world => world.photos.map((photo, photoIndex) => ({ world, photo, photoIndex })));
 
-export function GalleryPhotoDialog({ selection, onClose }: { selection: GallerySelection; onClose: () => void }) {
+export function GalleryPhotoDialog({ selection, onClose, onCloseStart }: { selection: GallerySelection; onClose: () => void; onCloseStart: () => void }) {
   const [index, setIndex] = useState(() => Math.max(0, entries.findIndex(entry => entry.world.id === selection.worldId && entry.photoIndex === selection.photoIndex)));
   const dialog = useRef<HTMLDialogElement>(null);
   const content = useRef<HTMLDivElement>(null);
@@ -27,8 +27,19 @@ export function GalleryPhotoDialog({ selection, onClose }: { selection: GalleryS
     const opacity = getComputedStyle(dialog.current!).opacity;
     openingAnimation.current?.cancel();
     dialog.current!.dataset.closing = 'true';
-    animation.current = dialog.current!.animate([{ opacity }, { opacity: 0 }], { duration: duration(240), easing: 'ease-in-out', fill: 'forwards' });
-    animation.current.onfinish = onClose;
+    document.body.classList.add('gallery-photo-closing');
+    onCloseStart();
+    animation.current = dialog.current!.animate([{ opacity }, { opacity: 0 }], { duration: duration(420), easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'forwards' });
+    animation.current.onfinish = () => {
+      // Persist the faded state before React cleanup cancels the animation.
+      // Otherwise removing its fill can expose the full-opacity dialog for a frame.
+      const node = dialog.current;
+      if (node) {
+        node.style.opacity = '0';
+        node.close();
+      }
+      onClose();
+    };
   };
   const step = async (direction: number) => {
     if (closing.current) return;
@@ -59,11 +70,10 @@ export function GalleryPhotoDialog({ selection, onClose }: { selection: GalleryS
     const previousFocus = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
     const rootOverflow = document.documentElement.style.overflow;
-    const gutter = document.documentElement.style.scrollbarGutter;
-    document.documentElement.style.scrollbarGutter = 'stable';
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     document.body.classList.add('gallery-photo-open');
+    node.style.opacity = '';
     node.showModal();
     // Focus the dialog initially; Tab reveals the close button's keyboard focus ring.
     node.focus({ preventScroll: true });
@@ -71,13 +81,14 @@ export function GalleryPhotoDialog({ selection, onClose }: { selection: GalleryS
     openingAnimation.current = opening;
     return () => {
       request.current++;
+      // Remove the top layer before releasing animation styles or page locks.
+      node.style.opacity = '0';
+      node.close();
       animation.current?.cancel();
       opening.cancel();
-      document.body.classList.remove('gallery-photo-open');
-      node.close();
+      document.body.classList.remove('gallery-photo-open', 'gallery-photo-closing');
       document.body.style.overflow = overflow;
       document.documentElement.style.overflow = rootOverflow;
-      document.documentElement.style.scrollbarGutter = gutter;
       previousFocus?.focus({ preventScroll: true });
     };
   }, []);
