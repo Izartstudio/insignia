@@ -28,7 +28,7 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       const layout = mapPhoto(photo, index, size.height * aspect, size.height, image.width / image.height);
       texture.repeat.set(...layout.repeat);
       texture.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
-      return { layout, material: new MeshBasicMaterial({ map: texture, transparent: true, alphaTest: .02, toneMapped: false }) };
+      return { bounds: null as string | null, layout, material: new MeshBasicMaterial({ map: texture, transparent: true, alphaTest: .02, toneMapped: false }) };
     });
     const maxWidth = Math.max(...photos.map(({ layout }) => layout.scale[0]));
     const maxHeight = Math.max(...photos.map(({ layout }) => layout.scale[1]));
@@ -40,7 +40,7 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
   }, [world, textures, size.width, size.height]);
   useEffect(() => () => { resources.geometry.dispose(); resources.photos.forEach(p => p.material.dispose()); }, [resources]);
   useFrame(({ camera }) => {
-    const { height, cellW, cellH, columns, rows, matrix } = resources;
+    const { cellW, cellH, columns, rows, matrix } = resources;
     const distance = camera.position.z - world.depth;
     const visible = distance > -1 && distance < galleryConfig.distance + galleryConfig.depthStep;
     const opacity = 1 - MathUtils.smoothstep(distance, galleryConfig.distance, galleryConfig.distance + galleryConfig.depthStep);
@@ -48,22 +48,27 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       const mesh = meshes.current[index];
       if (!mesh) return;
       mesh.visible = visible;
-      if (!visible) return;
+      if (!visible || opacity <= 0) { mesh.visible = false; return; }
       material.opacity = opacity;
       const depth = distance - layout.position[2];
-      if (depth <= .05) { mesh.count = 0; return; }
+      if (depth <= .05) { mesh.count = 0; resources.photos[index].bounds = null; return; }
       const halfH = depth * Math.tan(galleryConfig.fov * Math.PI / 360);
       const halfW = halfH * size.width / size.height;
-      matrix.makeScale(...layout.scale);
-      matrix.setPosition(layout.position[0], layout.position[1], world.depth + layout.position[2]);
-      mesh.setMatrixAt(0, matrix);
-      let count = 1;
       // One photograph per cell. Spacing is based on the largest photograph,
       // so even jittered neighbors cannot overlap.
       const firstCellX = Math.floor((camera.position.x - halfW) / cellW) - 1;
       const lastCellX = Math.ceil((camera.position.x + halfW) / cellW) + 1;
       const firstCellY = Math.floor((camera.position.y - halfH) / cellH) - 1;
       const lastCellY = Math.ceil((camera.position.y + halfH) / cellH) + 1;
+      // Positions are world-fixed: rebuild/upload only when the visible cell range changes.
+      const bounds = `${firstCellX},${lastCellX},${firstCellY},${lastCellY}`;
+      if (resources.photos[index].bounds === bounds) return;
+      resources.photos[index].bounds = bounds;
+      matrix.makeScale(...layout.scale);
+      matrix.setPosition(layout.position[0], layout.position[1], world.depth + layout.position[2]);
+      mesh.setMatrixAt(0, matrix);
+      let count = 1;
+
       for (let cy = firstCellY; cy <= lastCellY; cy++) for (let cx = firstCellX; cx <= lastCellX; cx++) {
         const centerX = cx * cellW + (tileHash(cx, cy, 501) - .5) * cellW * .20;
         const centerY = cy * cellH + (tileHash(cx, cy, 502) - .5) * cellH * .20;
@@ -85,7 +90,8 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       }
       mesh.count = count;
       mesh.instanceMatrix.needsUpdate = true;
+      mesh.boundingSphere = null; // Raycasting must use the current instance positions.
     });
   });
-  return <>{resources.photos.map(({material}, index) => <instancedMesh key={index} ref={mesh => { meshes.current[index]=mesh; mesh?.instanceMatrix.setUsage(DynamicDrawUsage); }} args={[resources.geometry, material, resources.columns*resources.rows+1]} frustumCulled={false} dispose={null} />)}</>;
+  return <>{resources.photos.map(({material}, index) => <instancedMesh userData={{ galleryPhoto: { worldId: world.id, photoIndex: index } }} key={index} ref={mesh => { meshes.current[index]=mesh; mesh?.instanceMatrix.setUsage(DynamicDrawUsage); }} args={[resources.geometry, material, resources.columns*resources.rows+1]} frustumCulled={false} dispose={null} />)}</>;
 }

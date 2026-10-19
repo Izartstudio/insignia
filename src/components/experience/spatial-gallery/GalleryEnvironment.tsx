@@ -1,9 +1,10 @@
 import { useMemo, useRef, type MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { ShaderMaterial, Vector2 } from 'three';
+import type { GallerySelection } from './GalleryPhotoDialog';
 import { galleryStates } from '@/content/spatial-gallery';
 
-export type GalleryMotion = { travel: number; panX: number; panY: number; active: boolean; invalidate: () => void };
+export type GalleryMotion = { travel: number; panX: number; panY: number; dragging?: boolean; paused?: boolean; active: boolean; invalidate: () => void; pickPhoto?: (x: number, y: number) => GallerySelection | undefined };
 
 export function GalleryEnvironment({ motion }: { motion: MutableRefObject<GalleryMotion> }) {
   const { size } = useThree();

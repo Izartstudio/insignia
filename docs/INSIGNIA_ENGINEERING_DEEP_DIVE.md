@@ -1,6 +1,6 @@
 # Insignia: engineering architecture and learning guide
 
-> **Basis and limits.** This document describes the checked-out source on 16 October 2026, at Git commit `0287948`, including uncommitted working-tree changes then present. The source files are the authority. Older reports in `docs/` describe earlier assets and animations and are not evidence for the current implementation. Asset headers and `ffprobe` were inspected; no browser frame-rate, cross-browser, or visual fidelity measurements were run for this document. “Observed” means confirmed in source or asset bytes; “risk” means a reasoned possibility that needs a runtime test. The document changes no application code.
+> **Basis and limits.** This document describes the checked-out source on 16 October 2026, at Git commit `6dc7e26`, including the uncommitted mobile gallery interaction changes then present. The source files are the authority. Older reports in `docs/` describe earlier assets and animations and are not evidence for the current implementation. Asset headers and `ffprobe` were inspected; no physical-device frame-rate, cross-browser, or visual-fidelity measurements were run for this document. “Observed” means confirmed in source or asset bytes; “risk” means a reasoned possibility that needs a runtime test. This document changes no application code.
 
 ## Contents
 
@@ -305,27 +305,33 @@ On narrow mobile viewports, the function uses `mobileLayout` if present and othe
 
 ### 7.4 Scroll travel on Z and narrative transitions
 
-`galleryConfig` sets base camera distance 8, depth step 16, four stop values `[0,.30,.55,.80]`, and exit values `[.15,.40,.65,1]`. The gallery pin end adds `section.clientHeight×4.5` of scroll after the stage arrives at viewport top. `SpatialGallery.tsx` creates one timeline, labels each state, tweens `motion.current.travel` from 0 to 3 between exits and subsequent stops, and cross-fades DOM headings and progress labels/marks. During each frame `SpatialGalleryScene.useFrame()` sets camera Z to `8 − travel×16`; at integer travel values it is directly in front of the corresponding state depth. One state is held at a time, then camera travel occurs in transition intervals.
+`galleryConfig` defines the original camera geometry and pacing: base camera distance 8, depth step 16, a 4.5-viewport journey, stops `[0,.30,.55,.80]`, and exits `[.15,.40,.65,1]`. The live `SpatialGallery` does **not** use that pacing directly. Its default prop is `extendedGalleryMotionProfile`, which assigns 2.8 viewport heights to each of the three depth passages plus a final 0.65-viewport hold: `2.8×3+0.65=9.05` viewport heights. Every state gets a 0.65-viewport landing hold before the next travel. `SpatialGalleryOriginal.tsx` remains a small switchable wrapper around `originalGalleryMotionProfile`, preserving the old 4.5-viewport, eased journey without duplicating the gallery implementation.
+
+`SpatialGallery.tsx` creates one timeline, labels each state, tweens `motion.current.travel` from 0 to 3 between each exit and subsequent stop, and cross-fades DOM headings and progress labels/marks. During each frame `SpatialGalleryScene.useFrame()` sets camera Z to `8 − travel×16`; at integer travel values it is directly in front of the corresponding state depth. The extended profile uses linear travel (`ease:"none"`) so photographs pass at a stable rate. The original profile uses `power1.inOut`. This profile boundary is the reason pacing can be swapped without changing camera, texture, overlay, or drag architecture.
 
 Near-plane and group visibility matter. Every photo instance computes its `depth = cameraZ − (world.depth + photo.depthOffset)`. If that is at most 0.05 it sets instance count to zero. A state is visible only within a distance band, and material opacity uses `smoothstep` to fade near the far end. The `WorldCategory` uses a similar separation test. These checks stop adjacent worlds from remaining fully visible just because the physical camera frustum intersects them. They do not guarantee zero compositional leakage at every intermediate progress value; that needs visual review.
 
 ### 7.5 Dragging, damping, and repetition
 
-Pointer down records the starting pointer, current integer state, whether touch is involved, and whether drag capture has begun. Dragging is refused while travel is more than 0.015 away from an integer state, so users do not pan while the camera is between narratives. Movement shorter than six pixels is ignored. A vertical touch movement wins browser-native page scrolling; a horizontal touch movement or mouse movement captures the pointer. Mouse dragging can change X and Y; touch dragging changes X only. The actual implementation therefore **does not provide vertical touch exploration**, even though mouse/trackpad pointer motion can be diagonal. The `.is-spatial` section uses `touch-action: pan-y` to preserve native vertical scrolling.
+Pointer down records the starting pointer, current landing state, pointer type, velocity samples, and whether drag capture has begun. `getExplorableState()` accepts a landing only when travel is within 0.03 of an integer. Dragging is therefore disabled while the camera is between narratives. Movement shorter than six pixels is ignored; after that threshold the section captures the pointer. Mouse and touch both update X and Y, including diagonal motion.
+
+Mobile needs two incompatible gesture owners: the photograph canvas must own vertical movement for two-axis exploration, while the page must still receive vertical movement to advance narrative depth. The implementation separates the hit regions. The section itself retains `touch-action:pan-y`; while a state is explorable, only `.spatial-canvas` changes to `touch-action:none`. A bottom `.spatial-scroll-zone` sits over the progress/scroll area with `touch-action:pan-y`, and the pointer handler explicitly ignores it. Consequently a one-finger gesture on the canvas pans X/Y, while a vertical gesture begun in the bottom zone remains native page scrolling and drives the Z timeline. This is a deliberate interaction contract rather than direction guessing after the browser has already claimed a gesture.
 
 Pixel movement converts to world movement through the visible-height-per-pixel term `2d tan(fov/2)/section.clientHeight`. `panOffsets.current` stores X/Y for each state. `syncPan()` interpolates offsets of adjacent states while traveling, updates `motion.current`, and invalidates the Canvas. `SpatialGalleryScene.useFrame()` applies `MathUtils.damp()` to the camera's X/Y offset with coefficient 18 and clamped frame delta. Damping causes the visual camera to approach the target smoothly after a pointer event, without updating React state per frame. As long as motion remains above a 0.0001 threshold and the gallery is active, it requests another demand-rendered frame.
 
-The canvas is “infinite” in the sense that there is no finite scroll edge in pointer space. It is **not** an infinite set of distinct photos. `InfiniteCanvasPlane` keeps a bounded `InstancedMesh` pool for each photo/material and repopulates matrices for cells near the current camera frustum. A deterministic `tileHash()` jitters cell centers, and arithmetic picks one existing photo index per cell. World positions use integer cell coordinates, so the arrangement is stable when revisited. The authored opening photographs remain at exact reference positions as instance 0. Extra instances are suppressed inside a protected opening zone and whenever they overlap an original photo's bounds. They are regenerated around the camera as it pans. There is no modulo wrapping of the camera position; the world coordinate can grow indefinitely. The theoretical limits are JavaScript/float precision, instance-pool capacity, repeated content, and per-frame cell iteration. The code does **not** implement drag velocity or inertia; its damping is camera catch-up to a target offset.
+The canvas is “infinite” in the sense that there is no finite scroll edge in pointer space. It is **not** an infinite set of distinct photos. `InfiniteCanvasPlane` keeps a bounded `InstancedMesh` pool for each photo/material and repopulates matrices for cells near the current camera frustum. A deterministic `tileHash()` jitters cell centers, and arithmetic picks one existing photo index per cell. World positions use integer cell coordinates, so the arrangement is stable when revisited. The authored opening photographs remain at exact reference positions as instance 0. Extra instances are suppressed inside a protected opening zone and whenever they overlap an original photo's bounds. They are regenerated around the camera as it pans. There is no modulo wrapping of the camera position; the world coordinate can grow indefinitely. The theoretical limits are JavaScript/float precision, instance-pool capacity, repeated content, and per-frame cell iteration.
+
+Touch release also has target-space momentum. Recent pixel deltas are converted to world-units-per-second and capped to ±8 per axis. A requestAnimationFrame loop applies exponential decay `e^(−10Δt)` until speed is negligible or the user leaves that landing. This is separate from `MathUtils.damp()` in the render loop: momentum continues moving the **target** offset; damping makes the camera approach that target smoothly. Mouse release does not start this momentum loop.
 
 **A numerical damping intuition:** if the target jumps from 0 to 1, a damp coefficient 18 gives a per-frame approach factor near `1−e^(−18/60)≈0.26` at 60 Hz. First frame moves to ~0.26, next to ~0.45, and so on. The rendered camera lags, but pointer target does not itself decay. Large frame gaps are clamped at 0.05 s to avoid a huge jump after tab suspension.
 
 ### 7.6 Category watermark and the environment
 
-`WorldCategory.tsx` draws widely spaced letters into a 2D canvas at twice the viewport pixel dimensions, creates a `CanvasTexture`, and maps it onto a plane at `world.depth−1.5`. In `useFrame`, the mesh copies camera X/Y; that cancels exploration panning **in screen projection**. Its Z remains attached to the narrative world so depth transitions change which word is visible. The photograph planes are in front; normal depth testing lets them cover letters. This achieves the desired visual centering without a DOM overlay. The drawback is large per-state canvas textures and repaint/recreation on viewport resize. For a 3840×2160 CSS viewport, a single 7680×4320 RGBA canvas is about 133 MiB before GPU copies; four states can be substantial. Browser texture-size limits also vary. This is a high-priority **potential** large-screen risk, not a measured failure.
+`WorldCategory.tsx` draws the widely spaced letters into a shallow 2D canvas strip, creates a `CanvasTexture`, and maps it onto a plane at `world.depth−1.5`. In `useFrame`, the mesh copies camera X/Y; that cancels exploration panning **in screen projection**. Its Z remains attached to the narrative world so depth transitions change which word is visible. The photograph planes are in front; normal depth testing lets them cover letters. This achieves visual centering and photo occlusion without a DOM masking system. The texture width is viewport width times a capped pixel ratio, but its height is fixed at 128 pixels. This is materially cheaper than four full-screen canvases. The width is also bounded indirectly by `gl.capabilities.maxTextureSize`; resizing recreates and disposes the texture.
 
 `GalleryEnvironment.tsx` uses a full-screen shader plane with `gl_Position=vec4(position.xy,0.999,1.0)` so it is independent of perspective depth. Its uniforms are `radius`, `shift`, and `gridScale`. The fragment shader computes distance from a UV center, mixes orange at the center toward deep red and black, warps normalized UVs quadratically for a curved-grid impression, draws thin line/dot intersections with `fract`, `fwidth`, and `smoothstep`, and converts the constructed sRGB-like colors to linear before Three's output color-space include. `radius` blends between state presets as narrative travel advances. `shift` depends on camera X/Y, so the environment appears to respond gently to exploration. The shader does not use a sampled gradient image asset at runtime; it computes the colors procedurally.
 
-**Failure modes and assessment.** The architecture separates Z narrative travel from X/Y exploration cleanly. The opening design rectangles are explicit, and instancing caps draw calls better than one mesh per repeat. The main costs are per-frame CPU matrix work, potential high-resolution watermark textures, and a subtle interaction between shared texture objects and per-photo crop configuration. The `sources` set loads every future asset after 300 ms even if users never reach those states; that improves later readiness but can compete with video decoding and transfer bandwidth. Nothing in source proves a target frame rate.
+**Failure modes and assessment.** The architecture separates Z narrative travel from X/Y exploration cleanly. The opening design rectangles are explicit, and instancing caps draw calls better than one mesh per repeat. The main costs are per-frame CPU matrix work, viewport-wide watermark strips, and a subtle interaction between shared texture objects and per-photo crop configuration. The `sources` set loads every future asset after 300 ms even if users never reach those states; that improves later readiness but can compete with video decoding and transfer bandwidth. Nothing in source proves a target frame rate.
 
 **Exercise:** build a small scene with one photograph at Z=0 and another at Z=−16. Fix FOV at 40°, move camera from Z=8 to −8, and compute each photo's projected size at several travel values. Then add a watermark plane that copies only camera X/Y and verify it stays centered while changing depth.
 
@@ -377,7 +383,7 @@ CSS sizing uses `svh` and `dvh` for viewport-height-aware stages, `clamp()` for 
 
 ### 9.2 Limits and unverified cases
 
-`mapPhoto()` uses 1440×900 as the source coordinate system, which is sensible for **mapping authored design data**, but it does not prove the resulting composition looks right at every aspect ratio. The hero's single calibrated LCD surface and static imported scan may crop differently on ultrawide screens, even if the mathematical cover equation is correct. The gallery environment shader uses UVs without aspect correction in its radial-distance expression; an ellipse on a wide viewport can be intentional, but its perceived glow shape varies by aspect. The category watermark scales its 2D canvas with full viewport width and height, which raises large-display memory concerns. The CSS footer limits its panel width; the background remains full-bleed. No physical Mac/Windows browser matrix was run in this documentation pass. Do not treat CSS equations as proof of visual fidelity.
+`mapPhoto()` uses 1440×900 as the source coordinate system, which is sensible for **mapping authored design data**, but it does not prove the resulting composition looks right at every aspect ratio. The hero's single calibrated LCD surface and static imported scan may crop differently on ultrawide screens, even if the mathematical cover equation is correct. The gallery environment shader uses UVs without aspect correction in its radial-distance expression; an ellipse on a wide viewport can be intentional, but its perceived glow shape varies by aspect. The category watermark allocates only a 128-pixel-high canvas strip, but very wide viewports still increase its texture width. The CSS footer limits its panel width; the background remains full-bleed. No physical Mac/Windows/mobile browser matrix was run in this documentation pass. Do not treat CSS equations as proof of visual fidelity.
 
 For a useful verification matrix, include 1440×768/900, 1920×1080/1200, 2560×1080/1440, and 3440×1440 as **CSS** viewport sizes. Capture hero initial/final, introduction first/later state, all gallery states at rest and after drag, Past Editions start/end, and footer seam. Test native browser restoration on reload at each pinned section. Record device pixel ratio separately; a 3840 physical-pixel monitor can expose only 1920 CSS pixels at 2× scaling. Memory load depends on the actual canvas drawing-buffer dimensions.
 
@@ -389,7 +395,7 @@ The browser's pipeline matters here. React runs on the main thread to build DOM 
 
 At 60 Hz a complete JS/paint/GPU pipeline nominally has about 16.7 ms per frame, and at 120 Hz about 8.3 ms. These are frame-period arithmetic, **not measured performance**. GSAP scrub adds visual lag intentionally; it should not be confused with dropped frames. Lenis adds its own interpolation. The two smoothers can combine to make scroll feel delayed even when frame times are good. Conversely a long main-thread texture decode or synchronous resize can hitch despite responsive CSS.
 
-Observed performance choices include dynamic import of the hero Canvas, model preload, demand rendering, capped DPR, video-frame-triggered invalidation, unique gallery source loading, instanced photo planes, phase-preserving marquee measurement, and intersection-based pause for the standalone marquee. Cleanup is explicit for video, textures, geometries, GSAP contexts, timers, listeners, and observers. Costs include two canvases, large GLB embedded textures, normal processing on a cloned mesh, video decode/upload, high-resolution watermark canvases, transparent instanced materials, a full-screen fragment shader, CSS blur and backdrop-filter, and per-frame instance matrix updates. Nothing in source alone establishes 60 FPS, acceptable memory, or absence of layout shifts.
+Observed performance choices include dynamic import of the hero Canvas, model preload, demand rendering, capped DPR, video-frame-triggered invalidation, unique gallery source loading, instanced photo planes, a narrow watermark texture strip, measured Past Editions travel, and intersection-based pause in the standalone marquee utility. `CanvasRuntime` caps coarse-pointer DPR at 1.25 and other pointers at 1.5, logs WebGL context-loss diagnostics, prevents the default loss handling, and invalidates after restoration. Cleanup is explicit for video, textures, geometries, GSAP contexts, timers, listeners, animation frames, and observers. Costs include two canvases, GLB embedded textures, normal processing on a cloned mesh, video decode/upload, transparent instanced materials, a full-screen fragment shader, CSS blur/backdrop-filter, and per-frame instance matrix updates. Nothing in source alone establishes 60 FPS, acceptable memory, or absence of layout shifts.
 
 **Measurement plan.** Use Chrome/Edge Performance traces and GPU memory tools where available, inspect WebGL renderer info for draw calls/triangles/textures, sample frame durations while scrolling gallery and zooming hero, and use the Network panel to confirm video range requests and texture concurrency. Compare 1×/2× DPR, 1440×900 versus ultrawide, and a lower-powered Windows GPU. Profile each section separately before changing DPR or replacing architecture. A long task in JS, large upload, or shader-bound GPU frame requires a different fix; one blanket “optimization” is unlikely to solve all three.
 
@@ -536,12 +542,12 @@ These ADRs record **what is implemented and an independent assessment**. Constra
 
 ### ADR 7 — WebGL category watermark
 
-- **Decision:** Render category letters to a canvas texture on a world-depth plane that follows camera X/Y.
+- **Decision:** Render category letters to a 128-pixel-high canvas-texture strip on a world-depth plane that follows camera X/Y.
 - **Context:** Letters should stay centered under photograph planes while panning.
 - **Constraints (inferred):** Proper photo occlusion; narrative-depth visibility.
 - **Alternatives:** Screen-space DOM watermark behind transparent Canvas; per-letter meshes; CSS masking.
-- **Trade-offs:** Simple depth relationship versus very large textures and font/rendering differences.
-- **Consequences:** Resize may regenerate large textures and needs memory profiling.
+- **Trade-offs:** Simple depth relationship and photograph occlusion versus texture generation and font/rendering differences.
+- **Consequences:** Resize regenerates the strip; its width is viewport/DPR dependent and still needs profiling on ultrawide displays.
 - **Assessment:** Reconsider for large desktop displays if profiling confirms memory pressure.
 - **Confidence:** High on implementation, medium on cost until measured.
 - **Evidence:** `WorldCategory.tsx`.
@@ -557,3 +563,290 @@ These ADRs record **what is implemented and an independent assessment**. Constra
 - **Assessment:** Retain if the goal is an edition journey; choose the separate utility only for genuinely continuous motion.
 - **Confidence:** High on implementation, low on unrecorded product intent.
 - **Evidence:** `PastEditions.tsx`, `content/past-editions.ts`, `InfiniteDraggableMarquee.tsx`.
+
+## 13. Mathematics and graphics concepts
+
+This chapter collects the calculations distributed through the implementation. The equations explain why the same authored composition can be projected into viewports with different dimensions. They are not a substitute for visual testing: mathematically correct cover framing can still crop a subject the design intended to preserve.
+
+### 13.1 Perspective projection and visible world size
+
+For a perspective camera at distance `d` from a plane, with vertical field of view `θv` and viewport aspect `a=W/H`:
+
+\[
+H_{visible}=2d\tan(\theta_v/2),\qquad W_{visible}=aH_{visible}.
+\]
+
+The gallery fixes `θv=40°` and its landing distance at 8. Therefore its visible height at a landing is approximately `2×8×tan20°=5.8235` world units. At 1440×900, aspect is 1.6 and visible width is about 9.3176. At 2560×1080, aspect is 2.3704 and visible width is about 13.803. The world is wider on the latter screen even though vertical framing is unchanged.
+
+The hero uses the inverse question: how far back must the camera be to fit the model? For a half-height `h`, vertical fit requires roughly `d≥h/tan(θv/2)`. Horizontal fit uses the horizontal half-angle:
+
+\[
+\tan(\theta_h/2)=a\tan(\theta_v/2).
+\]
+
+`getStartCameraPose()` compares the configured baseline, vertical-fit, and horizontal-fit constraints and takes the largest. This prevents a narrow viewport from cropping the model simply because it reused a desktop distance.
+
+### 13.2 Cover versus contain
+
+Suppose the LCD has world width `w` and height `h`. The distance that exactly fits its height is:
+
+\[
+d_v=\frac{h/2}{\tan(\theta_v/2)}.
+\]
+
+The horizontal fit distance is:
+
+\[
+d_h=\frac{w/2}{a\tan(\theta_v/2)}.
+\]
+
+For **contain**, choose `max(dv,dh)`: every edge fits, potentially leaving bars. For **cover**, choose `min(dv,dh)`: the viewport is filled, potentially cropping one axis. `getEndCameraPose()` uses cover and divides by `fullscreenCoverage=1.01` for a small extra fill margin.
+
+### 13.3 Coordinate spaces in the camcorder
+
+The LCD begins in its own local coordinates, then inherits centering, imported-model orientation, normalized scale, and scroll rotation. A point becomes world-space through parent matrices:
+
+\[
+p_{world}=M_{animation}M_{orientationScale}M_{center}M_{LCD}p_{local}.
+\]
+
+`getLCDWorldFrame()` asks Three to evaluate this chain rather than manually duplicating it. The LCD normal is local `+Z` rotated by the world quaternion. The fullscreen camera endpoint is the world center plus that normalized normal times the cover distance. This is why recalculating only the LCD's local position after changing model calibration would be wrong.
+
+### 13.4 Scroll progress to camera depth
+
+The gallery controller exposes a scalar `travel∈[0,3]`. Camera Z is:
+
+\[
+z_{camera}=8-16\,travel.
+\]
+
+The four landings are therefore Z = 8, −8, −24, and −40, each eight units in front of worlds at Z = 0, −16, −32, and −48. ScrollTrigger maps document distance to timeline progress; the motion profile maps timeline intervals to `travel`. Keeping this scalar separate from X/Y pan is the architectural reason scroll and exploration do not overwrite one another.
+
+### 13.5 Pixel drag to world displacement
+
+At the gallery landing distance, one CSS pixel corresponds approximately to:
+
+\[
+u=\frac{2d\tan(\theta_v/2)}{H_{section}}
+\]
+
+world units. A pointer delta `(Δx,Δy)` changes the target by `(-Δx·u,+Δy·u)`. The signs make the world appear to follow the user's drag through camera movement. Using section height keeps sensitivity broadly consistent across viewport sizes; using a fixed world multiplier would feel faster on short screens and slower on tall ones.
+
+### 13.6 Exponential damping and momentum
+
+`MathUtils.damp(current,target,λ,Δt)` implements a frame-rate-independent exponential approach. The remaining error is multiplied approximately by `e^(−λΔt)`. With gallery damping `λ=18`, about 74% of the previous error remains after one 60 Hz frame, and only about 2.7% remains after 0.2 seconds.
+
+Touch momentum decays velocity separately with `v←v·e^(−10Δt)` and advances the target by `vΔt`. Damping then moves the rendered camera toward that moving target. These two exponentials solve different problems: release momentum controls how far the target coasts; camera damping controls visual softness.
+
+### 13.7 UV cover cropping
+
+Images and film are not stretched to arbitrary rectangles. If source aspect and destination aspect differ, one texture axis is sampled over a smaller normalized interval. A repeat below one means “sample this central fraction,” and offset `(1−repeat)/2` centers it. Geometry defines the destination proportions; UV repeat/offset define which part of the source fills those proportions.
+
+### 13.8 Color spaces and transparency
+
+Photographic textures, poster, and film texture are marked `SRGBColorSpace`; Three converts sampled color for linear-light rendering and output conversion. The film material disables tone mapping so the movie is not relit by scene lights. Gallery image materials are transparent, use a small alpha test, and disable tone mapping. The environment shader constructs a gradient, converts it to linear-like values, and includes Three's output color-space stage. Incorrect color-space labels would shift reds, blacks, and mid-tones even if CSS hex values matched the design.
+
+## 14. Code walkthroughs
+
+These walkthroughs follow execution order rather than file order.
+
+### 14.1 Initial route and hydration
+
+1. `src/app/layout.tsx` emits global structure, font/CSS dependencies, `Navbar`, and `SmoothScrolling`.
+2. `src/app/page.tsx` renders `InsigniaExperience`.
+3. `InsigniaExperience` reserves the hero track, renders DOM background/heading/indicator, and dynamically imports `ExperienceCanvas` without SSR.
+4. `ExperienceCanvas` creates one video resource, one R3F Canvas, runtime DPR/context handling, lights, and `CamcorderModel`.
+5. Below the hero, introduction, gallery, Past Editions, and footer mount in normal document order. Each animation owner registers and cleans up its own effects.
+
+### 14.2 Hero from model load to fullscreen
+
+1. `useGLTF` resolves the cached GLB.
+2. `CamcorderModel` clones/refines resources, measures bounds, and normalizes the asset.
+3. `LCDVideoSurface` mounts beneath the same transform hierarchy as the model.
+4. `CameraRig` calculates initial aspect-aware framing.
+5. `createCamcorderTimeline` temporarily evaluates the final model rotation, asks for the LCD world frame, and computes the fullscreen cover pose.
+6. Scroll rotates the outer group, then advances `zoom.value`.
+7. `renderCamera()` interpolates position, aims at the interpolated focus, updates clipping/projection, controls heading thresholds, and invalidates demand rendering.
+8. The same video texture remains attached throughout. Reverse scrolling applies the same timeline backward.
+
+### 14.3 Video lifecycle
+
+1. `useLCDVideo` constructs one detached `HTMLVideoElement`, poster texture, and `VideoTexture`.
+2. It marks the media inline, muted, looping, and preloadable before assigning `src`.
+3. Hero visibility and document visibility decide whether playback should run.
+4. `loadeddata`/`playing` open the `hasFrame` gate. Until then, the LCD can show the poster.
+5. `requestVideoFrameCallback`, with RAF fallback, invalidates the demand-rendered Canvas for decoded frames.
+6. Play/Retry and sound buttons are DOM controls outside WebGL and execute `play()` from a user gesture when needed.
+7. Cleanup pauses, clears the source, releases the media pipeline, and disposes both textures.
+
+### 14.4 Introduction state machine
+
+1. All three narrative states exist in the DOM simultaneously.
+2. Reduced motion switches to a normal ordered list.
+3. Otherwise GSAP establishes initial visibility, builds a paused time-driven entrance, and creates one scrubbed pinned timeline.
+4. The first and second transition windows cross-fade number/copy pairs, reveal ray groups, and change sun core opacity/scale.
+5. `onEnter` or `onEnterBack` starts the entrance at most once per mount.
+
+### 14.5 Gallery scroll and drag
+
+1. `SpatialGallery` reserves a track based on the selected `GalleryMotionProfile` and mounts WebGL only near the viewport.
+2. The default extended profile supplies the long scroll distance; `SpatialGalleryOriginal` can inject the original profile.
+3. The first state's textures load immediately. Later sources begin after 300 ms.
+4. The GSAP timeline writes only `motion.current.travel` and DOM overlay presentation.
+5. Pointer handling writes only per-state X/Y targets. It operates only within the landing tolerance.
+6. On mobile, canvas touches own two-axis drag; the bottom scroll zone preserves vertical narrative scrolling.
+7. `SpatialGalleryScene.useFrame()` damps camera X/Y and derives camera Z from travel.
+8. `InfiniteCanvasPlane` updates bounded instance matrices around the current frustum.
+9. `WorldCategory` copies camera X/Y, so exploration does not move its projection; its world Z still determines narrative visibility and photograph occlusion.
+
+### 14.6 Past Editions and footer
+
+1. Past Editions renders semantic year groups from configuration.
+2. `editionCells()` inserts the label into the specified row and fills the 2022 closing slot by duplicating its first supplied photo under a unique ID.
+3. The measured horizontal overflow becomes both vertical pin distance and final negative X translation.
+4. `ResizeObserver` refreshes only when the measured distance actually changes.
+5. The footer is DOM/CSS. It reuses animated text spans and `LumikaiLogo`; the outer gradient remains full width while the panel uses responsive constraints and an angled corner.
+
+## 15. Independent engineering review
+
+### 15.1 What is structurally strong
+
+- Continuous values live in refs and Three objects rather than React state, avoiding reconciliation on animation frames.
+- Each pinned section owns one ScrollTrigger timeline and cleanup boundary.
+- Camera calculations use measured world frames and viewport aspect instead of one desktop coordinate set.
+- The video is a single persistent resource, which preserves playback continuity.
+- The gallery separates Z narrative travel from X/Y exploration and preserves old/new pacing through configuration.
+- Demand rendering is paired with explicit invalidation for scroll, damping, video frames, texture readiness, resize, and restored WebGL context.
+- Semantic DOM and reduced-motion fallbacks exist around the most visual WebGL sections.
+
+### 15.2 Current technical risks
+
+| Priority | Risk | Evidence | Recommended verification or change |
+| --- | --- | --- | --- |
+| High | Actual mobile GPU/context behavior remains unverified | Context-loss diagnostics exist; no physical-device evidence | Test iOS Safari and Android Chrome while recording console/context events and memory pressure |
+| High | Mobile gallery gesture contract may need onboarding | Canvas owns all axes; bottom zone owns narrative scroll | Test whether users discover the bottom zone without instruction changes |
+| Medium | Deferred gallery asset failure leaves a later world absent | Deferred error logs but does not call fallback | Track per-world failure and render a deterministic fallback/retry |
+| Medium | Shared texture crop properties can couple uses of the same URL | `repeat`/`offset` mutate shared `Texture` objects | Clone texture per distinct crop or move crop to material/shader uniforms |
+| Medium | Two animation clocks in introduction can transiently conflict after restoration | Entrance and master write overlapping properties | Reload at each scroll state on Safari/Chrome and decide whether to derive entrance from scroll |
+| Medium | Body overflow is globally mutable | Navbar stores/restores one previous value | Use a reference-counted scroll-lock utility if more overlays are introduced |
+| Low | Infinite camera coordinates eventually lose precision | Pan is not rebased | Rebase camera/targets by whole cells after an extreme, tested threshold |
+| Low | Past Editions keyboard behavior depends on browser overflow behavior | Focusable viewport, translated track | Add explicit keyboard controls only if accessibility testing finds a gap |
+
+### 15.3 Why “no jitter” cannot be established from source
+
+Scroll smoothness depends on browser input delivery, Lenis interpolation, GSAP scrub, main-thread decode/layout, compositor work, GPU fragment cost, refresh timing, and mobile toolbar resizing. Source can demonstrate single ownership and bounded work; it cannot demonstrate frame time. A production claim requires traces on target hardware. Distinguish intentional scrub delay from irregular frame delivery by plotting frame time and scroll progress together.
+
+### 15.4 Changes that should remain local
+
+Do not solve a gallery problem by globally changing ScrollTrigger defaults, every `100svh`, renderer DPR, or Lenis behavior. The current architecture intentionally scopes ownership. Prefer changing a motion profile, section CSS, camera calculation, or one resource lifecycle. Global changes are justified only after evidence shows the same cause across sections.
+
+## 16. Learning roadmap
+
+This sequence teaches the repository from prerequisites to its most specialized systems.
+
+### Stage 1 — Browser and React foundations
+
+Learn semantic HTML, stacking contexts, responsive units, pointer events, media queries, effects, refs, cleanup, dynamic imports, and error boundaries. Trace `layout.tsx`, `InsigniaExperience.tsx`, `Navbar.tsx`, and `SiteFooter.tsx`. Build a small overlay that locks scroll, traps focus, restores state, and supports reduced motion.
+
+### Stage 2 — GSAP and scroll geometry
+
+Learn timelines, labels, scrub, pinning, refresh, `gsap.context`, `matchMedia`, and layout measurement. Recreate a pinned DOM section with three cross-faded states. Explain why `pinSpacing:false` requires an external track and why downstream triggers depend on upstream pin measurements.
+
+### Stage 3 — Three.js transformations and cameras
+
+Learn vectors, matrices, local/world coordinates, perspective projection, FOV, near/far planes, and quaternions. Rebuild the LCD world-frame exercise from Chapter 3. Verify cover and contain endpoints at portrait, landscape, and ultrawide aspects.
+
+### Stage 4 — R3F resource ownership
+
+Learn Canvas lifecycle, `useThree`, `useFrame`, demand rendering, Suspense, loaders, disposal, and context loss. Build a demand-rendered scene that updates only on pointer movement and resize. Then add a video texture and the required frame invalidation.
+
+### Stage 5 — Instancing and shaders
+
+Learn instanced matrices, draw calls, frustum math, deterministic hashing, UV transforms, GLSL coordinate systems, derivatives, and color conversion. Implement a bounded tile pool around a movable camera before studying `InfiniteCanvasPlane` and `GalleryEnvironment`.
+
+### Stage 6 — Interaction architecture
+
+Study browser gesture arbitration and `touch-action`. Reproduce the gallery's separation between a drag surface and a native-scroll surface. Measure velocity in world units, apply frame-independent decay, and test pointer cancellation. The lesson is ownership: decide which system controls X/Y, Z, and presentation before adding easing.
+
+### Stage 7 — Performance and validation
+
+Learn Chrome/Safari performance tooling, network waterfalls, texture memory estimates, WebGL renderer statistics, layout shift, and real-device remote debugging. Establish budgets from measurements rather than generic rules. Compare coarse-pointer DPR 1.25 with 1.5 using the same scene and record visual/performance differences.
+
+## 17. Glossary and verification guide
+
+### 17.1 Glossary
+
+| Term | Meaning in this project |
+| --- | --- |
+| CSS viewport | Browser layout size in CSS pixels; distinct from physical display resolution |
+| DPR | Device-pixel ratio used to size a canvas drawing buffer relative to CSS size |
+| Demand rendering | R3F draws only after `invalidate()` or an active requested frame |
+| ScrollTrigger | GSAP plugin that maps document scroll to timelines and pinning |
+| Pin | Temporarily keeps a stage in viewport while document scroll advances its timeline |
+| Scrub | Smoothly couples animation progress to scroll progress |
+| World space | Coordinates after the complete Three parent transform hierarchy |
+| Local space | Coordinates relative to an object's own parent |
+| FOV | Camera angular field of view; the configured value is vertical FOV |
+| Cover | Fill the viewport and permit cropping on one axis |
+| Contain | Show the whole source and permit empty space on one axis |
+| VideoTexture | Three texture whose image source is an HTML video element |
+| UV | Normalized texture coordinates used to sample an image on geometry |
+| Instancing | Drawing repeated geometry/material with multiple transform matrices |
+| Landing | Gallery travel near an integer narrative state, where X/Y drag is enabled |
+| Motion profile | Gallery pacing configuration containing stops, exits, scroll length, scrub, and ease |
+| Pointer capture | Routes subsequent pointer events to one element after drag starts |
+| Touch action | CSS declaration used by the browser to arbitrate native gestures before JS movement handlers |
+| Invalidation | Request for a future frame in a demand-rendered Canvas |
+| Context loss | Browser/GPU invalidation of a WebGL rendering context and its resources |
+| Reduced motion | User preference that selects static or shortened animation behavior |
+
+### 17.2 Static validation commands
+
+Run these after architectural changes:
+
+```bash
+npm run typecheck
+npm run build -- --webpack
+```
+
+TypeScript validates contracts; the production build validates bundling and server/static rendering paths. Neither validates animation timing, touch arbitration, media autoplay, WebGL capability, or visual fidelity.
+
+### 17.3 Functional verification matrix
+
+| Area | Forward | Reverse | Resize/restoration | Failure path |
+| --- | --- | --- | --- | --- |
+| Hero | Rotation, approach, LCD cover, heading reveal | Heading hide, camera/model return | Recompute framing without video restart | WebGL fallback; Play/Retry |
+| Video | Muted inline playback and frame updates | Same timestamp continues | No resource remount | Blocked autoplay and media error |
+| Introduction | Entrance then 01→02→03 | 03→02→01 | Reload inside each state | Reduced-motion list |
+| Gallery | Holds and three depth passages | Exact reverse state order | Reload at every landing/transition | Static accessible fallback |
+| Gallery drag | X/Y/diagonal mouse and touch at landings | Per-state offsets restored | Orientation change while offset | Pointer cancel/context loss |
+| Past Editions | Full start-to-end horizontal travel | Returns to start | Recalculate after image/font width changes | Reduced-motion horizontal access |
+| Menu/footer | Hover, open, focus trap, Pitch CTA | Reverse close | Breakpoint and short-height layout | Lottie/static icon fallback |
+
+### 17.4 Representative viewport checks
+
+Use CSS viewport dimensions, record DPR separately, and include both width and height:
+
+- Mobile: 320×568, 360×800, 390×844, 414×896.
+- Tablet: 768×1024, 820×1180, 1024×768.
+- Desktop: 1440×768, 1440×900, 1536×864, 1920×1080, 1920×1200.
+- Large/ultrawide: 2560×1080, 2560×1440, 3440×1440, 3840×2160.
+
+At each class, inspect initial and terminal hero framing, video/gradient seam, all sun states, every gallery landing plus an intermediate depth passage, gallery drag after panning far in both axes, Past Editions start/end, and the final-section/footer seam. Reload on the hero, introduction, gallery, and Past Editions to test browser scroll restoration.
+
+### 17.5 Real-device mobile procedure
+
+Desktop responsive mode does not reproduce mobile GPU limits, toolbar resizing, video policy, or touch arbitration. On at least one current iOS Safari device and one Android Chrome device:
+
+1. Connect remote developer tools and clear cache for a cold load.
+2. Record device/browser/OS, CSS viewport, DPR, orientation, memory class if known, and network conditions.
+3. Confirm one WebGL context per visible 3D section, no shader/texture errors, and no context-loss warning.
+4. Run the full hero forward and backward; verify the film timestamp does not reset.
+5. Rotate orientation at the hero, introduction, and a gallery landing.
+6. In the gallery, drag horizontally, vertically, and diagonally on the canvas; begin a vertical swipe in the bottom scroll zone to advance depth; test pointer cancellation by leaving the viewport or invoking browser chrome.
+7. Capture a performance trace around a Z transition and a long X/Y drag. Report frame-time spikes rather than describing only subjective smoothness.
+8. Background/foreground the page and confirm video, demand rendering, and section state recover.
+
+### 17.6 Evidence language for future reports
+
+Use “source-confirmed” for behavior directly established by code, “browser-verified” only when the rendered build was exercised in named browsers/viewports, and “device-verified” only for named physical hardware. Report failures with the initial URL/scroll position, exact gesture, viewport/DPR, browser version, and console/context evidence. This keeps architectural facts separate from visual and performance claims.

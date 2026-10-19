@@ -10,19 +10,11 @@
 .spatial-overlays { pointer-events: none; }
 .spatial-state { visibility: hidden; }
 .spatial-state:first-child { visibility: visible; }
-.spatial-heading { position: absolute; top: 7%; left: 15%; width: 70%; text-align: center; }
-.spatial-heading h2 { margin: 0; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(16px, 1.667vw, 28px); font-weight: 400; line-height: 1.25; letter-spacing: 0; }
-.spatial-heading.is-first { top: 8.4%; }
-.spatial-heading.is-first p { margin-top: 14px; }
-.spatial-heading.is-first h2 { font-size: clamp(24px, 2.78vw, 44px); }
-.spatial-heading p { margin: 18px 0 0; }
-.spatial-heading p, .spatial-heading:not(.is-first) h2 { font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(.8125rem, 1.667vw, 1.5rem); font-weight: 400; line-height: 1.5; letter-spacing: 0; }
 .spatial-progress { position: absolute; right: 0; top: 42.9%; display: grid; gap: clamp(14px, 3.1svh, 28px); }
 .spatial-progress-item { display: flex; align-items: center; justify-content: flex-end; gap: 14px; opacity: .2; font-size: clamp(10px, .975vw, 14px); height: 18px; }
 .spatial-progress-item span { color: white; }
 .spatial-progress-item i { display: block; width: 25px; height: 2px; background: #fed201; }
 .spatial-progress-item:not(:first-child) span { visibility: visible; }
-.spatial-explore { margin: clamp(8px, 1.5svh, 16px) 0 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(10px, .83vw, 12px); font-weight: 400; line-height: 1.5; }
 .spatial-gallery .scroll-indicator { bottom: max(3.2%, env(safe-area-inset-bottom)); }
 .spatial-static { padding: 64px 5vw; background: radial-gradient(ellipse at center, #a52200, #210000); }
 .spatial-static article { padding-block: 36px; }
@@ -30,48 +22,242 @@
 .spatial-static article > div { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
 .spatial-static img { width: clamp(110px, 17vw, 240px); height: auto; object-fit: contain; }
 @media (max-width: 767px) {
-  .spatial-heading { top: 11%; left: 8%; width: 84%; }
-  .spatial-heading p { margin-top: 10px; }
   .spatial-gallery .scroll-indicator { bottom: calc(env(safe-area-inset-bottom) + 56px); }
   .spatial-progress { top: auto; right: auto; bottom: calc(env(safe-area-inset-bottom) + 17px); left: 50%; transform: translateX(-50%); display: flex; gap: 9px; }
   .spatial-progress-item { height: 12px; gap: 0; }
   .spatial-progress-item span { display: none; }
   .spatial-progress-item i { width: 19px; }
 }
-@media (hover: none), (pointer: coarse) { .spatial-explore { display: none; } }
-@media (max-height: 500px) { .spatial-heading { top: 7%; } .spatial-heading p { margin-top: 5px; } .spatial-gallery .scroll-indicator { transform: translateX(-50%) scale(.65); transform-origin: bottom center; } }
+@media (max-height: 500px) { .spatial-gallery .scroll-indicator { transform: translateX(-50%) scale(.65); transform-origin: bottom center; } }
 
 @media (min-width: 1440px) {
   .spatial-progress-item { font-size: clamp(1.125rem, 1.25vw, 1.5rem); height: auto; min-height: 1.5em; line-height: 1.5; }
-  .spatial-heading { top: clamp(48px, 7svh, 88px); }
-  .spatial-heading.is-first { top: clamp(58px, 8.4svh, 96px); }
-  .spatial-heading.is-first h2 { font-size: clamp(2.5rem, 2.778vw, 3.25rem); }
-  .spatial-heading p, .spatial-heading:not(.is-first) h2 { font-size: clamp(1.5rem, 1.667vw, 1.875rem); }
-  .spatial-explore { font-size: clamp(1rem, 1.111vw, 1.25rem); }
 }
 
 .spatial-gallery.is-spatial { touch-action: pan-y; user-select: none; cursor: grab; }
 .spatial-gallery.is-dragging { cursor: grabbing; }
+.spatial-scroll-zone { display: none; }
 
-.spatial-explore[hidden] { display: none; }
 
-.spatial-touch-explore { display: none; }
 @media (max-width: 1024px) {
- .spatial-heading, .spatial-heading.is-first { top: 12%; left: 7%; width: 86%; }
- .spatial-heading.is-first h2 { font-size: clamp(20px, 5.13vw, 28px); }
- .spatial-heading p, .spatial-heading:not(.is-first) h2 { font-size: clamp(16px, 4.1vw, 24px); line-height: 1.5; }
- .spatial-heading.is-first p { margin-top: 14px; }
  .spatial-gallery .scroll-indicator { bottom: max(12%, 90px); }
  .spatial-progress { top: auto; right: 8%; left: 8%; bottom: 8%; display: flex; justify-content: space-between; transform: none; }
  .spatial-progress-item { height: 20px; gap: 0; }
  .spatial-progress-item span { display: none; }
  .spatial-progress-item i { width: 1px; height: 20px; }
 }
-@media (max-width: 1024px), (pointer: coarse) {
- .spatial-explore { display: none; }
- .spatial-gallery.is-touch-exploring { touch-action: none; }
- .spatial-touch-explore:not([hidden]) { display: block; position: absolute; z-index: 4; bottom: max(2%, env(safe-area-inset-bottom)); left: 5%; width: 90%; padding: 10px 0; border: 0; background: transparent; color: white; font: 400 clamp(14px, 4.1vw, 20px)/1.5 "Aeonik Trial", Arial, sans-serif; cursor: pointer; }
- .spatial-touch-explore:focus-visible { outline: 1px solid #fed201; }
+@media (max-width: 1024px), (hover: none), (pointer: coarse) {
+ .spatial-gallery.is-spatial { cursor: auto; }
+ /* Override R3F inline touch-action so transitions remain scrollable. */
+ .spatial-gallery.is-spatial .spatial-canvas,
+ .spatial-gallery.is-spatial .spatial-canvas div,
+ .spatial-gallery.is-spatial .spatial-canvas canvas { touch-action: pan-y !important; }
+ /* Lock browser gestures only on the explorable surface, leaving the scroll strip free. */
+ .spatial-gallery.is-explorable .spatial-canvas,
+ .spatial-gallery.is-explorable .spatial-canvas div,
+ .spatial-gallery.is-explorable .spatial-canvas canvas { touch-action: none !important; }
+ .spatial-scroll-zone { display: flex; align-items: flex-end; justify-content: center; position: absolute; z-index: 5; inset: auto 0 0; min-height: max(100px, 18svh); padding: 12px 16px max(12px, env(safe-area-inset-bottom)); touch-action: pan-y; }
+ .spatial-touch-explore { max-width: 100%; text-align: center; font: 400 clamp(12px, 2.8vw, 16px)/1.4 "Aeonik Trial", Arial, sans-serif; }
+ .spatial-gallery:not(.is-explorable) .spatial-touch-explore { visibility: hidden; }
 }
 
-@media (max-width: 767px) { .spatial-heading.is-first p { max-width: 280px; margin-inline: auto; } }
+
+/* The centered glass panel stays above the WebGL photos without intercepting gestures. */
+.spatial-heading {
+ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+ display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+ box-sizing: border-box; width: min(36.25rem, calc(100% - 2rem)); padding: 1.5rem;
+ text-align: center; pointer-events: none;
+ font-family: "Aeonik Trial", Arial, sans-serif;
+}
+.spatial-eyebrow { color: #fed201; font-size: .875rem; font-weight: 400; line-height: 1.5; letter-spacing: .5em; padding-left: .5em; }
+.spatial-heading h2 { margin: 0; font-size: 2rem; font-weight: 400; line-height: 1.25; letter-spacing: 0; }
+.spatial-heading p { margin: 0; font-size: 1.125rem; font-weight: 400; line-height: 1.5; }
+.spatial-explore { margin: 0; display: flex; align-items: center; justify-content: center; gap: .75rem; font-size: 1rem; line-height: 1.5; }
+.spatial-explore svg { flex: none; }
+@media (min-width: 1920px) {
+ .spatial-heading { width: min(44rem, calc(100% - 4rem)); gap: 1.5rem; padding: 1.75rem; }
+ .spatial-heading h2 { font-size: 2.5rem; }
+ .spatial-heading p { font-size: 1.375rem; }
+ .spatial-explore { font-size: 1.125rem; }
+ .spatial-eyebrow { font-size: 1rem; }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+ .spatial-heading { gap: 1.25rem; }
+}
+@media (max-width: 600px) {
+ .spatial-heading { padding: 1.25rem 1rem; gap: 1rem; }
+ .spatial-heading h2 { font-size: clamp(1.375rem, 5.8vw, 1.75rem); }
+ .spatial-heading p { font-size: clamp(.875rem, 3.6vw, 1rem); }
+ .spatial-eyebrow { font-size: .75rem; letter-spacing: .4em; }
+ .spatial-explore { font-size: .8125rem; gap: .5rem; }
+}
+@media (max-height: 500px) {
+ .spatial-heading { width: min(36.25rem, calc(100% - 5rem)); padding: .75rem 1rem; gap: .5rem; }
+ .spatial-heading h2 { font-size: 1.375rem; }
+ .spatial-heading p, .spatial-explore { font-size: .8125rem; }
+ .spatial-eyebrow { font-size: .6875rem; }
+}
+
+/* One persistent glass layer avoids restarting the blur on every category fade.
+   Feather the filter itself, not just its tint, so no hard rectangle remains. */
+.spatial-glass {
+ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+ width: min(42rem, 100%); height: 22rem; pointer-events: none;
+ background: linear-gradient(90deg, transparent 0%, rgba(11, 11, 11, .02) 50.48%, transparent 100%);
+ -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+ -webkit-mask-image: radial-gradient(ellipse closest-side, #000 25%, rgba(0, 0, 0, .75) 50%, transparent 100%);
+ mask-image: radial-gradient(ellipse closest-side, #000 25%, rgba(0, 0, 0, .75) 50%, transparent 100%);
+}
+@media (min-width: 1920px) { .spatial-glass { width: min(50rem, 100%); height: 26rem; } }
+@media (max-width: 600px) { .spatial-glass { height: 23rem; } }
+@media (max-height: 500px) { .spatial-glass { height: 15rem; } }
+
+/* Keep all rows in layout; only animate the hint's opacity, never display/height. */
+.spatial-explore {
+ opacity: 0; transform: translateY(3px);
+ transition: opacity 420ms ease, transform 420ms ease;
+ min-height: 1.5em;
+}
+.spatial-explore[data-visible="true"] { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+ .spatial-explore { transition: none; transform: none; }
+}
+
+.spatial-static button { border: 0; padding: 0; background: none; cursor: pointer; }
+.spatial-static button:focus-visible { outline: 2px solid #fed201; outline-offset: 4px; }
+.gallery-photo-dialog {
+ position: fixed; inset: 0; margin: 0; width: 100%; max-width: none; height: 100dvh; max-height: none;
+ box-sizing: border-box; border: 0; padding: clamp(3rem, 9vh, 5.25rem) 9vw 3rem; overflow-y: auto;
+ color: #fff; background: linear-gradient(180deg, rgba(170, 91, 0, .28), rgba(120, 10, 0, .25));
+ font-family: "Aeonik Trial", Arial, sans-serif; overscroll-behavior: contain;
+}
+/* Blur the actual scene: native dialog backdrop filtering is unreliable over WebGL. */
+.spatial-gallery.has-photo-dialog .spatial-canvas { filter: blur(24px); transform: scale(1.08); }
+.spatial-gallery.has-photo-dialog .spatial-overlays,
+.spatial-gallery.has-photo-dialog .spatial-scroll-zone { visibility: hidden; }
+.spatial-gallery.has-photo-dialog .spatial-state { visibility: hidden !important; }
+.spatial-gallery.has-photo-dialog .spatial-static { filter: blur(24px); }
+.gallery-photo-dialog::backdrop { background: rgba(65, 17, 0, .22); }
+.gallery-photo-dialog h2 { margin: 0; text-align: center; font-size: clamp(1.5rem, 2.78vw, 3rem); line-height: 1.25; font-weight: 400; }
+.gallery-dialog-close { position: fixed; top: 0; right: 0; width: clamp(3.5rem, 5.28vw, 5.5rem); height: clamp(3.5rem, 4.65vw, 5rem); border: 0; background: #fed201; color: #000; clip-path: polygon(0 0,100% 0,100% 100%,18% 100%,0 82%); cursor: pointer; font-size: 2rem; }
+.gallery-dialog-content { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; column-gap: clamp(2rem, 8.7vw, 8rem); row-gap: 1.5rem; margin-top: clamp(3rem, 10vh, 6rem); }
+.gallery-dialog-category { grid-column: 2; margin: 0; color: #fed201; text-align: center; font-size: .875rem; letter-spacing: .5em; line-height: 1.5; }
+.gallery-dialog-name { grid-column: 1; grid-row: 2; margin: 0; font-size: clamp(1.5rem, 2.22vw, 2.5rem); font-weight: 400; }
+.gallery-dialog-image { grid-column: 2; grid-row: 2; width: 100%; height: min(44.6vh, 30rem); object-fit: contain; }
+.gallery-dialog-bio { grid-column: 3; grid-row: 2; color: #fed201; font-size: .875rem; line-height: 1.5; }
+.gallery-dialog-bio p { margin: 0 0 1.5rem; }
+.gallery-dialog-link { position: relative; display: inline-flex; align-items: center; gap: .5rem; padding: .875rem 1.25rem; color: #fff; text-decoration: none; font-weight: 600; }
+.gallery-dialog-link::before { content: ''; position: absolute; inset: 0; background: #fff; clip-path: polygon(0 0,90% 0,100% 15%,100% 100%,10% 100%,0 85%,0 0,1px 1px,1px calc(85% - 1px),calc(10% + 1px) calc(100% - 1px),calc(100% - 1px) calc(100% - 1px),calc(100% - 1px) calc(15% + 1px),calc(90% - 1px) 1px,1px 1px); pointer-events: none; }
+.gallery-dialog-arrow { position: fixed; top: 50%; transform: translateY(-50%); width: 3rem; height: 3rem; display: grid; place-items: center; background: none; border: 0; color: #fff; cursor: pointer; }
+.gallery-dialog-arrow.is-previous { left: 2.6vw; }
+.gallery-dialog-arrow.is-next { right: 2.6vw; }
+.gallery-dialog-arrow svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2.5; }
+.gallery-photo-dialog :is(button,a):focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+@keyframes gallery-photo-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 900px) {
+ .gallery-photo-dialog { padding: 5rem 12vw 2.5rem; }
+ .gallery-dialog-content { grid-template-columns: 1fr; gap: 1rem; margin-top: 2rem; text-align: center; }
+ .gallery-dialog-content > * { grid-column: 1; grid-row: auto; }
+ .gallery-dialog-category { order: 0; }
+ .gallery-dialog-image { order: 1; width: min(100%, 20rem); height: min(37dvh, 25rem); justify-self: center; }
+ .gallery-dialog-name { order: 2; }
+ .gallery-dialog-bio { order: 3; max-width: 26rem; justify-self: center; }
+ .gallery-dialog-category { font-size: .75rem; }
+ .gallery-dialog-bio p { margin-bottom: 1rem; }
+ .gallery-dialog-arrow.is-previous { left: .25rem; }
+ .gallery-dialog-arrow.is-next { right: .25rem; }
+}
+@media (max-height: 500px) and (min-width: 700px) {
+ .gallery-photo-dialog { padding-top: 2rem; }
+ .gallery-dialog-content { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 1.5rem; column-gap: 1.5rem; }
+ .gallery-dialog-category { grid-column: 2; grid-row: 1; }
+ .gallery-dialog-name { grid-column: 1; grid-row: 2; }
+ .gallery-dialog-image { grid-column: 2; grid-row: 2; height: 48dvh; }
+ .gallery-dialog-bio { grid-column: 3; grid-row: 2; text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) { .gallery-dialog-content { animation: none; } }
+
+/* Native dialog stays fixed; animate opacity only so controls never acquire a transformed containing block. */
+body.gallery-photo-open .site-header { opacity: 0; visibility: hidden; pointer-events: none; }
+.site-header { transition: opacity 240ms ease, visibility 240ms; }
+.gallery-photo-dialog { overflow-x: hidden; cursor: default; padding-top: max(5.25rem, env(safe-area-inset-top)); }
+.gallery-dialog-close {
+ display: grid; place-items: center; padding: 0; line-height: 1;
+ width: 4.75rem; height: 4.25rem; z-index: 10; flex: none;
+ -webkit-tap-highlight-color: transparent;
+}
+.gallery-dialog-close svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2; }
+.gallery-dialog-content { pointer-events: none; }
+.gallery-dialog-content > *, .gallery-dialog-bio { pointer-events: auto; }
+.gallery-dialog-arrow, .gallery-dialog-close, .gallery-dialog-link { touch-action: manipulation; }
+.spatial-gallery.is-photo-hover { cursor: pointer; }
+.spatial-gallery.is-pressed, .spatial-gallery.is-dragging { cursor: grabbing; }
+.spatial-gallery .spatial-canvas, .spatial-gallery .spatial-canvas * { cursor: inherit !important; }
+@media (max-width: 1024px) {
+ .gallery-dialog-close { width: 3.75rem; height: 3.5rem; }
+ .gallery-photo-dialog { padding-top: 5rem; }
+ .gallery-dialog-content { margin-top: 1.5rem; }
+ .gallery-dialog-image { height: min(34svh, 22rem); }
+}
+@media (max-width: 600px) {
+ .gallery-dialog-close { width: 3.5rem; height: 3.25rem; }
+ .gallery-photo-dialog { padding-inline: 3.25rem; padding-top: 4.5rem; }
+}
+@media (max-height: 500px) and (min-width: 700px) {
+ .gallery-photo-dialog { padding-top: 2rem; }
+ .gallery-dialog-image { height: 48svh; }
+}
+@media (prefers-reduced-motion: reduce) { .site-header { transition: none; } }
+
+.gallery-photo-dialog:focus { outline: none; }
+
+/* Anchor navigation to the content/name row, not the viewport midpoint. */
+.gallery-dialog-content { position: relative; }
+.gallery-dialog-content > .gallery-dialog-arrow {
+ position: absolute; grid-row: 2; top: 50%; transform: translateY(-50%); order: 0;
+}
+.gallery-dialog-content > .gallery-dialog-arrow.is-previous { grid-column: 1; left: -6.4vw; }
+.gallery-dialog-content > .gallery-dialog-arrow.is-next { grid-column: 3; right: -6.4vw; }
+@media (max-width: 900px) {
+ .gallery-dialog-category { grid-row: 1; }
+ .gallery-dialog-image { grid-row: 2; }
+ .gallery-dialog-name { grid-row: 3; }
+ .gallery-dialog-bio { grid-row: 4; }
+ .gallery-dialog-content > .gallery-dialog-arrow { grid-row: 3; }
+ .gallery-dialog-content > .gallery-dialog-arrow.is-previous { grid-column: 1; left: calc(-12vw + .25rem); }
+ .gallery-dialog-content > .gallery-dialog-arrow.is-next { grid-column: 1; right: calc(-12vw + .25rem); }
+}
+@media (max-width: 600px) {
+ .gallery-dialog-content > .gallery-dialog-arrow.is-previous { left: -3rem; }
+ .gallery-dialog-content > .gallery-dialog-arrow.is-next { right: -3rem; }
+}
+@media (max-height: 500px) and (min-width: 700px) {
+ .gallery-dialog-category { grid-row: 1; }
+ .gallery-dialog-name, .gallery-dialog-image, .gallery-dialog-bio { grid-row: 2; }
+ .gallery-dialog-content > .gallery-dialog-arrow { grid-row: 2; }
+ .gallery-dialog-content > .gallery-dialog-arrow.is-next { grid-column: 3; }
+}
+
+/* Match the reference site's white-outline “Our Team” interaction. */
+.gallery-dialog-link { isolation: isolate; transition: color .4s ease; }
+.gallery-dialog-link::after {
+ content: ''; position: absolute; inset: 0; z-index: -1;
+ background: #fff; opacity: 0; pointer-events: none;
+ transition: opacity .4s ease;
+}
+.gallery-dialog-link::before { transition: clip-path .45s cubic-bezier(.165, .84, .44, 1); }
+.gallery-dialog-link:focus-visible { color: #000; }
+.gallery-dialog-link:focus-visible::after { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+ .gallery-dialog-link:hover { color: #000; }
+ .gallery-dialog-link:hover::after { opacity: 1; }
+}
+@media (min-width: 992px) and (hover: hover) and (pointer: fine) {
+ .gallery-dialog-link:is(:hover, :focus-visible)::before {
+  clip-path: polygon(0 0,100% 0,100% 0,100% 100%,0 100%,0 100%,0 0,1px 1px,1px calc(100% - 1px),1px calc(100% - 1px),calc(100% - 1px) calc(100% - 1px),calc(100% - 1px) 1px,calc(100% - 1px) 1px,1px 1px);
+ }
+}
+@media (prefers-reduced-motion: reduce) {
+ .gallery-dialog-link, .gallery-dialog-link::before, .gallery-dialog-link::after { transition: none; }
+}

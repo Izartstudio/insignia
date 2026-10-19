@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { preload } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -9,6 +10,7 @@ import { ScrollIndicator } from '../ScrollIndicator';
 import { CanvasRuntime } from "@/components/three/CanvasRuntime";
 import SpatialGalleryScene from './SpatialGalleryScene';
 import type { GalleryMotion } from './GalleryEnvironment';
+import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog';
 import './spatial-gallery.css';
 
 // Share the landing tolerance between the instruction and pointer interaction.
@@ -23,11 +25,11 @@ class GalleryBoundary extends Component<{ children: ReactNode; onFailure: () => 
   componentDidCatch() { this.props.onFailure(); }
   render() { return this.state.failed ? null : this.props.children; }
 }
-function AccessibleGallery({ visible }: { visible: boolean }) {
+function AccessibleGallery({ visible, onSelect }: { visible: boolean; onSelect: (selection: GallerySelection) => void }) {
   return <div className={visible ? 'spatial-static' : 'sr-only'}>
     {galleryStates.map(state => <article key={state.id}>
       <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-      <div>{state.photos.map((photo, index) => <img key={index} src={photo.src} alt={photo.alt} width="240" height="275" loading="lazy" />)}</div>
+      <div>{state.photos.map((photo, index) => <button type="button" key={index} onClick={() => onSelect({ worldId: state.id, photoIndex: index })} aria-label={`View details: ${photo.alt}`}><img src={photo.src} alt={photo.alt} width="240" height="275" loading="lazy" /></button>)}</div>
     </article>)}
   </div>;
 }
@@ -36,8 +38,13 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const sectionRef = useRef<HTMLElement>(null);
   const motion = useRef<GalleryMotion>({ travel: 0, panX: 0, panY: 0, active: false, invalidate: () => {} });
   const panOffsets = useRef(galleryStates.map(() => ({ x: 0, y: 0 })));
-  const exploreButton = useRef<HTMLButtonElement>(null);
-  const touchExploring = useRef(false);
+  const [selection, setSelection] = useState<GallerySelection | null>(null);
+  const closePhoto = useCallback(() => setSelection(null), []);
+  useLayoutEffect(() => {
+    motion.current.paused = selection !== null;
+    motion.current.invalidate();
+    return () => { motion.current.paused = false; };
+  }, [selection]);
   const [preview, setPreview] = useState<number | null>(null);
   const [enhanced, setEnhanced] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
@@ -45,6 +52,14 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const [failed, setFailed] = useState(false);
   const onFailure = useCallback(() => { console.error("Spatial gallery entered WebGL/asset fallback"); setFailed(true); }, []);
   const animated = enhanced && !failed;
+
+  useLayoutEffect(() => {
+    if (!animated) return;
+    // Warm the browser cache before the lazy WebGL canvas approaches the viewport.
+    galleryStates.forEach((state, index) => state.photos.forEach(photo => {
+      preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
+    }));
+  }, [animated]);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
@@ -75,23 +90,13 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     let momentumFrame = 0;
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
-    const toggleExplore = () => {
-      touchExploring.current = !touchExploring.current;
-      section.classList.toggle('is-touch-exploring', touchExploring.current);
-      exploreButton.current?.setAttribute('aria-pressed', String(touchExploring.current));
-      if (exploreButton.current) exploreButton.current.textContent = touchExploring.current ? 'Done exploring — scroll to continue' : 'Move To Explore The Canvas';
-    };
-    const stopExplore = () => { if (touchExploring.current) toggleExplore(); };
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') stopExplore(); };
-    exploreButton.current?.addEventListener('click', toggleExplore);
-    section.addEventListener('keydown', onKey);
     let lastExplorableState: number | undefined;
     const syncPan = () => {
       const explorableState = getExplorableState(motion.current.travel);
       if (explorableState !== lastExplorableState) {
-        hints.forEach((hint, index) => { hint.hidden = index !== explorableState; });
-        if (exploreButton.current) exploreButton.current.hidden = explorableState < 0;
-        if (explorableState < 0) { stopExplore(); stopMomentum(); }
+        hints.forEach((hint, index) => { hint.dataset.visible = String(index === explorableState); });
+        section.classList.toggle('is-explorable', explorableState >= 0);
+        if (explorableState < 0) stopMomentum();
         lastExplorableState = explorableState;
       }
       const travel = motion.current.travel;
@@ -132,8 +137,8 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         const end = motionProfile.stops[index + 1];
         const duration = end - exit;
         timeline.to(motion.current, { travel: index + 1, duration, ease: motionProfile.travelEase }, exit)
-          .to(overlays[index], { autoAlpha: 0, y: -12, duration: duration * .35, ease: 'none' }, exit)
-          .fromTo(overlays[index + 1], { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: duration * .35, ease: 'none', immediateRender: false }, end - duration * .35)
+          .to(overlays[index], { autoAlpha: 0, y: -6, duration: duration * .55, ease: 'power1.inOut' }, exit)
+          .fromTo(overlays[index + 1], { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: duration * .55, ease: 'power1.inOut', immediateRender: false }, end - duration * .55)
           .to(labels[index], { autoAlpha: 0, duration: duration * .35 }, exit)
           .to(labels[index + 1], { autoAlpha: 1, duration: duration * .35 }, end - duration * .35)
           .to(marks[index], { opacity: .2, duration: duration * .5 }, exit)
@@ -149,68 +154,88 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     observer.observe(section);
     let drag: { id: number; x: number; y: number; state: number; captured: boolean; touch: boolean; time: number; vx: number; vy: number } | null = null;
     const down = (event: PointerEvent) => {
-      if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest('button,a,input')) return;
+      if (!event.isPrimary) { cancelGesture(); return; }
+      stopMomentum();
+      if (event.button !== 0 || !(event.target instanceof Element) || !event.target.closest('.spatial-canvas')) return;
       const state = getExplorableState(motion.current.travel);
       if (state < 0) return;
       stopMomentum();
+      section.classList.add('is-pressed');
       drag = { time: performance.now(), vx: 0, vy: 0, id: event.pointerId, x: event.clientX, y: event.clientY, state, captured: false, touch: event.pointerType === 'touch' };
     };
     const release = () => {
       const id = drag?.id;
       drag = null;
-      section.classList.remove('is-dragging');
+      motion.current.dragging = false;
+      section.classList.remove('is-dragging', 'is-pressed');
       if (id !== undefined && section.hasPointerCapture(id)) section.releasePointerCapture(id);
     };
     const move = (event: PointerEvent) => {
+      if (!drag && event.pointerType === 'mouse') {
+        const photo = motion.current.pickPhoto?.(event.clientX, event.clientY);
+        section.classList.toggle('is-photo-hover', !!photo);
+      }
       if (!drag || event.pointerId !== drag.id) return;
       if (getExplorableState(motion.current.travel) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
       if (!drag.captured) {
         if (Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
-        // Outside explicit Explore mode, horizontal and diagonal intent owns the
-        // canvas while a predominantly vertical swipe remains native scrolling.
-        if (drag.touch && !touchExploring.current && Math.abs(dy) > Math.abs(dx)) {
-          release();
-          return;
-        }
         drag.captured = true;
+        motion.current.dragging = true;
         section.setPointerCapture(event.pointerId);
         section.classList.add('is-dragging');
       }
+      if (event.cancelable) event.preventDefault();
       const units = 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
       panOffsets.current[drag.state].x -= dx*units;
       panOffsets.current[drag.state].y += dy*units;
       const now = performance.now();
-      const elapsed = Math.max(8, now - drag.time) / 1000;
-      drag.vx = Math.max(-8, Math.min(8, -dx * units / elapsed));
-      drag.vy = Math.max(-8, Math.min(8, dy * units / elapsed));
+      const elapsed = Math.max(1, now - drag.time) / 1000;
+      const blend = 1 - Math.exp(-25 * elapsed);
+      drag.vx += (Math.max(-8, Math.min(8, -dx * units / elapsed)) - drag.vx) * blend;
+      drag.vy += (Math.max(-8, Math.min(8, dy * units / elapsed)) - drag.vy) * blend;
       drag.time = now;
       drag.x=event.clientX; drag.y=event.clientY;
       syncPan();
     };
-    const finish = () => {
+    const finish = (event: PointerEvent) => {
+      if (event.pointerId !== drag?.id) return;
       const ended = drag;
       release();
+      if (ended && !ended.captured && Math.hypot(event.clientX - ended.x, event.clientY - ended.y) < galleryConfig.drag.intentPixels) {
+        const selected = motion.current.pickPhoto?.(event.clientX, event.clientY);
+        if (selected) { stopMomentum(); setSelection(selected); }
+        return;
+      }
       if (!ended?.touch || !ended.captured || performance.now() - ended.time > 100) return;
       let previous = performance.now();
       const tick = (now: number) => {
-        if (!touchExploring.current || getExplorableState(motion.current.travel) !== ended.state) return;
+        if (getExplorableState(motion.current.travel) !== ended.state) return;
         const delta = Math.min((now - previous) / 1000, .05);
         previous = now;
         const decay = Math.exp(-10 * delta);
+        // Integrate exponential decay exactly for consistent travel at 30/60/120 Hz.
+        panOffsets.current[ended.state].x += ended.vx * (1 - decay) / 10;
+        panOffsets.current[ended.state].y += ended.vy * (1 - decay) / 10;
         ended.vx *= decay; ended.vy *= decay;
-        panOffsets.current[ended.state].x += ended.vx * delta;
-        panOffsets.current[ended.state].y += ended.vy * delta;
         syncPan();
         if (Math.hypot(ended.vx, ended.vy) > .01) momentumFrame = requestAnimationFrame(tick);
       };
       momentumFrame = requestAnimationFrame(tick);
     };
-    const leave = () => { if (!drag?.captured) release(); };
+    const cancelGesture = () => { release(); stopMomentum(); };
+    const cancelPointer = (event: PointerEvent) => {
+      if (event.pointerId === drag?.id) cancelGesture();
+    };
+    const visibilityChange = () => { if (document.hidden) cancelGesture(); };
+    window.addEventListener('blur', cancelGesture);
+    window.addEventListener('resize', cancelGesture);
+    document.addEventListener('visibilitychange', visibilityChange);
+    const leave = () => { section.classList.remove('is-photo-hover'); if (!drag?.captured) release(); };
     section.addEventListener('pointerdown', down);
     section.addEventListener('pointerup', finish);
-    section.addEventListener('pointercancel', release);
-    section.addEventListener('lostpointercapture', release);
+    section.addEventListener('pointercancel', cancelPointer);
+    section.addEventListener('lostpointercapture', cancelPointer);
     section.addEventListener('pointermove', move);
     section.addEventListener('pointerleave', leave);
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
@@ -218,26 +243,27 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       cancelAnimationFrame(refresh);
       stopMomentum();
       observer.disconnect();
-      stopExplore();
-      exploreButton.current?.removeEventListener('click', toggleExplore);
-      section.removeEventListener('keydown', onKey);
+      window.removeEventListener('blur', cancelGesture);
+      window.removeEventListener('resize', cancelGesture);
+      document.removeEventListener('visibilitychange', visibilityChange);
       release();
       section.removeEventListener('pointerdown', down);
       section.removeEventListener('pointerup', finish);
-      section.removeEventListener('pointercancel', release);
-      section.removeEventListener('lostpointercapture', release);
+      section.removeEventListener('pointercancel', cancelPointer);
+      section.removeEventListener('lostpointercapture', cancelPointer);
       section.removeEventListener('pointermove', move);
       section.removeEventListener('pointerleave', leave);
       context.revert();
-      hints.forEach(hint => { hint.hidden = true; });
+      section.classList.remove('is-explorable');
+      hints.forEach(hint => { hint.dataset.visible = 'false'; });
       motion.current.active = false;
     };
   }, [animated, preview, motionProfile]);
 
-  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''}`} aria-label="Who's Been At Insignia">
-    <AccessibleGallery visible={!animated} />
+  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${selection ? 'has-photo-dialog' : ''}`} aria-label="Who's Been At Insignia">
+    <AccessibleGallery visible={!animated} onSelect={setSelection} />
     {animated && <>
-      <div className="spatial-canvas" aria-hidden="true">
+      <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
         <GalleryBoundary onFailure={onFailure}>
           {canvasReady && <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
@@ -245,17 +271,21 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
           </Canvas>}
         </GalleryBoundary>
       </div>
-      <button ref={exploreButton} type="button" className="spatial-touch-explore" aria-pressed="false" hidden>Move To Explore The Canvas</button>
+      <div className="spatial-scroll-zone" aria-hidden="true">
+        <span className="spatial-touch-explore">Swipe here to scroll</span>
+      </div>
       <div className="spatial-overlays" aria-hidden="true">
+        <div className="spatial-glass" />
         {galleryStates.map((state, index) => <div className="spatial-state" key={state.id}>
           <div className={`spatial-heading ${index === 0 ? 'is-first' : ''}`}>
+            <span className="spatial-eyebrow">{state.category}</span>
             <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-        <div className="spatial-explore" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move to explore the canvas.</div>
+        <div className="spatial-explore" data-visible="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move to explore the canvas.</div>
           </div>
         </div>)}
         <div className="spatial-progress">{galleryStates.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>
         <ScrollIndicator />
       </div>
     </>}
-  </section></div>;
+  </section>{selection && <GalleryPhotoDialog selection={selection} onClose={closePhoto} />}</div>;
 }
