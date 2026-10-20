@@ -38,9 +38,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const [mobileControls, setMobileControls] = useState(false);
   const [mobileState, setMobileState] = useState(0);
   const navigateMobile = useRef<((index: number) => void) | null>(null);
-  const mobileProgress = useRef<HTMLSpanElement>(null);
-  const mobileTimer = useRef<gsap.core.Tween | null>(null);
-  const mobileTransitioning = useRef(false);
   useLayoutEffect(() => {
     const query = window.matchMedia('(max-width: 767px)');
     const update = () => setMobileControls(query.matches);
@@ -57,8 +54,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const closePhoto = useCallback(() => { setSelection(null); setPhotoClosing(false); }, []);
   useLayoutEffect(() => {
     motion.current.paused = selection !== null;
-    if (selection) mobileTimer.current?.pause();
-    else if (document.body.classList.contains('gallery-mobile-locked')) mobileTimer.current?.play();
     motion.current.invalidate();
     return () => { motion.current.paused = false; };
   }, [selection]);
@@ -68,17 +63,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const [failed, setFailed] = useState(false);
   const onFailure = useCallback(() => { console.error("Spatial gallery entered WebGL/asset fallback"); setFailed(true); }, []);
   const animated = enhanced && !failed;
-
-  useLayoutEffect(() => {
-    if (!mobileControls || !mobileProgress.current) return;
-    const timer = gsap.fromTo(mobileProgress.current, { scaleX: 0 }, {
-      scaleX: 1, duration: 8, ease: 'none', paused: true,
-      onComplete: () => navigateMobile.current?.(mobileState + 1),
-    });
-    mobileTimer.current = timer;
-    if (document.body.classList.contains('gallery-mobile-locked') && !motion.current.paused && !mobileTransitioning.current) timer.play();
-    return () => { timer.kill(); if (mobileTimer.current === timer) mobileTimer.current = null; };
-  }, [mobileControls, mobileState]);
 
   useLayoutEffect(() => {
     if (!animated) return;
@@ -112,7 +96,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (mobileExited || !mobileControls) return;
       window.scrollTo({ top: window.scrollY + section.getBoundingClientRect().top, behavior: 'instant' });
       document.body.classList.add('gallery-mobile-locked');
-      mobileTimer.current?.play();
     };
     let mobileTween: gsap.core.Tween | null = null;
     let momentumFrame = 0;
@@ -182,7 +165,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         navigateMobile.current = index => {
           stopMomentum();
           release();
-          mobileTimer.current?.pause(0);
           if (index >= galleryStates.length) {
             mobileExited = true;
             unlockMobile();
@@ -193,7 +175,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
           mobileTween?.kill();
           const isDirectJump = Math.abs(target - currentMobileState) > 1;
           currentMobileState = target;
-          mobileTransitioning.current = !isDirectJump;
           setMobileState(target);
           if (isDirectJump) {
             timeline.seek(motionProfile.stops[target], true);
@@ -211,7 +192,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
             duration: Math.min(1.6, Math.max(.8, Math.abs(target - motion.current.travel) * .85)),
             ease: 'power1.inOut',
             onUpdate: syncPan,
-            onComplete: () => { mobileTransitioning.current = false; if (document.body.classList.contains('gallery-mobile-locked')) mobileTimer.current?.play(); },
           });
         };
       }
@@ -234,13 +214,14 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     const down = (event: PointerEvent) => {
       if (!event.isPrimary) { cancelGesture(); return; }
       stopMomentum();
-      if (event.button !== 0 || !(event.target instanceof Element) || !event.target.closest('.spatial-canvas')) return;
+      if (event.button !== 0 || !(event.target instanceof Element) ||
+        (mobileControls ? event.target.closest('.spatial-mobile-controls') : !event.target.closest('.spatial-canvas'))) return;
       const state = getExplorableState(motion.current.travel);
       if (state < 0) return;
       stopMomentum();
       section.classList.add('is-pressed');
-      if (mobileControls) mobileTimer.current?.pause();
       drag = { time: performance.now(), vx: 0, vy: 0, id: event.pointerId, x: event.clientX, y: event.clientY, state, captured: false, touch: event.pointerType === 'touch' };
+      if (mobileControls) section.setPointerCapture(event.pointerId);
     };
     const release = () => {
       const id = drag?.id;
@@ -248,7 +229,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       motion.current.dragging = false;
       section.classList.remove('is-dragging', 'is-pressed');
       if (id !== undefined && section.hasPointerCapture(id)) section.releasePointerCapture(id);
-      if (mobileControls && document.body.classList.contains('gallery-mobile-locked') && !motion.current.paused && !mobileTween?.isActive()) mobileTimer.current?.play();
     };
     const move = (event: PointerEvent) => {
       if (!drag && event.pointerType === 'mouse') {
@@ -259,21 +239,22 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (getExplorableState(motion.current.travel) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
       if (!drag.captured) {
-        if (Math.hypot(dx,dy) < (mobileControls ? 1 : galleryConfig.drag.intentPixels)) return;
+        if (!mobileControls && Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
         drag.captured = true;
         motion.current.dragging = true;
-        section.setPointerCapture(event.pointerId);
+        if (!section.hasPointerCapture(event.pointerId)) section.setPointerCapture(event.pointerId);
         section.classList.add('is-dragging');
       }
       if (event.cancelable) event.preventDefault();
-      const units = (mobileControls ? 3.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
+      const units = (mobileControls ? 8.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
       panOffsets.current[drag.state].x -= dx*units;
       panOffsets.current[drag.state].y += dy*units;
       const now = performance.now();
       const elapsed = Math.max(1, now - drag.time) / 1000;
       const blend = 1 - Math.exp(-25 * elapsed);
-      drag.vx += (Math.max(-8, Math.min(8, -dx * units / elapsed)) - drag.vx) * blend;
-      drag.vy += (Math.max(-8, Math.min(8, dy * units / elapsed)) - drag.vy) * blend;
+      const maxVelocity = mobileControls ? 28 : 8;
+      drag.vx += (Math.max(-maxVelocity, Math.min(maxVelocity, -dx * units / elapsed)) - drag.vx) * blend;
+      drag.vy += (Math.max(-maxVelocity, Math.min(maxVelocity, dy * units / elapsed)) - drag.vy) * blend;
       drag.time = now;
       drag.x=event.clientX; drag.y=event.clientY;
       syncPan();
@@ -293,10 +274,11 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         if (getExplorableState(motion.current.travel) !== ended.state) return;
         const delta = Math.min((now - previous) / 1000, .05);
         previous = now;
-        const decay = Math.exp(-10 * delta);
+        const friction = mobileControls ? 6 : 10;
+        const decay = Math.exp(-friction * delta);
         // Integrate exponential decay exactly for consistent travel at 30/60/120 Hz.
-        panOffsets.current[ended.state].x += ended.vx * (1 - decay) / 10;
-        panOffsets.current[ended.state].y += ended.vy * (1 - decay) / 10;
+        panOffsets.current[ended.state].x += ended.vx * (1 - decay) / friction;
+        panOffsets.current[ended.state].y += ended.vy * (1 - decay) / friction;
         ended.vx *= decay; ended.vy *= decay;
         syncPan();
         if (Math.hypot(ended.vx, ended.vy) > .01) momentumFrame = requestAnimationFrame(tick);
@@ -329,9 +311,6 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       unlockMobile();
       navigateMobile.current = null;
       mobileTween?.kill();
-      mobileTimer.current?.kill();
-      mobileTimer.current = null;
-      mobileTransitioning.current = false;
       cancelAnimationFrame(refresh);
       stopMomentum();
       observer.disconnect();
@@ -368,11 +347,12 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
           {galleryStates.map((state, index) => <button key={state.id} type="button"
             className={index === mobileState ? 'is-active' : ''}
             aria-label={`Show ${state.label}`} aria-pressed={index === mobileState}
-            onClick={() => navigateMobile.current?.(index)}>{index === mobileState && <span ref={mobileProgress} className="spatial-mobile-progress" aria-hidden="true" />}<span>{state.label}</span></button>)}
+            onClick={() => navigateMobile.current?.(index)}><span>{state.label}</span></button>)}
         </div>
         <button type="button" className="spatial-mobile-next"
           aria-label={mobileState === galleryStates.length - 1 ? 'Continue to next section' : `Next category: ${galleryStates[mobileState + 1].label}`}
           onClick={() => navigateMobile.current?.(mobileState + 1)}>
+          <span aria-hidden="true">NEXT</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
         </button>
       </nav>}

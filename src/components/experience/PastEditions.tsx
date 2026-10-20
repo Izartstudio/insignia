@@ -83,13 +83,13 @@ export function PastEditions() {
     gsap.registerPlugin(ScrollTrigger);
     const media = gsap.matchMedia();
     const distance = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
-    media.add("(prefers-reduced-motion: no-preference)", () => {
+    const createTimeline = (trigger: HTMLElement) => {
       const timeline = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           // Measure upstream pins first, regardless of asynchronous mount order.
           refreshPriority: 10,
-          trigger: stage,
+          trigger,
           start: "top top",
           end: () => `+=${Math.max(1, distance())}`,
           pin: true,
@@ -102,7 +102,9 @@ export function PastEditions() {
       timeline.fromTo(track, { x: 0 }, { x: () => -distance(), duration: 1 }, 0)
         .fromTo(progress, { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
       return () => { scrollTriggerRef.current = null; };
-    });
+    };
+    media.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage));
+    media.add("(max-width: 767px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage.parentElement ?? stage));
     // Measure only on layout changes, never on animation frames.
     let frame = 0;
     let previousWidth = -1;

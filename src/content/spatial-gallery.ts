@@ -45,7 +45,7 @@ export const galleryStates: GalleryState[] = [
     { src: "/assets/insignia/people/founders-reference-5.webp", alt: "Guests in conversation", layout: [870.0, 548.0, 114.0, 132.0], mobileLayout: [511.848, 502.624, 65.972, 22.264], depthOffset: 0.3, referenceCrop: true },
     { src: "/assets/insignia/people/founders-reference-6.webp", alt: "Portrait of a summit guest", layout: [394.0, 566.0, 210.0, 243.0], mobileLayout: [-195.640, 493.178, 238.863, 82.309], depthOffset: -0.8, referenceCrop: true },
   ] },
-  { id: 'experts', category: 'EXPERTS', label: 'Industry Experts', heading: 'Industry experts defining trends.', depth: -32, tile: { width: 1600, height: 1100 }, radius: 626 / 900, photos: [
+  { id: 'experts', category: 'EXPERTS', label: 'Experts', heading: 'Industry experts defining trends.', depth: -32, tile: { width: 1600, height: 1100 }, radius: 626 / 900, photos: [
     { src: "/assets/insignia/people/experts-reference-1.webp", alt: "A speaker holding a microphone", layout: [947.0, 411.0, 157.0, 181.0], mobileLayout: [890.769, 435.660, 175.385, 59.408], depthOffset: 0.2, referenceCrop: true },
     { src: "/assets/insignia/people/experts-reference-2.webp", alt: "A panel speaker gesturing", layout: [56.0, 141.0, 234.0, 270.0], mobileLayout: [-96.923, 346.889, 258.462, 88.771], depthOffset: 0.4, referenceCrop: true },
     { src: "/assets/insignia/people/experts-reference-3.webp", alt: "A seated panel speaker", layout: [1215.0, 70.0, 175.0, 202.0], mobileLayout: [1188.462, 323.672, 193.846, 66.237], depthOffset: -0.4, referenceCrop: true },
