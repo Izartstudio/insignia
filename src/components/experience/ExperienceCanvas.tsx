@@ -1,26 +1,19 @@
 "use client";
-import { Suspense, type RefObject } from "react";
-import { Canvas } from "@react-three/fiber";
-import { useProgress } from "@react-three/drei";
+import { Suspense, useRef, type RefObject } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { sceneConfig } from "@/config/scene";
 import { CamcorderModel } from "@/components/three/CamcorderModel";
 import { useLCDVideo } from "@/lib/three/useLCDVideo";
 import { CanvasRuntime } from "@/components/three/CanvasRuntime";
 import { SceneLighting } from "@/components/three/SceneLighting";
 import type { FullscreenHeadingHandle } from "./FullscreenHeading";
-function LoadingIndicator() {
-  const active = useProgress((state) => state.active);
-
-  if (!active) return null;
-
-  return (
-    <div className="status" role="status" style={{ pointerEvents: "none" }}>
-      Loading camcorder…
-    </div>
-  );
+function SceneReady({ onReady }: { onReady: () => void }) {
+  const reported = useRef(false);
+  useFrame(() => { if (!reported.current) { reported.current = true; onReady(); } });
+  return null;
 }
 
-export default function ExperienceCanvas({ heroRef, scrollIndicatorRef, fullscreenHeadingRef }: { heroRef: RefObject<HTMLElement | null>; scrollIndicatorRef: RefObject<HTMLDivElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null> }) {
+export default function ExperienceCanvas({ heroRef, scrollIndicatorRef, fullscreenHeadingRef, onReady }: { onReady: () => void; heroRef: RefObject<HTMLElement | null>; scrollIndicatorRef: RefObject<HTMLDivElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null> }) {
   const video = useLCDVideo(heroRef);
   return (
     <>
@@ -39,9 +32,9 @@ export default function ExperienceCanvas({ heroRef, scrollIndicatorRef, fullscre
         <SceneLighting />
         <Suspense fallback={null}>
           <CamcorderModel heroRef={heroRef} scrollIndicatorRef={scrollIndicatorRef} fullscreenHeadingRef={fullscreenHeadingRef} video={video.resource} hasFrame={video.hasFrame} />
+          <SceneReady onReady={onReady} />
         </Suspense>
       </Canvas>
-      <LoadingIndicator />
       <div className="film-controls">
         {(video.status === "blocked" || video.status === "error") && (
           <button type="button" onClick={video.resume}>

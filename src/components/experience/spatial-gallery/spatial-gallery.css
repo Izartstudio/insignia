@@ -7,8 +7,11 @@
 .spatial-gallery { position: relative; background: #320000; color: #fff; }
 .spatial-gallery.is-spatial { height: 100svh; overflow: hidden; background: radial-gradient(ellipse 119.5% 119.5% at 50% 50%, #fe8c01 0%, #aa0009 36.8333%, #000 100%); }
 @media (min-width: 1025px) {
- .spatial-gallery-track { position: relative; z-index: 11; margin-top: -2px; background: #aa0009; }
- .spatial-gallery.is-spatial::before { content: ''; position: absolute; inset: 0 0 auto; z-index: 1; height: 28svh; pointer-events: none; opacity: var(--gallery-bridge-opacity, 1); background: linear-gradient(180deg, #aa0009 0%, rgb(170 0 9 / 0) 100%); }
+ .spatial-gallery-track { position: relative; z-index: 11; background: #aa0009; }
+}
+@media (min-width: 1025px) and (prefers-reduced-motion: no-preference) {
+ .spatial-gallery-track:not(.is-preview):not(.is-fallback) { margin-top: -1px; }
+ .spatial-gallery.is-spatial { -webkit-mask-image: linear-gradient(180deg, rgb(0 0 0 / var(--gallery-entry-alpha, 0)), #000 18svh); mask-image: linear-gradient(180deg, rgb(0 0 0 / var(--gallery-entry-alpha, 0)), #000 18svh); }
 }
 .spatial-canvas, .spatial-overlays, .spatial-state { position: absolute; inset: 0; }
 .spatial-overlays { pointer-events: none; }
@@ -325,6 +328,21 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-mobile-states { gap: .75rem; }
  .spatial-mobile-states button.is-active { min-width: 5.5rem; padding-inline: .5rem; }
  .spatial-mobile-states button.is-active span { max-width: 6.5rem; letter-spacing: .15em; }
+}
+
+/* Keep every underlying gallery control blurred and inert until the modal is gone. */
+.spatial-gallery.has-photo-dialog .spatial-overlays,
+.spatial-gallery.has-photo-dialog .spatial-mobile-controls,
+.spatial-gallery.has-photo-dialog .spatial-mobile-close {
+ filter: blur(16px); opacity: 1; pointer-events: none;
+}
+@media (max-width: 767px) {
+ .spatial-mobile-entry { min-height: auto; padding-bottom: 1.5rem; }
+ .spatial-mobile-preview-wrap { flex: none; height: clamp(20rem, 59svh, 34rem); }
+ .spatial-mobile-entry p { margin-bottom: 0; }
+ .spatial-gallery-track:not(.is-fallback):not(.is-preview),
+ .spatial-gallery-track:not(.is-fallback) > .spatial-gallery:not(.is-mobile-entered) { min-height: 0; }
+ .spatial-gallery.is-mobile-entered { overscroll-behavior: none; touch-action: none; }
 }
 @media (prefers-reduced-motion: reduce) { .spatial-mobile-next span { animation: none; } }
 

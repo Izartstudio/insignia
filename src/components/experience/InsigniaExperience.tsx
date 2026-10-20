@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useRef, type CSSProperties, type ReactNode } from "react";
+import { Component, useRef, useState, useCallback, type CSSProperties, type ReactNode } from "react";
+import { HeroLoader } from "./HeroLoader";
 import { HeroBackground } from "./HeroBackground";
 import { ScrollIndicator } from "./ScrollIndicator";
 import { FullscreenHeading, type FullscreenHeadingHandle } from "./FullscreenHeading";
@@ -14,7 +15,7 @@ import type { SpatialGalleryContent } from '@/sanity/galleryContent';
 
 const ExperienceCanvas = dynamic(() => import("./ExperienceCanvas"), {
   ssr: false,
-  loading: () => <div className="status" role="status">Preparing scene…</div>,
+  loading: () => null,
 });
 
 class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -32,6 +33,8 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
 }
 
 export function InsigniaExperience({ galleryContent }: { galleryContent: SpatialGalleryContent }) {
+  const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
   const heroRef = useRef<HTMLElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
   const fullscreenHeadingRef = useRef<FullscreenHeadingHandle>(null);
@@ -45,7 +48,7 @@ export function InsigniaExperience({ galleryContent }: { galleryContent: Spatial
         <section ref={heroRef} className="experience">
           <HeroBackground />
           <div className="canvas-shell" role="img" aria-label="An open-LCD camcorder rotates from a three-quarter view to a rear view as you scroll">
-            <SceneErrorBoundary><ExperienceCanvas heroRef={heroRef} scrollIndicatorRef={scrollIndicatorRef} fullscreenHeadingRef={fullscreenHeadingRef} /></SceneErrorBoundary>
+            <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} scrollIndicatorRef={scrollIndicatorRef} fullscreenHeadingRef={fullscreenHeadingRef} /><HeroLoader ready={ready} /></SceneErrorBoundary>
           </div>
           <ScrollIndicator ref={scrollIndicatorRef} />
           <FullscreenHeading ref={fullscreenHeadingRef} />

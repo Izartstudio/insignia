@@ -13,6 +13,7 @@ import SpatialGalleryScene from './SpatialGalleryScene';
 import type { GalleryMotion } from './GalleryEnvironment';
 import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog';
 import './spatial-gallery.css';
+import { lockPageScroll } from './scrollLock';
 
 // Share the landing tolerance between the instruction and pointer interaction.
 function getExplorableState(travel: number, count: number) {
@@ -45,7 +46,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
   const closingRef = useRef(false);
   const closeTimer = useRef<number | null>(null);
   const revealTimer = useRef<number | null>(null);
-  const [copied, setCopied] = useState(false);
+  const unlockExperience = useRef<(() => void) | null>(null);
+  const cancelInteraction = useRef<(() => void) | null>(null);
   const navigateMobile = useRef<((index: number) => void) | null>(null);
   const resetMobile = useRef<(() => void) | null>(null);
   const exitMobile = useRef<((afterClose?: () => void) => void) | null>(null);
@@ -56,6 +58,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     closeTimer.current = window.setTimeout(() => {
       const track = sectionRef.current?.parentElement;
       const entryTop = track ? window.scrollY + track.getBoundingClientRect().top : window.scrollY;
+      unlockExperience.current?.();
+      unlockExperience.current = null;
       document.body.classList.remove('gallery-mobile-locked');
       window.scrollTo({ top: entryTop, behavior: 'instant' });
       setMobileEntered(false);
@@ -69,6 +73,10 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
   exitMobile.current = closeMobile;
   const enterMobile = useCallback(() => {
     if (closingRef.current) return;
+    const track = sectionRef.current?.parentElement;
+    if (track) track.style.height = `${track.getBoundingClientRect().height}px`;
+    unlockExperience.current?.();
+    unlockExperience.current = lockPageScroll();
     resetMobile.current?.();
     setMobileClosing(false);
     setMobileEntered(true);
@@ -77,11 +85,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
   useLayoutEffect(() => () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     if (revealTimer.current) clearTimeout(revealTimer.current);
+    unlockExperience.current?.();
     document.body.classList.remove('gallery-mobile-locked');
-  }, []);
-  const copyLink = useCallback(async () => {
-    try { await navigator.clipboard.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 2000); }
-    catch { setCopied(false); }
   }, []);
   useLayoutEffect(() => {
     const query = window.matchMedia('(max-width: 767px)');
@@ -91,15 +96,25 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     return () => query.removeEventListener('change', update);
   }, []);
   const sectionRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (!mobileEntered) sectionRef.current?.parentElement?.style.removeProperty('height');
+  }, [mobileEntered]);
+  useLayoutEffect(() => {
+    if (mobileControls) return;
+    unlockExperience.current?.();
+    unlockExperience.current = null;
+    document.body.classList.remove('gallery-mobile-locked');
+    setMobileEntered(false);
+  }, [mobileControls]);
   const motion = useRef<GalleryMotion>({ travel: 0, panX: 0, panY: 0, active: false, invalidate: () => {} });
   const panOffsets = useRef(states.map(() => ({ x: 0, y: 0 })));
   useLayoutEffect(() => { panOffsets.current = states.map(() => ({ x: 0, y: 0 })); }, [states]);
   const [selection, setSelection] = useState<GallerySelection | null>(null);
   useLayoutEffect(() => { setSelection(null); }, [mobileControls]);
-  const [photoClosing, setPhotoClosing] = useState(false);
-  const startClosingPhoto = useCallback(() => setPhotoClosing(true), []);
-  const closePhoto = useCallback(() => { setSelection(null); setPhotoClosing(false); }, []);
+  const startClosingPhoto = useCallback(() => { motion.current.paused = true; }, []);
+  const closePhoto = useCallback(() => { setSelection(null); }, []);
   useLayoutEffect(() => {
+    if (selection) cancelInteraction.current?.();
     motion.current.paused = selection !== null;
     motion.current.invalidate();
     return () => { motion.current.paused = false; };
@@ -143,7 +158,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
     let lastExplorableState: number | undefined;
     const syncPan = () => {
-      if (!mobileControls && window.innerWidth >= 1025) section.style.setProperty('--gallery-bridge-opacity', String(Math.max(0, 1 - motion.current.travel * 6)));
+
       const explorableState = getExplorableState(motion.current.travel, states.length);
       if (explorableState !== lastExplorableState) {
         hints.forEach((hint, index) => { hint.dataset.visible = String(index === explorableState); });
@@ -214,6 +229,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           syncPan();
         };
         navigateMobile.current = index => {
+          if (motion.current.paused || closingRef.current) return;
           stopMomentum();
           release();
           if (index >= states.length) {
@@ -247,18 +263,30 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
 
     }, section);
     syncPan();
+    const bridgeTrigger = !mobileControls && window.innerWidth >= 1025 ? ScrollTrigger.create({
+      trigger: section, start: 'top bottom', end: 'top top',
+      onUpdate: self => section.style.setProperty('--gallery-entry-alpha', String(self.progress)),
+      onRefresh: self => section.style.setProperty('--gallery-entry-alpha', String(self.progress)),
+    }) : null;
     const observer = new IntersectionObserver(([entry]) => {
       motion.current.active = entry.isIntersecting;
       if (entry.isIntersecting) motion.current.invalidate();
     });
     observer.observe(section);
     let drag: { id: number; x: number; y: number; state: number; captured: boolean; touch: boolean; time: number; vx: number; vy: number } | null = null;
+    const canInteract = () => {
+      if (motion.current.paused || closingRef.current) return false;
+      if (mobileControls) return section.classList.contains('is-mobile-entered');
+      const rect = section.getBoundingClientRect();
+      return Math.abs(rect.top) <= 2 && rect.bottom >= window.innerHeight - 2;
+    };
     const down = (event: PointerEvent) => {
+      if (!canInteract()) return;
       if (!event.isPrimary) { cancelGesture(); return; }
       stopMomentum();
       if (event.button !== 0 || !(event.target instanceof Element) ||
         (mobileControls && !section.classList.contains('is-mobile-entered')) ||
-        (mobileControls ? event.target.closest('.spatial-mobile-controls') : !event.target.closest('.spatial-canvas'))) return;
+        (mobileControls ? event.target.closest('.spatial-mobile-controls, .spatial-mobile-close, .spatial-mobile-entry') : !event.target.closest('.spatial-canvas'))) return;
       const state = getExplorableState(motion.current.travel, states.length);
       if (state < 0) return;
       stopMomentum();
@@ -274,6 +302,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (id !== undefined && section.hasPointerCapture(id)) section.releasePointerCapture(id);
     };
     const move = (event: PointerEvent) => {
+      if (!canInteract()) { cancelGesture(); section.classList.remove('is-photo-hover'); return; }
       if (!drag && event.pointerType === 'mouse') {
         const photo = motion.current.pickPhoto?.(event.clientX, event.clientY);
         section.classList.toggle('is-photo-hover', !!photo);
@@ -303,6 +332,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       syncPan();
     };
     const finish = (event: PointerEvent) => {
+      if (!canInteract()) { cancelGesture(); return; }
       if (event.pointerId !== drag?.id) return;
       const ended = drag;
       release();
@@ -314,6 +344,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (!ended?.touch || !ended.captured || performance.now() - ended.time > 100) return;
       let previous = performance.now();
       const tick = (now: number) => {
+        if (!canInteract()) return;
         if (getExplorableState(motion.current.travel, states.length) !== ended.state) return;
         const delta = Math.min((now - previous) / 1000, .05);
         previous = now;
@@ -329,6 +360,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       momentumFrame = requestAnimationFrame(tick);
     };
     const cancelGesture = () => { release(); stopMomentum(); };
+    cancelInteraction.current = () => { cancelGesture(); mobileTween?.pause(); };
     const cancelPointer = (event: PointerEvent) => {
       if (event.pointerId === drag?.id) cancelGesture();
     };
@@ -350,8 +382,11 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     section.addEventListener('pointerleave', leave);
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     return () => {
+      bridgeTrigger?.kill();
+      section.style.removeProperty('--gallery-entry-alpha');
       unlockMobile();
       navigateMobile.current = null;
+      cancelInteraction.current = null;
       resetMobile.current = null;
       mobileTween?.kill();
       cancelAnimationFrame(refresh);
@@ -374,7 +409,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     };
   }, [animated, preview, motionProfile, mobileControls, states]);
 
-  return <div className={`spatial-gallery-track ${mobileClosing ? 'is-mobile-closing' : ''} ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? states[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${mobileEntered ? 'is-mobile-entered' : ''} ${mobileClosing ? 'is-mobile-closing' : ''} ${selection && !photoClosing ? 'has-photo-dialog' : ''}`} aria-label={copy.dialogTitle}>
+  return <div className={`spatial-gallery-track ${mobileClosing ? 'is-mobile-closing' : ''} ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} inert={selection !== null} data-gallery-preview={preview !== null ? states[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${mobileEntered ? 'is-mobile-entered' : ''} ${mobileClosing ? 'is-mobile-closing' : ''} ${selection ? 'has-photo-dialog' : ''}`} aria-label={copy.dialogTitle}>
     <AccessibleGallery visible={!animated} onSelect={setSelection} states={states} />
     {animated && <>
       <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
@@ -425,7 +460,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         <button className="spatial-mobile-enter" type="button" onClick={enterMobile}>{copy.enterLabel}<span aria-hidden="true">＋</span></button>
       </div>
       <p>{copy.entryNote}</p>
-      <button className="spatial-mobile-copy" type="button" onClick={copyLink}>{copied ? 'COPIED' : copy.copyLinkLabel}<img src="/assets/insignia/copy-filled.svg" alt="" width="16" height="16" /></button>
     </div>}
   </section>{selection && <GalleryPhotoDialog selection={selection} onClose={closePhoto} onCloseStart={startClosingPhoto} states={states} copy={copy} />}</div>;
 }

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { GalleryState } from '@/content/spatial-gallery';
 import type { GalleryCopy } from '@/sanity/galleryContent';
+import { lockPageScroll } from './scrollLock';
 
 export type GallerySelection = { worldId: string; photoIndex: number };
 export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, copy }: { selection: GallerySelection; onClose: () => void; onCloseStart: () => void; states: GalleryState[]; copy: GalleryCopy }) {
@@ -68,10 +69,7 @@ export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, c
   useLayoutEffect(() => {
     const node = dialog.current!;
     const previousFocus = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    const rootOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
+    const unlock = lockPageScroll(node);
     document.body.classList.add('gallery-photo-open');
     node.style.opacity = '';
     node.showModal();
@@ -87,8 +85,7 @@ export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, c
       animation.current?.cancel();
       opening.cancel();
       document.body.classList.remove('gallery-photo-open', 'gallery-photo-closing');
-      document.body.style.overflow = overflow;
-      document.documentElement.style.overflow = rootOverflow;
+      unlock();
       previousFocus?.focus({ preventScroll: true });
     };
   }, []);

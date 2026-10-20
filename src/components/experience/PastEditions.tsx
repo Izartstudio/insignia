@@ -95,6 +95,8 @@ export function PastEditions() {
           start: "top top",
           end: () => `+=${Math.max(1, distance())}`,
           pin: true,
+          pinType: window.innerWidth < 768 ? 'fixed' : undefined,
+          pinSpacing: true,
           scrub: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,

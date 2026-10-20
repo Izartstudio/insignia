@@ -26,7 +26,7 @@ export const galleryConfig = {
 // Rectangles measured from the supplied 1440 × 3600 SVG, local to each 900px state.
 // Available portraits are intentionally reused across categories as requested.
 export const galleryStates: GalleryState[] = [
-  { id: 'leaders', category: 'LEADERS', label: 'Leaders', heading: "Who's been at Insignia.", subtitle: 'Leaders shaping the interactive media industry.', depth: 0, tile: { width: 1600, height: 1100 }, radius: 1075.5 / 900, photos: [
+  { id: 'leaders', category: 'LEADERS', label: 'Leaders', heading: "Who has been at Insignia.", subtitle: 'Leaders shaping the interactive media industry.', depth: 0, tile: { width: 1600, height: 1100 }, radius: 1075.5 / 900, photos: [
     { src: "/assets/insignia/people/leaders-reference-1.webp", alt: "An attendee in conversation at Insignia", layout: [113, 125, 160, 185], mobileLayout: [90, 68, 240, 278], depthOffset: 0.3, referenceCrop: true },
     { src: "/assets/insignia/people/leaders-reference-2.webp", alt: "Guests speaking at a reception", layout: [1222, 219, 130, 150], mobileLayout: [84, 660, 200, 232], depthOffset: -0.3, referenceCrop: true },
     { src: "/assets/insignia/people/leaders-reference-3.webp", alt: "A speaker holding a microphone", layout: [448, 280, 51.7574, 59.72], mobileLayout: [-370, 210, 215, 250], depthOffset: -0.7, referenceCrop: true },
