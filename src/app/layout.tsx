@@ -1,10 +1,8 @@
-import { galleryStates } from "@/content/spatial-gallery";
 import type { Metadata } from "next";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 import "@/components/layout/ui.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { SmoothScrolling } from "@/components/layout/SmoothScrolling";
+import { SiteChrome } from '@/components/layout/SiteChrome';
 const description = "Insignia by Lumikai brings together leaders, founders, industry experts and investors for India’s signature interactive media event and annual LP summit.";
 export const metadata: Metadata = {
   title: "Insignia — Interactive Media & Gaming Summit | Lumikai",
@@ -15,10 +13,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en">
     <head>
-      {galleryStates[0].photos.map(photo => <link key={photo.src} rel="preload" as="image" href={photo.src} fetchPriority="high" />)}
       <link rel="preload" href="/fonts/aeonik-regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       <link rel="preload" href="/fonts/aeonik-bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     </head>
-    <body><SmoothScrolling /><Navbar />{children}</body>
+    <body><SiteChrome />{children}</body>
   </html>;
 }

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { MathUtils, SRGBColorSpace, Texture, TextureLoader, Raycaster, Vector2, Mesh, MeshBasicMaterial } from 'three';
-import { galleryConfig, galleryStates } from '@/content/spatial-gallery';
+import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 import { GalleryEnvironment, type GalleryMotion } from './GalleryEnvironment';
 import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
 
-export default function SpatialGalleryScene({ motion, onFailure }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void }) {
+export default function SpatialGalleryScene({ motion, onFailure, states }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void; states: GalleryState[] }) {
   const { camera, invalidate, scene, gl } = useThree();
   const [textures, setTextures] = useState<Record<string, Record<string, Texture>>>({});
   const offset = useRef({ x: 0, y: 0 });
@@ -30,7 +30,7 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
     };
     let initialFailures = 0;
     // Publish decoded/uploaded photos as they arrive, batching updates to one per frame.
-    galleryStates.forEach((world, index) => {
+    states.forEach((world, index) => {
       world.photos.forEach(photo => {
         loader.loadAsync(photo.src).then(texture => {
           if (disposed) { texture.dispose(); return; }
@@ -51,7 +51,7 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
       cancelAnimationFrame(publishFrame);
       owned.forEach(texture => texture.dispose());
     };
-  }, [gl, invalidate, onFailure]);
+  }, [gl, invalidate, onFailure, states]);
 
   useEffect(() => {
     motion.current.invalidate = invalidate;
@@ -90,7 +90,7 @@ export default function SpatialGalleryScene({ motion, onFailure }: { motion: Mut
   }, -1); // Update the camera before the environment and tile visibility callbacks.
 
   return <>
-    <GalleryEnvironment motion={motion} />
-    {galleryStates.filter(world => textures[world.id]).map(world => <InfiniteCanvasPlane key={world.id} world={world} textures={textures[world.id]} />)}
+    <GalleryEnvironment motion={motion} states={states} />
+    {states.filter(world => textures[world.id]).map(world => <InfiniteCanvasPlane key={world.id} world={world} textures={textures[world.id]} />)}
   </>;
 }

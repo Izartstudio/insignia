@@ -32,11 +32,13 @@ export function PastEditions() {
     // Relative positions preserve the left gutter at every responsive size.
     const firstLeft = years[0].getBoundingClientRect().left;
     const stops = years.map(year => Math.min(distance, year.getBoundingClientRect().left - firstLeft));
+    // The final edition is wider than the viewport; its remaining photos need one more stop.
+    if (distance - stops[stops.length - 1] > 2) stops.push(distance);
     const trigger = scrollTriggerRef.current;
     const offset = trigger ? trigger.progress * distance : viewport.scrollLeft;
     let current = 0;
     stops.forEach((stop, index) => { if (offset >= stop - 2) current = index; });
-    const next = Math.max(0, Math.min(years.length - 1, (targetYearRef.current ?? current) + direction));
+    const next = Math.max(0, Math.min(stops.length - 1, (targetYearRef.current ?? current) + direction));
     cancelNavigation();
     if (!trigger || distance === 0) {
       viewport.scrollTo({ left: stops[next], behavior: 'auto' });

@@ -2,12 +2,12 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { galleryStates } from '@/content/spatial-gallery';
+import type { GalleryState } from '@/content/spatial-gallery';
+import type { GalleryCopy } from '@/sanity/galleryContent';
 
 export type GallerySelection = { worldId: string; photoIndex: number };
-const entries = galleryStates.flatMap(world => world.photos.map((photo, photoIndex) => ({ world, photo, photoIndex })));
-
-export function GalleryPhotoDialog({ selection, onClose, onCloseStart }: { selection: GallerySelection; onClose: () => void; onCloseStart: () => void }) {
+export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, copy }: { selection: GallerySelection; onClose: () => void; onCloseStart: () => void; states: GalleryState[]; copy: GalleryCopy }) {
+  const entries = states.flatMap(world => world.photos.map((photo, photoIndex) => ({ world, photo, photoIndex })));
   const [index, setIndex] = useState(() => Math.max(0, entries.findIndex(entry => entry.world.id === selection.worldId && entry.photoIndex === selection.photoIndex)));
   const dialog = useRef<HTMLDialogElement>(null);
   const content = useRef<HTMLDivElement>(null);
@@ -103,14 +103,14 @@ export function GalleryPhotoDialog({ selection, onClose, onCloseStart }: { selec
       }
     }}>
     <button type="button" className="gallery-dialog-close" aria-label="Close photo details" onClick={close}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
-    <h2 id="gallery-dialog-title">Who has been at Insignia</h2>
+    <h2 id="gallery-dialog-title">{copy.dialogTitle}</h2>
     <div ref={content} className="gallery-dialog-content">
       <p className="gallery-dialog-category">{world.category}</p>
-      <h3 className="gallery-dialog-name">Lorem Ipsum</h3>
+      <h3 className="gallery-dialog-name">{photo.name || 'Lorem Ipsum'}</h3>
       <img className="gallery-dialog-image" src={photo.src} alt={photo.alt} />
       <div className="gallery-dialog-bio">
-        <p id="gallery-dialog-description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-        <a className="gallery-dialog-link" href="https://example.com" target="_blank" rel="noopener noreferrer">LEARN MORE <span aria-hidden="true">＋</span></a>
+        <p id="gallery-dialog-description">{photo.bio || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'}</p>
+        <a className="gallery-dialog-link" href={photo.learnMoreUrl || 'https://example.com'} target="_blank" rel="noopener noreferrer">{copy.learnMoreLabel} <span aria-hidden="true">＋</span></a>
       </div>
     <button type="button" className="gallery-dialog-arrow is-previous" aria-label="Previous photo" onClick={() => step(-1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg></button>
     <button type="button" className="gallery-dialog-arrow is-next" aria-label="Next photo" onClick={() => step(1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg></button>

@@ -10,6 +10,7 @@ import { SpatialGallery } from "./spatial-gallery/SpatialGallery";
 import { PastEditions } from "./PastEditions";
 import { SiteFooter } from "./SiteFooter";
 import { sceneConfig } from "@/config/scene";
+import type { SpatialGalleryContent } from '@/sanity/galleryContent';
 
 const ExperienceCanvas = dynamic(() => import("./ExperienceCanvas"), {
   ssr: false,
@@ -30,7 +31,7 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
   }
 }
 
-export function InsigniaExperience() {
+export function InsigniaExperience({ galleryContent }: { galleryContent: SpatialGalleryContent }) {
   const heroRef = useRef<HTMLElement>(null);
   const scrollIndicatorRef = useRef<HTMLDivElement>(null);
   const fullscreenHeadingRef = useRef<FullscreenHeadingHandle>(null);
@@ -51,7 +52,7 @@ export function InsigniaExperience() {
         </section>
       </div>
       <InsigniaIntroduction />
-      <SpatialGallery />
+      <SpatialGallery content={galleryContent} />
       <PastEditions />
       <SiteFooter />
     </main>

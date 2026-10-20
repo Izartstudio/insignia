@@ -5,7 +5,8 @@ import { preload } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { extendedGalleryMotionProfile, galleryConfig, galleryStates, type GalleryMotionProfile } from '@/content/spatial-gallery';
+import { extendedGalleryMotionProfile, galleryConfig, type GalleryMotionProfile, type GalleryState } from '@/content/spatial-gallery';
+import type { SpatialGalleryContent } from '@/sanity/galleryContent';
 import { ScrollIndicator } from '../ScrollIndicator';
 import { CanvasRuntime } from "@/components/three/CanvasRuntime";
 import SpatialGalleryScene from './SpatialGalleryScene';
@@ -14,9 +15,9 @@ import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog'
 import './spatial-gallery.css';
 
 // Share the landing tolerance between the instruction and pointer interaction.
-function getExplorableState(travel: number) {
+function getExplorableState(travel: number, count: number) {
   const state = Math.round(travel);
-  return state >= 0 && state < galleryStates.length && Math.abs(travel - state) <= .03 ? state : -1;
+  return state >= 0 && state < count && Math.abs(travel - state) <= .03 ? state : -1;
 }
 
 class GalleryBoundary extends Component<{ children: ReactNode; onFailure: () => void }, { failed: boolean }> {
@@ -25,19 +26,63 @@ class GalleryBoundary extends Component<{ children: ReactNode; onFailure: () => 
   componentDidCatch() { this.props.onFailure(); }
   render() { return this.state.failed ? null : this.props.children; }
 }
-function AccessibleGallery({ visible, onSelect }: { visible: boolean; onSelect: (selection: GallerySelection) => void }) {
+function AccessibleGallery({ visible, onSelect, states }: { visible: boolean; onSelect: (selection: GallerySelection) => void; states: GalleryState[] }) {
   return <div className={visible ? 'spatial-static' : 'sr-only'}>
-    {galleryStates.map(state => <article key={state.id}>
+    {states.map(state => <article key={state.id}>
       <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
       <div>{state.photos.map((photo, index) => <button type="button" key={index} onClick={() => onSelect({ worldId: state.id, photoIndex: index })} aria-label={`View details: ${photo.alt}`}><img src={photo.src} alt={photo.alt} width="240" height="275" loading="lazy" /></button>)}</div>
     </article>)}
   </div>;
 }
 
-export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }: { motionProfile?: GalleryMotionProfile }) {
+export function SpatialGallery({ content, motionProfile = extendedGalleryMotionProfile }: { content: SpatialGalleryContent; motionProfile?: GalleryMotionProfile }) {
   const [mobileControls, setMobileControls] = useState(false);
+  const states = mobileControls ? content.mobile : content.desktop;
+  const copy = mobileControls ? content.mobileCopy : content.desktopCopy;
   const [mobileState, setMobileState] = useState(0);
+  const [mobileEntered, setMobileEntered] = useState(false);
+  const [mobileClosing, setMobileClosing] = useState(false);
+  const closingRef = useRef(false);
+  const closeTimer = useRef<number | null>(null);
+  const revealTimer = useRef<number | null>(null);
+  const [copied, setCopied] = useState(false);
   const navigateMobile = useRef<((index: number) => void) | null>(null);
+  const resetMobile = useRef<(() => void) | null>(null);
+  const exitMobile = useRef<((afterClose?: () => void) => void) | null>(null);
+  const closeMobile = useCallback((afterClose?: () => void) => {
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setMobileClosing(true);
+    closeTimer.current = window.setTimeout(() => {
+      const track = sectionRef.current?.parentElement;
+      const entryTop = track ? window.scrollY + track.getBoundingClientRect().top : window.scrollY;
+      document.body.classList.remove('gallery-mobile-locked');
+      window.scrollTo({ top: entryTop, behavior: 'instant' });
+      setMobileEntered(false);
+      revealTimer.current = window.setTimeout(() => {
+        setMobileClosing(false);
+        closingRef.current = false;
+        afterClose?.();
+      }, 40);
+    }, 320);
+  }, []);
+  exitMobile.current = closeMobile;
+  const enterMobile = useCallback(() => {
+    if (closingRef.current) return;
+    resetMobile.current?.();
+    setMobileClosing(false);
+    setMobileEntered(true);
+    document.body.classList.add('gallery-mobile-locked');
+  }, []);
+  useLayoutEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    if (revealTimer.current) clearTimeout(revealTimer.current);
+    document.body.classList.remove('gallery-mobile-locked');
+  }, []);
+  const copyLink = useCallback(async () => {
+    try { await navigator.clipboard.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 2000); }
+    catch { setCopied(false); }
+  }, []);
   useLayoutEffect(() => {
     const query = window.matchMedia('(max-width: 767px)');
     const update = () => setMobileControls(query.matches);
@@ -47,8 +92,10 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   }, []);
   const sectionRef = useRef<HTMLElement>(null);
   const motion = useRef<GalleryMotion>({ travel: 0, panX: 0, panY: 0, active: false, invalidate: () => {} });
-  const panOffsets = useRef(galleryStates.map(() => ({ x: 0, y: 0 })));
+  const panOffsets = useRef(states.map(() => ({ x: 0, y: 0 })));
+  useLayoutEffect(() => { panOffsets.current = states.map(() => ({ x: 0, y: 0 })); }, [states]);
   const [selection, setSelection] = useState<GallerySelection | null>(null);
+  useLayoutEffect(() => { setSelection(null); }, [mobileControls]);
   const [photoClosing, setPhotoClosing] = useState(false);
   const startClosingPhoto = useCallback(() => setPhotoClosing(true), []);
   const closePhoto = useCallback(() => { setSelection(null); setPhotoClosing(false); }, []);
@@ -67,43 +114,37 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   useLayoutEffect(() => {
     if (!animated) return;
     // Warm later categories alongside the eagerly initialized WebGL canvas.
-    galleryStates.forEach((state, index) => state.photos.forEach(photo => {
+    states.forEach((state, index) => state.photos.forEach(photo => {
       preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
     }));
-  }, [animated]);
+  }, [animated, states]);
 
 
   useLayoutEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
     const requested = new URLSearchParams(window.location.search).get('galleryPreview');
-    const index = process.env.NODE_ENV === 'development' ? galleryStates.findIndex(s => s.id === requested) : -1;
+    const index = process.env.NODE_ENV === 'development' ? states.findIndex(s => s.id === requested) : -1;
     setPreview(index >= 0 ? index : null);
     const update = () => setEnhanced(index >= 0 || !query.matches);
     update();
     setReady(true);
     query.addEventListener('change', update);
     return () => query.removeEventListener('change', update);
-  }, []);
+  }, [states]);
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
     if (!animated || !section) return;
     gsap.registerPlugin(ScrollTrigger);
-    let mobileExited = false;
-    let entryTrigger: ScrollTrigger | undefined;
     const unlockMobile = () => document.body.classList.remove('gallery-mobile-locked');
-    const lockMobile = () => {
-      if (mobileExited || !mobileControls) return;
-      window.scrollTo({ top: window.scrollY + section.getBoundingClientRect().top, behavior: 'instant' });
-      document.body.classList.add('gallery-mobile-locked');
-    };
     let mobileTween: gsap.core.Tween | null = null;
     let momentumFrame = 0;
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
     let lastExplorableState: number | undefined;
     const syncPan = () => {
-      const explorableState = getExplorableState(motion.current.travel);
+      if (!mobileControls && window.innerWidth >= 1025) section.style.setProperty('--gallery-bridge-opacity', String(Math.max(0, 1 - motion.current.travel * 6)));
+      const explorableState = getExplorableState(motion.current.travel, states.length);
       if (explorableState !== lastExplorableState) {
         hints.forEach((hint, index) => { hint.dataset.visible = String(index === explorableState); });
         section.classList.toggle('is-explorable', explorableState >= 0);
@@ -111,8 +152,8 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         lastExplorableState = explorableState;
       }
       const travel = motion.current.travel;
-      const from = Math.min(Math.floor(travel), galleryStates.length - 1);
-      const to = Math.min(from + 1, galleryStates.length - 1);
+      const from = Math.min(Math.floor(travel), states.length - 1);
+      const to = Math.min(from + 1, states.length - 1);
       for (const axis of ['x', 'y'] as const) {
         const value = panOffsets.current[from][axis] + (panOffsets.current[to][axis] - panOffsets.current[from][axis]) * (travel - from);
         if (axis === 'x') motion.current.panX = value; else motion.current.panY = value;
@@ -141,11 +182,11 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         },
         onUpdate: syncPan,
       });
-      galleryStates.forEach((state, index) => {
+      states.forEach((state, index) => {
         const start = motionProfile.stops[index];
         const exit = motionProfile.exits[index];
         timeline.addLabel(state.id, start).addLabel(`${state.id}Exit`, exit);
-        if (index === galleryStates.length - 1) return;
+        if (index === states.length - 1) return;
         const end = motionProfile.stops[index + 1];
         const duration = end - exit;
         timeline.to(motion.current, { travel: index + 1, duration, ease: motionProfile.travelEase }, exit)
@@ -156,19 +197,27 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
           .to(marks[index], { opacity: .2, duration: duration * .5 }, exit)
           .to(marks[index + 1], { opacity: 1, duration: duration * .5 }, exit + duration * .5);
       });
-      timeline.to({}, { duration: 1 - motionProfile.stops[galleryStates.length - 1] }, motionProfile.stops[galleryStates.length - 1]);
+      timeline.to({}, { duration: 1 - motionProfile.stops[states.length - 1] }, motionProfile.stops[states.length - 1]);
       if (mobileControls) {
         const initial = preview ?? 0;
         let currentMobileState = initial;
         timeline.seek(motionProfile.stops[initial], false);
         setMobileState(initial);
+        resetMobile.current = () => {
+          mobileTween?.kill();
+          timeline.seek(motionProfile.stops[0], true);
+          gsap.set(overlays, { autoAlpha: 0, y: 0 });
+          gsap.set(overlays[0], { autoAlpha: 1 });
+          currentMobileState = 0;
+          setMobileState(0);
+          motion.current.travel = 0;
+          syncPan();
+        };
         navigateMobile.current = index => {
           stopMomentum();
           release();
-          if (index >= galleryStates.length) {
-            mobileExited = true;
-            unlockMobile();
-            section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (index >= states.length) {
+            exitMobile.current?.(() => section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
             return;
           }
           const target = Math.max(0, index);
@@ -203,20 +252,14 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (entry.isIntersecting) motion.current.invalidate();
     });
     observer.observe(section);
-    if (mobileControls && preview === null) {
-      entryTrigger = ScrollTrigger.create({
-        trigger: section, start: 'top 25%', end: 'bottom top',
-        onEnter: lockMobile, onEnterBack: lockMobile,
-        onLeave: () => { mobileExited = false; },
-      });
-    }
     let drag: { id: number; x: number; y: number; state: number; captured: boolean; touch: boolean; time: number; vx: number; vy: number } | null = null;
     const down = (event: PointerEvent) => {
       if (!event.isPrimary) { cancelGesture(); return; }
       stopMomentum();
       if (event.button !== 0 || !(event.target instanceof Element) ||
+        (mobileControls && !section.classList.contains('is-mobile-entered')) ||
         (mobileControls ? event.target.closest('.spatial-mobile-controls') : !event.target.closest('.spatial-canvas'))) return;
-      const state = getExplorableState(motion.current.travel);
+      const state = getExplorableState(motion.current.travel, states.length);
       if (state < 0) return;
       stopMomentum();
       section.classList.add('is-pressed');
@@ -236,7 +279,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
         section.classList.toggle('is-photo-hover', !!photo);
       }
       if (!drag || event.pointerId !== drag.id) return;
-      if (getExplorableState(motion.current.travel) !== drag.state) { release(); return; }
+      if (getExplorableState(motion.current.travel, states.length) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
       if (!drag.captured) {
         if (!mobileControls && Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
@@ -271,7 +314,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (!ended?.touch || !ended.captured || performance.now() - ended.time > 100) return;
       let previous = performance.now();
       const tick = (now: number) => {
-        if (getExplorableState(motion.current.travel) !== ended.state) return;
+        if (getExplorableState(motion.current.travel, states.length) !== ended.state) return;
         const delta = Math.min((now - previous) / 1000, .05);
         previous = now;
         const friction = mobileControls ? 6 : 10;
@@ -307,9 +350,9 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     section.addEventListener('pointerleave', leave);
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     return () => {
-      entryTrigger?.kill();
       unlockMobile();
       navigateMobile.current = null;
+      resetMobile.current = null;
       mobileTween?.kill();
       cancelAnimationFrame(refresh);
       stopMomentum();
@@ -329,48 +372,60 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       hints.forEach(hint => { hint.dataset.visible = 'false'; });
       motion.current.active = false;
     };
-  }, [animated, preview, motionProfile, mobileControls]);
+  }, [animated, preview, motionProfile, mobileControls, states]);
 
-  return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${selection && !photoClosing ? 'has-photo-dialog' : ''}`} aria-label="Who's Been At Insignia">
-    <AccessibleGallery visible={!animated} onSelect={setSelection} />
+  return <div className={`spatial-gallery-track ${mobileClosing ? 'is-mobile-closing' : ''} ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? states[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${mobileEntered ? 'is-mobile-entered' : ''} ${mobileClosing ? 'is-mobile-closing' : ''} ${selection && !photoClosing ? 'has-photo-dialog' : ''}`} aria-label={copy.dialogTitle}>
+    <AccessibleGallery visible={!animated} onSelect={setSelection} states={states} />
     {animated && <>
       <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
         <GalleryBoundary onFailure={onFailure}>
-          {<Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
+          {<Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
-            <SpatialGalleryScene motion={motion} onFailure={onFailure} />
+            <SpatialGalleryScene motion={motion} onFailure={onFailure} states={states} />
           </Canvas>}
         </GalleryBoundary>
       </div>
       {mobileControls && <nav className="spatial-mobile-controls" aria-label="Gallery categories" data-lenis-prevent>
         <div className="spatial-mobile-states">
-          {galleryStates.map((state, index) => <button key={state.id} type="button"
+          {states.map((state, index) => <button key={state.id} type="button"
             className={index === mobileState ? 'is-active' : ''}
             aria-label={`Show ${state.label}`} aria-pressed={index === mobileState}
             onClick={() => navigateMobile.current?.(index)}><span>{state.label}</span></button>)}
         </div>
         <button type="button" className="spatial-mobile-next"
-          aria-label={mobileState === galleryStates.length - 1 ? 'Continue to next section' : `Next category: ${galleryStates[mobileState + 1].label}`}
+          aria-label={mobileState === states.length - 1 ? 'Continue to next section' : `Next category: ${states[mobileState + 1].label}`}
           onClick={() => navigateMobile.current?.(mobileState + 1)}>
-          <span aria-hidden="true">NEXT</span>
+          <span aria-hidden="true">{copy.nextLabel}</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
         </button>
       </nav>}
+      {mobileControls && <button type="button" className="spatial-mobile-close" aria-label="Exit gallery experience" onClick={() => closeMobile()}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19" /></svg></button>}
       <div className="spatial-scroll-zone" aria-hidden="true">
-        <span className="spatial-touch-explore">Swipe here to scroll</span>
+        <span className="spatial-touch-explore">{copy.touchExplorePrompt}</span>
       </div>
       <div className="spatial-overlays" aria-hidden="true">
         <div className="spatial-glass" />
-        {galleryStates.map((state, index) => <div className="spatial-state" key={state.id}>
+        {states.map((state, index) => <div className="spatial-state" key={state.id}>
           <div className={`spatial-heading ${index === 0 ? 'is-first' : ''}`}>
             <span className="spatial-eyebrow">{state.category}</span>
             <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-        <div className="spatial-explore" data-visible="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>Move to explore the canvas.</div>
+        <div className="spatial-explore" data-visible="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>{copy.explorePrompt}</div>
           </div>
         </div>)}
-        <div className="spatial-progress">{galleryStates.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>
+        <div className="spatial-progress">{states.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>
         <ScrollIndicator />
       </div>
     </>}
-  </section>{selection && <GalleryPhotoDialog selection={selection} onClose={closePhoto} onCloseStart={startClosingPhoto} />}</div>;
+    {mobileControls && <div className="spatial-mobile-entry">
+      <h2>{copy.entryTitle}</h2>
+      <div className="spatial-mobile-preview-wrap">
+        <div className="spatial-mobile-preview" aria-hidden="true">
+          {states[0]?.photos.slice(0, 5).map((photo, index) => <img key={`${photo.src}-${index}`} className={`spatial-mobile-preview-photo photo-${index}`} src={photo.src} alt="" loading="eager" />)}
+        </div>
+        <button className="spatial-mobile-enter" type="button" onClick={enterMobile}>{copy.enterLabel}<span aria-hidden="true">＋</span></button>
+      </div>
+      <p>{copy.entryNote}</p>
+      <button className="spatial-mobile-copy" type="button" onClick={copyLink}>{copied ? 'COPIED' : copy.copyLinkLabel}<img src="/assets/insignia/copy-filled.svg" alt="" width="16" height="16" /></button>
+    </div>}
+  </section>{selection && <GalleryPhotoDialog selection={selection} onClose={closePhoto} onCloseStart={startClosingPhoto} states={states} copy={copy} />}</div>;
 }

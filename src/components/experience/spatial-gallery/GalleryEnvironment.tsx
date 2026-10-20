@@ -2,22 +2,22 @@ import { useMemo, useRef, type MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { ShaderMaterial, Vector2 } from 'three';
 import type { GallerySelection } from './GalleryPhotoDialog';
-import { galleryStates } from '@/content/spatial-gallery';
+import type { GalleryState } from '@/content/spatial-gallery';
 
 export type GalleryMotion = { travel: number; panX: number; panY: number; dragging?: boolean; paused?: boolean; active: boolean; invalidate: () => void; pickPhoto?: (x: number, y: number) => GallerySelection | undefined };
 
-export function GalleryEnvironment({ motion }: { motion: MutableRefObject<GalleryMotion> }) {
+export function GalleryEnvironment({ motion, states }: { motion: MutableRefObject<GalleryMotion>; states: GalleryState[] }) {
   const { size } = useThree();
   const material = useRef<ShaderMaterial>(null);
-  const uniforms = useMemo(() => ({ radius: { value: galleryStates[0].radius }, shift: { value: new Vector2() }, gridScale: { value: 1 }, gridColumns: { value: 7 } }), []);
+  const uniforms = useMemo(() => ({ radius: { value: states[0].radius }, shift: { value: new Vector2() }, gridScale: { value: 1 }, gridColumns: { value: 7 } }), [states]);
   useFrame(({ camera }) => {
     if (!material.current) return;
     material.current.uniforms.gridColumns.value = size.width / size.height < .85 ? 2 : 7;
     const journey = motion.current.travel;
-    const from = Math.min(Math.floor(journey), galleryStates.length - 1);
-    const to = Math.min(from + 1, galleryStates.length - 1);
+    const from = Math.min(Math.floor(journey), states.length - 1);
+    const to = Math.min(from + 1, states.length - 1);
     const fraction = journey - from;
-    material.current.uniforms.radius.value = galleryStates[from].radius + (galleryStates[to].radius - galleryStates[from].radius) * fraction;
+    material.current.uniforms.radius.value = states[from].radius + (states[to].radius - states[from].radius) * fraction;
     material.current.uniforms.shift.value.set(camera.position.x * .016, camera.position.y * .03);
     material.current.uniforms.gridScale.value = 1 + Math.sin(fraction * Math.PI) * .045;
   });

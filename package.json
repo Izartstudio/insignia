@@ -7,17 +7,21 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "sanity:import-gallery": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/import-spatial-gallery.mjs",
     "inspect:model": "node scripts/inspect-model.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.0",
     "@react-three/fiber": "^9.3.0",
+    "@sanity/client": "^8.10.0",
     "gsap": "^3.13.0",
     "lenis": "^1.3.26",
     "lottie-web": "^5.13.0",
     "next": "^16.4.0",
+    "next-sanity": "^13.3.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "sanity": "^6.20.0",
     "three": "^0.180.0"
   },
   "devDependencies": {

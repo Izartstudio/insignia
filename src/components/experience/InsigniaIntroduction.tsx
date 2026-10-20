@@ -33,6 +33,7 @@ export function InsigniaIntroduction() {
           const stageThreeRays = gsap.utils.toArray<HTMLElement>('[data-ray-stage="3"]', section);
           const divider = section.querySelector<HTMLElement>(".introduction-divider");
           const sun = section.querySelector<HTMLElement>(".introduction-sun");
+          const galleryBridge = section.querySelector<HTMLElement>(".introduction-gallery-bridge");
           if (!core || !divider || !sun || numbers.length !== 3 || paragraphs.length !== 3) return;
 
           gsap.set([numbers[0], paragraphs[0]], { autoAlpha: 1, y: 0 });
@@ -70,7 +71,7 @@ export function InsigniaIntroduction() {
           refreshPriority: 30,
               trigger: section,
               start: "top top",
-              end: () => `+=${section.clientHeight * introductionConfig.scrollDistanceInViewports}`,
+              end: () => `+=${section.clientHeight * (window.innerWidth >= 1025 ? 1.9 : introductionConfig.scrollDistanceInViewports)}`,
               scrub: introductionConfig.scrub,
               pin: true,
               pinSpacing: false,
@@ -82,6 +83,7 @@ export function InsigniaIntroduction() {
           });
           transition(master, 0, 1, introductionConfig.firstTransition.start, introductionConfig.firstTransition.end, stageTwoRays, 0.72, 0.95);
           transition(master, 1, 2, introductionConfig.secondTransition.start, introductionConfig.secondTransition.end, stageThreeRays, 0.9, 1);
+          if (galleryBridge) master.to(galleryBridge, { opacity: 1, duration: .28, ease: 'power1.inOut' }, .72);
           master.to({}, { duration: 1 - introductionConfig.secondTransition.end }, introductionConfig.secondTransition.end);
 
           return () => entrance.kill();
@@ -99,6 +101,7 @@ export function InsigniaIntroduction() {
   return (
     <div className="introduction-track">
     <section ref={sectionRef} className="introduction" aria-labelledby="introduction-title">
+      <div className="introduction-gallery-bridge" aria-hidden="true" />
       <h2 id="introduction-title" className="sr-only">About Insignia</h2>
       <ol className="sr-only introduction-accessible-list">
         {introductionSlides.map((slide) => <li key={slide.number}>{slide.text}</li>)}
