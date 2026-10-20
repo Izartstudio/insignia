@@ -7,7 +7,7 @@ export function EditionMarqueeItem({ item }: { item: EditionMarqueeItemData }) {
   }
   return (
     <div className="edition-image">
-      <Image src={item.src} alt={item.alt} fill sizes="(max-width: 767px) 180px, (min-width: 1920px) 360px, 19vw" draggable={false} />
+      <Image src={item.src} alt={item.alt} fill sizes="(max-width: 767px) 180px, (max-width: 1024px) 270px, (min-width: 1920px) 360px, 19vw" draggable={false} />
     </div>
   );
 }

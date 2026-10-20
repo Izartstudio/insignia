@@ -12,7 +12,7 @@ export function GalleryEnvironment({ motion, states }: { motion: MutableRefObjec
   const uniforms = useMemo(() => ({ radius: { value: states[0].radius }, shift: { value: new Vector2() }, gridScale: { value: 1 }, gridColumns: { value: 7 } }), [states]);
   useFrame(({ camera }) => {
     if (!material.current) return;
-    material.current.uniforms.gridColumns.value = size.width / size.height < .85 ? 2 : 7;
+    material.current.uniforms.gridColumns.value = size.width <= 1024 ? 2 : 7;
     const journey = motion.current.travel;
     const from = Math.min(Math.floor(journey), states.length - 1);
     const to = Math.min(from + 1, states.length - 1);

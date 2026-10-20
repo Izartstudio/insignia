@@ -60,10 +60,10 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       const entryTop = track ? window.scrollY + track.getBoundingClientRect().top : window.scrollY;
       unlockExperience.current?.();
       unlockExperience.current = null;
-      document.body.classList.remove('gallery-mobile-locked');
       window.scrollTo({ top: entryTop, behavior: 'instant' });
       setMobileEntered(false);
       revealTimer.current = window.setTimeout(() => {
+        document.body.classList.remove('gallery-mobile-locked');
         setMobileClosing(false);
         closingRef.current = false;
         afterClose?.();
@@ -89,7 +89,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     document.body.classList.remove('gallery-mobile-locked');
   }, []);
   useLayoutEffect(() => {
-    const query = window.matchMedia('(max-width: 767px)');
+    const query = window.matchMedia('(max-width: 1024px)');
     const update = () => setMobileControls(query.matches);
     update();
     query.addEventListener('change', update);
@@ -263,11 +263,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
 
     }, section);
     syncPan();
-    const bridgeTrigger = !mobileControls && window.innerWidth >= 1025 ? ScrollTrigger.create({
-      trigger: section, start: 'top bottom', end: 'top top',
-      onUpdate: self => section.style.setProperty('--gallery-entry-alpha', String(self.progress)),
-      onRefresh: self => section.style.setProperty('--gallery-entry-alpha', String(self.progress)),
-    }) : null;
     const observer = new IntersectionObserver(([entry]) => {
       motion.current.active = entry.isIntersecting;
       if (entry.isIntersecting) motion.current.invalidate();
@@ -382,8 +377,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     section.addEventListener('pointerleave', leave);
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     return () => {
-      bridgeTrigger?.kill();
-      section.style.removeProperty('--gallery-entry-alpha');
       unlockMobile();
       navigateMobile.current = null;
       cancelInteraction.current = null;
@@ -430,7 +423,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         <button type="button" className="spatial-mobile-next"
           aria-label={mobileState === states.length - 1 ? 'Continue to next section' : `Next category: ${states[mobileState + 1].label}`}
           onClick={() => navigateMobile.current?.(mobileState + 1)}>
-          <span aria-hidden="true">{copy.nextLabel}</span>
+          <span aria-hidden="true">{mobileState === states.length - 1 ? 'EXIT' : copy.nextLabel}</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
         </button>
       </nav>}

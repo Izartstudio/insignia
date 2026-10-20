@@ -27,4 +27,4 @@ body { margin: 0; }
 
 /* Preserve viewport width when dialogs lock/unlock document scrolling. */
 html { scrollbar-gutter: stable; }
-@media (max-width: 767px) { html { scrollbar-gutter: auto; } }
+@media (max-width: 1024px) { html { scrollbar-gutter: auto; } }

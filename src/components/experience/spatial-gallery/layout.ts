@@ -2,7 +2,7 @@ import { galleryConfig, mobilePlacements, type GalleryPhoto } from '@/content/sp
 
 /** Map the reference rectangle at its own depth, preserving the source aspect ratio. */
 export function mapPhoto(photo: GalleryPhoto, index: number, width: number, height: number, imageAspect: number) {
-  const mobile = width / height < .85;
+  const mobile = width <= 1024;
   const [x, y, w, h] = mobile ? (photo.mobileLayout ?? mobilePlacements[index % mobilePlacements.length]) : photo.layout;
   const distance = galleryConfig.distance - photo.depthOffset;
   const visibleHeight = 2 * distance * Math.tan(galleryConfig.fov * Math.PI / 360);

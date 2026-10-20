@@ -95,7 +95,7 @@ export function PastEditions() {
           start: "top top",
           end: () => `+=${Math.max(1, distance())}`,
           pin: true,
-          pinType: window.innerWidth < 768 ? 'fixed' : undefined,
+          pinType: window.innerWidth <= 1024 ? 'fixed' : undefined,
           pinSpacing: true,
           scrub: true,
           anticipatePin: 1,
@@ -107,8 +107,8 @@ export function PastEditions() {
         .fromTo(progress, { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
       return () => { scrollTriggerRef.current = null; };
     };
-    media.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage));
-    media.add("(max-width: 767px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage.parentElement ?? stage));
+    media.add("(min-width: 1025px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage));
+    media.add("(max-width: 1024px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage.parentElement ?? stage));
     // Measure only on layout changes, never on animation frames.
     let frame = 0;
     let previousWidth = -1;

@@ -19,7 +19,7 @@ export function WorldCategory({ world }: { world: GalleryState }) {
     canvas.height = 128;
     const context = canvas.getContext('2d');
     if (context) {
-      const mobile = size.width < 768;
+      const mobile = size.width <= 1024;
       const fontSize = mobile
         ? Math.min(10, Math.max(7, size.width * .022))
         : Math.min(34, Math.max(22, size.width * .0222));
