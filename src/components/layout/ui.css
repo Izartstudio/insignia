@@ -273,3 +273,9 @@ html { scrollbar-gutter: stable; }
   .sun-ray { transform: rotate(var(--ray-angle)) translateX(72px); }
 }
 
+
+@media (max-width: 767px) {
+ .past-editions { padding-top: clamp(5rem, 13svh, 7rem); }
+ .past-editions-stage { height: auto; min-height: 0; justify-content: flex-start; padding: 3rem 0 2.5rem; box-sizing: border-box; }
+ .past-editions-divider { margin-bottom: 2rem; }
+}

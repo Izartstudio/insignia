@@ -9,7 +9,7 @@ export const introductionSlides = [
   },
   {
     number: "03",
-    text: "Founders building category defining companies meet global investors, tech visionaries and the policy makers who help define the way forward.",
+    text: "Founders building category-defining companies meet global investors, tech visionaries and the policy makers who help define the way forward.",
   },
 ] as const;
 

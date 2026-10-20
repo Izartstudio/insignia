@@ -35,6 +35,19 @@ function AccessibleGallery({ visible, onSelect }: { visible: boolean; onSelect: 
 }
 
 export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }: { motionProfile?: GalleryMotionProfile }) {
+  const [mobileControls, setMobileControls] = useState(false);
+  const [mobileState, setMobileState] = useState(0);
+  const navigateMobile = useRef<((index: number) => void) | null>(null);
+  const mobileProgress = useRef<HTMLSpanElement>(null);
+  const mobileTimer = useRef<gsap.core.Tween | null>(null);
+  const mobileTransitioning = useRef(false);
+  useLayoutEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const update = () => setMobileControls(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
   const sectionRef = useRef<HTMLElement>(null);
   const motion = useRef<GalleryMotion>({ travel: 0, panX: 0, panY: 0, active: false, invalidate: () => {} });
   const panOffsets = useRef(galleryStates.map(() => ({ x: 0, y: 0 })));
@@ -44,6 +57,8 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const closePhoto = useCallback(() => { setSelection(null); setPhotoClosing(false); }, []);
   useLayoutEffect(() => {
     motion.current.paused = selection !== null;
+    if (selection) mobileTimer.current?.pause();
+    else if (document.body.classList.contains('gallery-mobile-locked')) mobileTimer.current?.play();
     motion.current.invalidate();
     return () => { motion.current.paused = false; };
   }, [selection]);
@@ -53,6 +68,17 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
   const [failed, setFailed] = useState(false);
   const onFailure = useCallback(() => { console.error("Spatial gallery entered WebGL/asset fallback"); setFailed(true); }, []);
   const animated = enhanced && !failed;
+
+  useLayoutEffect(() => {
+    if (!mobileControls || !mobileProgress.current) return;
+    const timer = gsap.fromTo(mobileProgress.current, { scaleX: 0 }, {
+      scaleX: 1, duration: 8, ease: 'none', paused: true,
+      onComplete: () => navigateMobile.current?.(mobileState + 1),
+    });
+    mobileTimer.current = timer;
+    if (document.body.classList.contains('gallery-mobile-locked') && !motion.current.paused && !mobileTransitioning.current) timer.play();
+    return () => { timer.kill(); if (mobileTimer.current === timer) mobileTimer.current = null; };
+  }, [mobileControls, mobileState]);
 
   useLayoutEffect(() => {
     if (!animated) return;
@@ -79,6 +105,16 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     const section = sectionRef.current;
     if (!animated || !section) return;
     gsap.registerPlugin(ScrollTrigger);
+    let mobileExited = false;
+    let entryTrigger: ScrollTrigger | undefined;
+    const unlockMobile = () => document.body.classList.remove('gallery-mobile-locked');
+    const lockMobile = () => {
+      if (mobileExited || !mobileControls) return;
+      window.scrollTo({ top: window.scrollY + section.getBoundingClientRect().top, behavior: 'instant' });
+      document.body.classList.add('gallery-mobile-locked');
+      mobileTimer.current?.play();
+    };
+    let mobileTween: gsap.core.Tween | null = null;
     let momentumFrame = 0;
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
@@ -111,9 +147,10 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       gsap.set(marks, { opacity: .2 });
       gsap.set(marks[preview ?? 0], { opacity: 1 });
       motion.current.travel = preview ?? 0;
-      if (preview !== null) { syncPan(); return; }
+      if (preview !== null && !mobileControls) { syncPan(); return; }
       const timeline = gsap.timeline({
-        scrollTrigger: {
+        paused: mobileControls,
+        scrollTrigger: mobileControls ? undefined : {
           // Measure upstream pins first, regardless of asynchronous mount order.
           refreshPriority: 20,
           trigger: section, start: 'top top', end: () => `+=${section.clientHeight * motionProfile.scrollViewports}`,
@@ -137,6 +174,48 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
           .to(marks[index + 1], { opacity: 1, duration: duration * .5 }, exit + duration * .5);
       });
       timeline.to({}, { duration: 1 - motionProfile.stops[galleryStates.length - 1] }, motionProfile.stops[galleryStates.length - 1]);
+      if (mobileControls) {
+        const initial = preview ?? 0;
+        let currentMobileState = initial;
+        timeline.seek(motionProfile.stops[initial], false);
+        setMobileState(initial);
+        navigateMobile.current = index => {
+          stopMomentum();
+          release();
+          mobileTimer.current?.pause(0);
+          if (index >= galleryStates.length) {
+            mobileExited = true;
+            unlockMobile();
+            section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
+          const target = Math.max(0, index);
+          mobileTween?.kill();
+          const isDirectJump = Math.abs(target - currentMobileState) > 1;
+          currentMobileState = target;
+          mobileTransitioning.current = !isDirectJump;
+          setMobileState(target);
+          if (isDirectJump) {
+            timeline.seek(motionProfile.stops[target], true);
+            gsap.set(overlays, { autoAlpha: 0, y: 0 });
+            gsap.set(overlays[target], { autoAlpha: 1 });
+            gsap.set(labels, { autoAlpha: 0 });
+            gsap.set(labels[target], { autoAlpha: 1 });
+            gsap.set(marks, { opacity: .2 });
+            gsap.set(marks[target], { opacity: 1 });
+            motion.current.travel = target;
+            syncPan();
+            return;
+          }
+          mobileTween = timeline.tweenTo(motionProfile.stops[target], {
+            duration: Math.min(1.6, Math.max(.8, Math.abs(target - motion.current.travel) * .85)),
+            ease: 'power1.inOut',
+            onUpdate: syncPan,
+            onComplete: () => { mobileTransitioning.current = false; if (document.body.classList.contains('gallery-mobile-locked')) mobileTimer.current?.play(); },
+          });
+        };
+      }
+
     }, section);
     syncPan();
     const observer = new IntersectionObserver(([entry]) => {
@@ -144,6 +223,13 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (entry.isIntersecting) motion.current.invalidate();
     });
     observer.observe(section);
+    if (mobileControls && preview === null) {
+      entryTrigger = ScrollTrigger.create({
+        trigger: section, start: 'top 25%', end: 'bottom top',
+        onEnter: lockMobile, onEnterBack: lockMobile,
+        onLeave: () => { mobileExited = false; },
+      });
+    }
     let drag: { id: number; x: number; y: number; state: number; captured: boolean; touch: boolean; time: number; vx: number; vy: number } | null = null;
     const down = (event: PointerEvent) => {
       if (!event.isPrimary) { cancelGesture(); return; }
@@ -153,6 +239,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (state < 0) return;
       stopMomentum();
       section.classList.add('is-pressed');
+      if (mobileControls) mobileTimer.current?.pause();
       drag = { time: performance.now(), vx: 0, vy: 0, id: event.pointerId, x: event.clientX, y: event.clientY, state, captured: false, touch: event.pointerType === 'touch' };
     };
     const release = () => {
@@ -161,6 +248,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       motion.current.dragging = false;
       section.classList.remove('is-dragging', 'is-pressed');
       if (id !== undefined && section.hasPointerCapture(id)) section.releasePointerCapture(id);
+      if (mobileControls && document.body.classList.contains('gallery-mobile-locked') && !motion.current.paused && !mobileTween?.isActive()) mobileTimer.current?.play();
     };
     const move = (event: PointerEvent) => {
       if (!drag && event.pointerType === 'mouse') {
@@ -171,14 +259,14 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       if (getExplorableState(motion.current.travel) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
       if (!drag.captured) {
-        if (Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
+        if (Math.hypot(dx,dy) < (mobileControls ? 1 : galleryConfig.drag.intentPixels)) return;
         drag.captured = true;
         motion.current.dragging = true;
         section.setPointerCapture(event.pointerId);
         section.classList.add('is-dragging');
       }
       if (event.cancelable) event.preventDefault();
-      const units = 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
+      const units = (mobileControls ? 3.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
       panOffsets.current[drag.state].x -= dx*units;
       panOffsets.current[drag.state].y += dy*units;
       const now = performance.now();
@@ -221,7 +309,12 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     };
     const visibilityChange = () => { if (document.hidden) cancelGesture(); };
     window.addEventListener('blur', cancelGesture);
-    window.addEventListener('resize', cancelGesture);
+    let viewportWidth = window.innerWidth;
+    const resizeGesture = () => {
+      if (!mobileControls || window.innerWidth !== viewportWidth) cancelGesture();
+      viewportWidth = window.innerWidth;
+    };
+    window.addEventListener('resize', resizeGesture);
     document.addEventListener('visibilitychange', visibilityChange);
     const leave = () => { section.classList.remove('is-photo-hover'); if (!drag?.captured) release(); };
     section.addEventListener('pointerdown', down);
@@ -232,11 +325,18 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
     section.addEventListener('pointerleave', leave);
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     return () => {
+      entryTrigger?.kill();
+      unlockMobile();
+      navigateMobile.current = null;
+      mobileTween?.kill();
+      mobileTimer.current?.kill();
+      mobileTimer.current = null;
+      mobileTransitioning.current = false;
       cancelAnimationFrame(refresh);
       stopMomentum();
       observer.disconnect();
       window.removeEventListener('blur', cancelGesture);
-      window.removeEventListener('resize', cancelGesture);
+      window.removeEventListener('resize', resizeGesture);
       document.removeEventListener('visibilitychange', visibilityChange);
       release();
       section.removeEventListener('pointerdown', down);
@@ -250,7 +350,7 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
       hints.forEach(hint => { hint.dataset.visible = 'false'; });
       motion.current.active = false;
     };
-  }, [animated, preview, motionProfile]);
+  }, [animated, preview, motionProfile, mobileControls]);
 
   return <div className={`spatial-gallery-track ${failed || (ready && !enhanced) ? "is-fallback" : ""} ${preview !== null ? "is-preview" : ""}`} style={{ "--gallery-track-height": `${(motionProfile.scrollViewports + 1) * 100}svh` } as CSSProperties}><section id="spatial-gallery" ref={sectionRef} data-gallery-preview={preview !== null ? galleryStates[preview].id : undefined} data-gallery-mode={failed ? "failed" : enhanced ? "webgl" : "reduced-or-pending"} className={`spatial-gallery ${animated ? 'is-spatial' : ''} ${selection && !photoClosing ? 'has-photo-dialog' : ''}`} aria-label="Who's Been At Insignia">
     <AccessibleGallery visible={!animated} onSelect={setSelection} />
@@ -263,6 +363,19 @@ export function SpatialGallery({ motionProfile = extendedGalleryMotionProfile }:
           </Canvas>}
         </GalleryBoundary>
       </div>
+      {mobileControls && <nav className="spatial-mobile-controls" aria-label="Gallery categories" data-lenis-prevent>
+        <div className="spatial-mobile-states">
+          {galleryStates.map((state, index) => <button key={state.id} type="button"
+            className={index === mobileState ? 'is-active' : ''}
+            aria-label={`Show ${state.label}`} aria-pressed={index === mobileState}
+            onClick={() => navigateMobile.current?.(index)}>{index === mobileState && <span ref={mobileProgress} className="spatial-mobile-progress" aria-hidden="true" />}<span>{state.label}</span></button>)}
+        </div>
+        <button type="button" className="spatial-mobile-next"
+          aria-label={mobileState === galleryStates.length - 1 ? 'Continue to next section' : `Next category: ${galleryStates[mobileState + 1].label}`}
+          onClick={() => navigateMobile.current?.(mobileState + 1)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+        </button>
+      </nav>}
       <div className="spatial-scroll-zone" aria-hidden="true">
         <span className="spatial-touch-explore">Swipe here to scroll</span>
       </div>

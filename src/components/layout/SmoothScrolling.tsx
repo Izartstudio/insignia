@@ -27,11 +27,11 @@ export function SmoothScrolling() {
 
       // Respect the navbar's existing body scroll lock, including its exit animation.
       const syncLock = () => {
-        if (document.body.style.overflow === "hidden") lenis.stop();
+        if (document.body.style.overflow === "hidden" || document.body.classList.contains("gallery-mobile-locked")) lenis.stop();
         else lenis.start();
       };
       const lockObserver = new MutationObserver(syncLock);
-      lockObserver.observe(document.body, { attributes: true, attributeFilter: ["style"] });
+      lockObserver.observe(document.body, { attributes: true, attributeFilter: ["style", "class"] });
       syncLock();
       lenis.on("scroll", updateScroll);
       gsap.ticker.add(tick);

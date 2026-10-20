@@ -275,3 +275,55 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
 .gallery-dialog-close { transition: opacity 120ms ease-out; }
 .gallery-photo-dialog[data-closing="true"] .gallery-dialog-close { opacity: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .gallery-dialog-close { transition: none; } }
+
+/* Mobile uses explicit category navigation; tablet/desktop retain the scroll timeline. */
+.spatial-mobile-controls { display: none; }
+@media (max-width: 767px) {
+ .spatial-gallery-track:not(.is-fallback):not(.is-preview) { height: 100svh; }
+ .spatial-gallery.is-spatial,
+ .spatial-gallery.is-spatial .spatial-canvas,
+ .spatial-gallery.is-spatial .spatial-canvas div,
+ .spatial-gallery.is-spatial .spatial-canvas canvas { touch-action: none !important; }
+ .spatial-gallery .spatial-scroll-zone,
+ .spatial-gallery .spatial-progress,
+ .spatial-gallery .scroll-indicator,
+ .spatial-gallery .spatial-eyebrow { display: none; }
+ .spatial-gallery .spatial-heading { top: 50%; width: calc(100% - 2.5rem); padding: 1rem; gap: .75rem; }
+ .spatial-gallery .spatial-heading h2 { font-size: clamp(1.125rem, 5.13vw, 1.5rem); }
+ .spatial-gallery .spatial-heading p { max-width: 17rem; font-size: 1rem; }
+ .spatial-gallery .spatial-explore { margin-top: .75rem; color: #fed201; font-size: .875rem; }
+ .spatial-mobile-controls {
+  position: absolute; inset: auto 0 0; z-index: 6; display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 1rem; min-height: 9rem; box-sizing: border-box;
+  padding: 3rem 1.5rem max(3.5rem, calc(env(safe-area-inset-bottom) + 1.5rem));
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.85) 65%, #000);
+  touch-action: none; user-select: none;
+ }
+ .spatial-mobile-states { position: relative; display: flex; align-items: center; gap: 1rem; min-width: 0; }
+ .spatial-mobile-states::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgb(254 210 1 / .4); pointer-events: none; }
+ .spatial-mobile-states button { position: relative; display: grid; place-items: center; padding: 0; width: 1rem; height: 2.75rem; border: 0; background: transparent; color: #fed201; cursor: pointer; flex: none; }
+ .spatial-mobile-states button::before { content: ''; width: 1rem; height: 1rem; background: #fed201; }
+ .spatial-mobile-states button::after { content: ''; position: absolute; inset: 0 -.45rem; }
+ .spatial-mobile-states button span { display: none; }
+ .spatial-mobile-states button.is-active { width: auto; min-width: 6.5rem; padding-inline: .75rem; }
+ .spatial-mobile-states button.is-active::before { position: absolute; inset: .375rem 0; width: auto; height: auto; background: transparent; border: 1px solid #fed201; }
+ .spatial-mobile-states button.is-active span:not(.spatial-mobile-progress) { position: relative; display: block; max-width: 8.5rem; font-size: .6875rem; line-height: 1.4; letter-spacing: .25em; text-transform: uppercase; }
+ .spatial-mobile-states button.is-active .spatial-mobile-progress { display: block; position: absolute; inset: .375rem 0; background: rgb(254 210 1 / .32); transform: scaleX(0); transform-origin: left; pointer-events: none; }
+ .spatial-mobile-next { display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; padding: .5rem; border: 0; background: transparent; color: #fed201; cursor: pointer; }
+ .spatial-mobile-next svg { width: 2rem; height: 2rem; padding: .25rem; box-sizing: border-box; border: 1px solid #ffffff26; fill: none; stroke: currentColor; stroke-width: 2; }
+ .spatial-mobile-controls button:focus-visible { outline: 2px solid #fed201; outline-offset: 2px; }
+ .spatial-gallery.has-photo-dialog .spatial-mobile-controls { opacity: 0; pointer-events: none; }
+ .spatial-mobile-controls { transition: opacity 420ms ease; }
+}
+@media (max-width: 360px) {
+ .spatial-mobile-controls { padding-inline: 1rem; gap: .5rem; }
+ .spatial-mobile-states { gap: .75rem; }
+ .spatial-mobile-states button.is-active { min-width: 5.5rem; padding-inline: .5rem; }
+ .spatial-mobile-states button.is-active span:not(.spatial-mobile-progress) { max-width: 6.5rem; letter-spacing: .15em; }
+}
+
+@media (max-width: 767px) {
+ html:has(body.gallery-mobile-locked), body.gallery-mobile-locked { overflow: hidden; overscroll-behavior: none; }
+ .spatial-gallery-track:not(.is-fallback):not(.is-preview),
+ .spatial-gallery-track:not(.is-fallback) > .spatial-gallery { height: 100dvh; }
+}
