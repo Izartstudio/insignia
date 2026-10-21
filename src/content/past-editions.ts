@@ -28,7 +28,7 @@ const fallbackEditionData: { year: string; title: string; photos: string[] }[] =
   { year: '2025', title: 'The interactive era.', photos: ['imagerow2', 'imagew', 'imagerow2-2', 'image-2', 'imagerow2-3'] },
   { year: '2024', title: 'Finding alpha.', photos: ['image-3', 'image-4', 'imagerow2-4', 'imagew', 'imagerow2-2'] },
   { year: '2023', title: 'India’s digital destiny.', photos: ['imagerow2', 'imagew', 'image-2', 'image-3', 'imagerow2-4'] },
-  { year: '2022', title: 'Let the games begin.', photos: ['image-4', 'imagerow2-3', 'image-2', 'imagerow2'] },
+  { year: '2022', title: 'Let the games begin.', photos: ['image-4', 'imagerow2-3', 'image-2', 'imagerow2', 'image-4'] },
 ];
 
 export const pastEditions: PastEdition[] = fallbackEditionData.map(edition => ({

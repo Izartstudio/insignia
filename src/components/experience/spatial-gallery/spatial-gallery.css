@@ -309,8 +309,9 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-mobile-states button::after { content: ''; position: absolute; inset: 0 -.45rem; }
  .spatial-mobile-states button span { display: none; }
  .spatial-mobile-states button.is-active { width: auto; min-width: 6.5rem; padding-inline: .75rem; }
- .spatial-mobile-states button.is-active::before { position: absolute; inset: .375rem 0; width: auto; height: auto; background: transparent; border: 1px solid #fed201; }
- .spatial-mobile-states button.is-active span { position: relative; display: block; max-width: 8.5rem; font-family: "PP Neue Montreal", Arial, sans-serif; font-size: .875rem; font-weight: 400; line-height: 1.4; letter-spacing: .25em; text-transform: uppercase; }
+ .spatial-mobile-states button.is-active::before { position: absolute; inset: .375rem 0; width: auto; height: auto; background: #fed201; clip-path: polygon(0 0, 96% 0, 100% 15%, 100% 100%, 4% 100%, 0 85%); }
+ .spatial-mobile-states button.is-active::after { inset: calc(.375rem + 1px) 1px; background: #080200; clip-path: polygon(0 0, 95.5% 0, 100% 15%, 100% 100%, 4.5% 100%, 0 85%); }
+ .spatial-mobile-states button.is-active span { position: relative; z-index: 1; display: block; max-width: 8.5rem; font-family: "PP Neue Montreal", Arial, sans-serif; font-size: .875rem; font-weight: 400; line-height: 1.4; letter-spacing: .25em; text-transform: uppercase; }
  .spatial-mobile-navigation { display: flex; align-items: center; gap: .5rem; flex: none; }
  .spatial-mobile-previous, .spatial-mobile-next { position: relative; display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; padding: .5rem; border: 0; background: transparent; color: #fed201; cursor: pointer; }
  .spatial-mobile-previous span, .spatial-mobile-next span { position: absolute; bottom: calc(100% + .5rem); left: 50%; transform: translateX(-50%); font-size: .75rem; letter-spacing: .25em; white-space: nowrap; }
