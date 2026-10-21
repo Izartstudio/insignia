@@ -314,7 +314,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       }
       if (event.cancelable) event.preventDefault();
       const units = (mobileControls ? 8.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
-      const dragUnits = units * (mobileControls ? .72 : 1);
+      const dragUnits = units * (mobileControls ? .45 : 1);
       panOffsets.current[drag.state].x -= dx * dragUnits;
       panOffsets.current[drag.state].y += dy * dragUnits;
       const now = performance.now();

@@ -45,6 +45,7 @@
 .fullscreen-heading h1 span { display: block; }
 @keyframes scroll-line { from { transform: translate3d(0, -13.2px, 0); } to { transform: translate3d(0, 66px, 0); } }
 .site-header { position: fixed; inset: 0 0 auto; z-index: var(--layer-navbar); pointer-events: none; }
+body.hero-loader-active .site-header { visibility: hidden; pointer-events: none; }
 .site-navigation { position: relative; height: 70px; }
 .site-logo { position: absolute; left: 35px; top: 35px; width: 116px; height: 35px; pointer-events: auto; }
 .brand-logo { display: block; width: 100%; height: auto; overflow: hidden; }

@@ -1,13 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LumikaiLogo } from "@/components/layout/LumikaiLogo";
+import { lockPageScroll } from "./spatial-gallery/scrollLock";
 
 export function HeroLoader({ ready }: { ready: boolean }) {
   const [finished, setFinished] = useState(false);
   const [removed, setRemoved] = useState(false);
   const readyRef = useRef(ready);
   const played = useRef(false);
+  useLayoutEffect(() => {
+    if (removed) return;
+    const unlock = lockPageScroll();
+    document.body.classList.add("hero-loader-active");
+    return () => {
+      unlock();
+      document.body.classList.remove("hero-loader-active");
+    };
+  }, [removed]);
   useEffect(() => {
     readyRef.current = ready;
     if (ready && played.current && window.matchMedia("(prefers-reduced-motion: reduce)").matches) setFinished(true);
