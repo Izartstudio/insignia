@@ -11,6 +11,7 @@ import { PastEditions } from "./PastEditions";
 import { SiteFooter } from "./SiteFooter";
 import { sceneConfig } from "@/config/scene";
 import type { SpatialGalleryContent } from '@/sanity/galleryContent';
+import type { PastEditionsContent } from '@/content/past-editions';
 
 const ExperienceCanvas = dynamic(() => import("./ExperienceCanvas"), {
   ssr: false,
@@ -31,7 +32,7 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
   }
 }
 
-export function InsigniaExperience({ galleryContent }: { galleryContent: SpatialGalleryContent }) {
+export function InsigniaExperience({ galleryContent, pastEditionsContent }: { galleryContent: SpatialGalleryContent; pastEditionsContent: PastEditionsContent }) {
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
   const heroRef = useRef<HTMLElement>(null);
@@ -53,7 +54,7 @@ export function InsigniaExperience({ galleryContent }: { galleryContent: Spatial
       </div>
       <InsigniaIntroduction />
       <SpatialGallery content={galleryContent} />
-      <PastEditions />
+      <PastEditions content={pastEditionsContent} />
       <SiteFooter />
     </main>
   );

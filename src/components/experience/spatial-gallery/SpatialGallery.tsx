@@ -157,25 +157,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
     let lastExplorableState: number | undefined;
-    const getPanBounds = (axis: 'x' | 'y') => {
-      const viewHeight = 2 * galleryConfig.distance * Math.tan(galleryConfig.fov * Math.PI / 360);
-      const viewSize = axis === 'x' ? viewHeight * section.clientWidth / section.clientHeight : viewHeight;
-      return { limit: viewSize * 1.25, resistance: viewSize * .18 };
-    };
-    const clampMobilePan = (value: number, axis: 'x' | 'y') => {
-      if (!mobileControls) return value;
-      const { limit, resistance } = getPanBounds(axis);
-      return Math.sign(value) * Math.min(Math.abs(value), limit + resistance * 2);
-    };
-    const resistMobilePan = (value: number, axis: 'x' | 'y') => {
-      if (!mobileControls) return value;
-      const { limit, resistance } = getPanBounds(axis);
-      const magnitude = Math.min(Math.abs(value), limit + resistance * 2);
-      const resisted = magnitude <= limit
-        ? magnitude
-        : limit + resistance * (1 - Math.exp(-(magnitude - limit) / resistance));
-      return Math.sign(value) * resisted;
-    };
     const syncPan = () => {
 
       const explorableState = getExplorableState(motion.current.travel, states.length);
@@ -190,8 +171,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       const to = Math.min(from + 1, states.length - 1);
       for (const axis of ['x', 'y'] as const) {
         const value = panOffsets.current[from][axis] + (panOffsets.current[to][axis] - panOffsets.current[from][axis]) * (travel - from);
-        const resisted = resistMobilePan(value, axis);
-        if (axis === 'x') motion.current.panX = resisted; else motion.current.panY = resisted;
+        if (axis === 'x') motion.current.panX = value; else motion.current.panY = value;
       }
       motion.current.invalidate();
     };
@@ -334,14 +314,15 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       }
       if (event.cancelable) event.preventDefault();
       const units = (mobileControls ? 8.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
-      panOffsets.current[drag.state].x = clampMobilePan(panOffsets.current[drag.state].x - dx * units, 'x');
-      panOffsets.current[drag.state].y = clampMobilePan(panOffsets.current[drag.state].y + dy * units, 'y');
+      const dragUnits = units * (mobileControls ? .72 : 1);
+      panOffsets.current[drag.state].x -= dx * dragUnits;
+      panOffsets.current[drag.state].y += dy * dragUnits;
       const now = performance.now();
       const elapsed = Math.max(1, now - drag.time) / 1000;
       const blend = 1 - Math.exp(-25 * elapsed);
       const maxVelocity = mobileControls ? 28 : 8;
-      drag.vx += (Math.max(-maxVelocity, Math.min(maxVelocity, -dx * units / elapsed)) - drag.vx) * blend;
-      drag.vy += (Math.max(-maxVelocity, Math.min(maxVelocity, dy * units / elapsed)) - drag.vy) * blend;
+      drag.vx += (Math.max(-maxVelocity, Math.min(maxVelocity, -dx * dragUnits / elapsed)) - drag.vx) * blend;
+      drag.vy += (Math.max(-maxVelocity, Math.min(maxVelocity, dy * dragUnits / elapsed)) - drag.vy) * blend;
       drag.time = now;
       drag.x=event.clientX; drag.y=event.clientY;
       syncPan();
@@ -366,8 +347,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         const friction = mobileControls ? 6 : 10;
         const decay = Math.exp(-friction * delta);
         // Integrate exponential decay exactly for consistent travel at 30/60/120 Hz.
-        panOffsets.current[ended.state].x = clampMobilePan(panOffsets.current[ended.state].x + ended.vx * (1 - decay) / friction, 'x');
-        panOffsets.current[ended.state].y = clampMobilePan(panOffsets.current[ended.state].y + ended.vy * (1 - decay) / friction, 'y');
+        panOffsets.current[ended.state].x += ended.vx * (1 - decay) / friction;
+        panOffsets.current[ended.state].y += ended.vy * (1 - decay) / friction;
         ended.vx *= decay; ended.vy *= decay;
         syncPan();
         if (Math.hypot(ended.vx, ended.vy) > .01) momentumFrame = requestAnimationFrame(tick);

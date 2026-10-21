@@ -23,8 +23,6 @@ body { margin: 0; }
 .film-controls button:focus-visible { outline: 2px solid #fed201; outline-offset: 3px; }
 .film-controls button:disabled { opacity: .5; cursor: default; }
 
-.film-controls .film-volume { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; }
-
 /* Preserve viewport width when dialogs lock/unlock document scrolling. */
 html { scrollbar-gutter: stable; }
 @media (max-width: 1024px) { html { scrollbar-gutter: auto; } }

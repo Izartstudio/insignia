@@ -3,10 +3,10 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { editionCells, pastEditions } from "@/content/past-editions";
+import { editionCells, type PastEditionsContent } from "@/content/past-editions";
 import { EditionMarqueeItem } from "./EditionMarqueeItem";
 
-export function PastEditions() {
+export function PastEditions({ content }: { content: PastEditionsContent }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -149,19 +149,17 @@ export function PastEditions() {
   return (
     <section id="past-editions" className="past-editions" aria-labelledby="past-editions-title">
       <header className="past-editions-heading">
-        <p>PAST EDITIONS</p>
-        <h2 id="past-editions-title">Every edition explores a defining<br className="past-editions-desktop-break" /> question for the Indian industry.</h2>
+        <p>{content.eyebrow}</p>
+        <h2 id="past-editions-title">{content.heading}</h2>
       </header>
       <div ref={stageRef} className="past-editions-stage">
         <div className="past-editions-divider" aria-hidden="true"><span ref={progressRef} /></div>
         <div className="past-editions-gallery">
         <div id="past-editions-photos" ref={viewportRef} className="past-editions-viewport" tabIndex={0} role="region" aria-label="Past editions gallery">
           <div ref={trackRef} className="past-editions-track">
-            {pastEditions.map(edition => (
+            {content.editions.map(edition => (
               <div className="past-editions-year" key={edition.year} role="group" aria-label={`${edition.year}: ${edition.title}`}>
-                {editionCells(edition).map((item, index) => item
-                  ? <EditionMarqueeItem key={item.id} item={item} />
-                  : <div key={`space-${index}`} aria-hidden="true" />)}
+                {editionCells(edition).map(item => <EditionMarqueeItem key={item.id} item={item} />)}
               </div>
             ))}
           </div>

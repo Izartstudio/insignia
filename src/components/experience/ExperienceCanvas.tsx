@@ -41,12 +41,6 @@ export default function ExperienceCanvas({ heroRef, fullscreenHeadingRef, onRead
             {video.status === "error" ? "Retry film" : "Play film"}
           </button>
         )}
-        <button className="film-volume" type="button" onClick={video.toggleSound} disabled={!video.resource} aria-label={video.muted ? "Enable film sound" : "Mute film sound"} title={video.muted ? "Enable sound" : "Mute sound"}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M11 5 6 9H3v6h3l5 4V5Z" />
-            {video.muted ? <path d="m16 9 6 6m0-6-6 6" /> : <><path d="M15 8a6 6 0 0 1 0 8" /><path d="M18 5a10 10 0 0 1 0 14" /></>}
-          </svg>
-        </button>
       </div>
     </>
   );

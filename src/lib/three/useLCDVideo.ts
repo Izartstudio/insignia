@@ -9,7 +9,6 @@ export type VideoStatus = "loading" | "playing" | "paused" | "blocked" | "error"
 export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
   const current = useRef<LCDVideoResource | null>(null);
   const [resource, setResource] = useState<LCDVideoResource | null>(null);
-  const [muted, setMuted] = useState(true);
   const [hasFrame, setHasFrame] = useState(false);
   const [status, setStatus] = useState<VideoStatus>("loading");
 
@@ -41,7 +40,6 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
     current.current = owned;
     setResource(owned);
     setHasFrame(false);
-    setMuted(true);
     setStatus("loading");
     const ready = () => { if (!disposed) setHasFrame(true); };
     const playing = () => {
@@ -63,8 +61,6 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
         });
       }
     };
-    const volumeChanged = () => { if (!disposed) setMuted(video.muted); };
-    video.addEventListener("volumechange", volumeChanged);
     video.addEventListener("loadeddata", ready);
     video.addEventListener("playing", playing);
     video.addEventListener("error", failed);
@@ -80,7 +76,6 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
       disposed = true;
       observer.disconnect();
       document.removeEventListener("visibilitychange", syncPlayback);
-      video.removeEventListener("volumechange", volumeChanged);
       video.removeEventListener("loadeddata", ready);
       video.removeEventListener("playing", playing);
       video.removeEventListener("error", failed);
@@ -103,18 +98,5 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
     });
   }, []);
 
-  const toggleSound = useCallback(() => {
-    const owned = current.current;
-    if (!owned) return;
-    owned.video.muted = !owned.video.muted;
-    setMuted(owned.video.muted);
-    if (!owned.video.muted) {
-      // Keep play() inside the user gesture so browsers can authorize audio.
-      void owned.video.play().catch(() => {
-        if (current.current === owned) setStatus(owned.video.error ? "error" : "blocked");
-      });
-    }
-  }, []);
-
-  return { resource, hasFrame, status, resume, muted, toggleSound };
+  return { resource, hasFrame, status, resume };
 }

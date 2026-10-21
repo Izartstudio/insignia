@@ -60,8 +60,38 @@ const createGallery = (name: string, title: string) => defineType({
   preview: { prepare: () => ({ title }) },
 });
 
+const pastEditionPhoto = defineType({
+  name: 'pastEditionPhoto', title: 'Past edition photo', type: 'object',
+  fields: [
+    defineField({ name: 'image', title: 'Image', type: 'image', options: { hotspot: true }, validation: rule => rule.required() }),
+    defineField({ name: 'alt', title: 'Image description', type: 'string', validation: rule => rule.required() }),
+  ],
+  preview: { select: { title: 'alt', media: 'image' } },
+});
+
+const pastEdition = defineType({
+  name: 'pastEdition', title: 'Past edition', type: 'object',
+  fields: [
+    defineField({ name: 'year', type: 'string', validation: rule => rule.required() }),
+    defineField({ name: 'title', title: 'Edition title', type: 'string', validation: rule => rule.required() }),
+    defineField({ name: 'photos', type: 'array', of: [defineArrayMember({ type: 'pastEditionPhoto' })], validation: rule => rule.required().min(1) }),
+  ],
+  preview: { select: { title: 'year', subtitle: 'title' } },
+});
+
+export const pastEditionsSchema = defineType({
+  name: 'pastEditions', title: 'Past Editions section', type: 'document',
+  fields: [
+    defineField({ name: 'eyebrow', title: 'Section label', type: 'string', initialValue: 'PAST EDITIONS', validation: rule => rule.required() }),
+    defineField({ name: 'heading', title: 'Section heading', type: 'string', initialValue: 'Every edition explores a defining question for the Indian industry.', validation: rule => rule.required() }),
+    defineField({ name: 'editions', type: 'array', of: [defineArrayMember({ type: 'pastEdition' })], validation: rule => rule.required().min(1) }),
+  ],
+  preview: { prepare: () => ({ title: 'Past Editions section' }) },
+});
+
 export const spatialGallerySchema = [
   placement, photo, category,
   createGallery('spatialGalleryDesktop', 'Desktop spatial gallery'),
   createGallery('spatialGalleryMobile', 'Mobile spatial gallery'),
+  pastEditionPhoto, pastEdition, pastEditionsSchema,
 ];
