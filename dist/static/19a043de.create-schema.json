@@ -1,0 +1,836 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "x",
+        "type": "number"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "y",
+        "type": "number"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "greaterThan",
+                "constraint": 0
+              }
+            ]
+          }
+        ],
+        "name": "width",
+        "type": "number"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "greaterThan",
+                "constraint": 0
+              }
+            ]
+          }
+        ],
+        "name": "height",
+        "type": "number"
+      }
+    ],
+    "name": "spatialPlacement",
+    "type": "object",
+    "title": "Position and size"
+  },
+  {
+    "fields": [
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "image",
+        "type": "image"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "alt",
+        "type": "string",
+        "title": "Image description"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "placement",
+        "type": "spatialPlacement",
+        "title": "Canvas placement"
+      },
+      {
+        "initialValue": 0,
+        "name": "depthOffset",
+        "type": "number",
+        "title": "Depth offset"
+      },
+      {
+        "initialValue": false,
+        "name": "referenceCrop",
+        "type": "boolean",
+        "title": "Use reference crop"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "name",
+        "type": "string",
+        "title": "Detail card name"
+      },
+      {
+        "rows": 3,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "bio",
+        "type": "text",
+        "title": "Detail card description"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "name": "learnMoreUrl",
+        "type": "url",
+        "title": "Learn more URL"
+      }
+    ],
+    "name": "spatialPhoto",
+    "type": "object",
+    "title": "Gallery photo"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "category",
+        "type": "string",
+        "title": "Eyebrow / watermark"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "label",
+        "type": "string",
+        "title": "Navigation label"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "heading",
+        "type": "string"
+      },
+      {
+        "name": "subtitle",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "greaterThan",
+                "constraint": 0
+              }
+            ]
+          }
+        ],
+        "name": "radius",
+        "type": "number",
+        "title": "Background glow radius"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "type": "spatialPhoto",
+            "title": "Gallery photo"
+          }
+        ],
+        "name": "photos",
+        "type": "array"
+      }
+    ],
+    "name": "spatialCategory",
+    "type": "object",
+    "title": "Gallery category"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "Who has been at Insignia",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "dialogTitle",
+        "type": "string",
+        "title": "Photo detail heading"
+      },
+      {
+        "initialValue": "Move to explore the canvas.",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "explorePrompt",
+        "type": "string",
+        "title": "Explore instruction"
+      },
+      {
+        "initialValue": "Swipe here to scroll",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "touchExplorePrompt",
+        "type": "string",
+        "title": "Touch scroll instruction"
+      },
+      {
+        "initialValue": "NEXT",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "nextLabel",
+        "type": "string",
+        "title": "Next arrow label"
+      },
+      {
+        "initialValue": "LEARN MORE",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "learnMoreLabel",
+        "type": "string",
+        "title": "Photo link label"
+      },
+      {
+        "initialValue": "Who has been at Insignia",
+        "name": "entryTitle",
+        "type": "string",
+        "title": "Mobile entry heading"
+      },
+      {
+        "rows": 2,
+        "initialValue": "Designed to adapt across devices, with an experience best enjoyed on the desktop.",
+        "name": "entryNote",
+        "type": "text",
+        "title": "Mobile entry note"
+      },
+      {
+        "initialValue": "ENTER TO EXPERIENCE",
+        "name": "enterLabel",
+        "type": "string",
+        "title": "Mobile entry button"
+      },
+      {
+        "initialValue": "COPY LINK",
+        "name": "copyLinkLabel",
+        "type": "string",
+        "title": "Mobile copy link button"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "leaders",
+        "type": "spatialCategory"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "founders",
+        "type": "spatialCategory"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "experts",
+        "type": "spatialCategory"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "investors",
+        "type": "spatialCategory"
+      }
+    ],
+    "name": "spatialGalleryDesktop",
+    "type": "document",
+    "title": "Desktop spatial gallery"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "Who has been at Insignia",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "dialogTitle",
+        "type": "string",
+        "title": "Photo detail heading"
+      },
+      {
+        "initialValue": "Move to explore the canvas.",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "explorePrompt",
+        "type": "string",
+        "title": "Explore instruction"
+      },
+      {
+        "initialValue": "Swipe here to scroll",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "touchExplorePrompt",
+        "type": "string",
+        "title": "Touch scroll instruction"
+      },
+      {
+        "initialValue": "NEXT",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "nextLabel",
+        "type": "string",
+        "title": "Next arrow label"
+      },
+      {
+        "initialValue": "LEARN MORE",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "learnMoreLabel",
+        "type": "string",
+        "title": "Photo link label"
+      },
+      {
+        "initialValue": "Who has been at Insignia",
+        "name": "entryTitle",
+        "type": "string",
+        "title": "Mobile entry heading"
+      },
+      {
+        "rows": 2,
+        "initialValue": "Designed to adapt across devices, with an experience best enjoyed on the desktop.",
+        "name": "entryNote",
+        "type": "text",
+        "title": "Mobile entry note"
+      },
+      {
+        "initialValue": "ENTER TO EXPERIENCE",
+        "name": "enterLabel",
+        "type": "string",
+        "title": "Mobile entry button"
+      },
+      {
+        "initialValue": "COPY LINK",
+        "name": "copyLinkLabel",
+        "type": "string",
+        "title": "Mobile copy link button"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "leaders",
+        "type": "spatialCategory"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "founders",
+        "type": "spatialCategory"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "experts",
+        "type": "spatialCategory"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "investors",
+        "type": "spatialCategory"
+      }
+    ],
+    "name": "spatialGalleryMobile",
+    "type": "document",
+    "title": "Mobile spatial gallery"
+  },
+  {
+    "fields": [
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "image",
+        "type": "image"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "alt",
+        "type": "string",
+        "title": "Image description"
+      }
+    ],
+    "name": "pastEditionPhoto",
+    "type": "object",
+    "title": "Past edition photo"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "year",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "title",
+        "type": "string",
+        "title": "Edition title"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "type": "pastEditionPhoto",
+            "title": "Past edition photo"
+          }
+        ],
+        "name": "photos",
+        "type": "array"
+      }
+    ],
+    "name": "pastEdition",
+    "type": "object",
+    "title": "Past edition"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "PAST EDITIONS",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "eyebrow",
+        "type": "string",
+        "title": "Section label"
+      },
+      {
+        "initialValue": "Every edition explores a defining question for the Indian industry.",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "heading",
+        "type": "string",
+        "title": "Section heading"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "type": "pastEdition",
+            "title": "Past edition"
+          }
+        ],
+        "name": "editions",
+        "type": "array"
+      }
+    ],
+    "name": "pastEditions",
+    "type": "document",
+    "title": "Past Editions section"
+  }
+]

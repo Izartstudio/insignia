@@ -74,6 +74,7 @@ export async function getPastEditionsContent(): Promise<PastEditionsContent> {
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
       apiVersion: '2026-10-01',
       useCdn: true,
+      perspective: 'published',
     });
     return normalize(await client.fetch(query, {}, { next: { revalidate: 60 } }));
   } catch (error) {

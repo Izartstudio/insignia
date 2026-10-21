@@ -1,6 +1,7 @@
 import { createReadStream } from 'node:fs';
 import { basename, join } from 'node:path';
 import { createClient } from '@sanity/client';
+import { pastEditions } from '../src/content/past-editions.ts';
 import { galleryStates, mobilePlacements } from '../src/content/spatial-gallery.ts';
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -22,10 +23,15 @@ async function imageReference(src) {
   return assets.get(src);
 }
 
+async function exists(id) {
+  const documents = await client.getDocuments([id, `drafts.${id}`]);
+  return documents.some(Boolean);
+}
+
 for (const screen of ['desktop', 'mobile']) {
   const _id = screen === 'desktop' ? 'spatialGalleryDesktop' : 'spatialGalleryMobile';
-  if (await client.getDocument(_id)) {
-    console.log(`${_id} already exists; leaving published edits untouched.`);
+  if (await exists(_id)) {
+    console.log(`${_id} already exists; leaving existing published or draft edits untouched.`);
     continue;
   }
   const document = {
@@ -35,6 +41,10 @@ for (const screen of ['desktop', 'mobile']) {
     touchExplorePrompt: 'Swipe here to scroll',
     nextLabel: 'NEXT',
     learnMoreLabel: 'LEARN MORE',
+    entryTitle: 'Who has been at Insignia',
+    entryNote: 'Designed to adapt across devices, with an experience best enjoyed on the desktop.',
+    enterLabel: 'ENTER TO EXPERIENCE',
+    copyLinkLabel: 'COPY LINK',
   };
   for (const state of galleryStates) {
     const photos = [];
@@ -62,4 +72,22 @@ for (const screen of ['desktop', 'mobile']) {
   }
   await client.createIfNotExists(document);
   console.log(`Imported ${_id}.`);
+}
+
+if (await exists('pastEditions')) {
+  console.log('pastEditions already exists; leaving existing published or draft edits untouched.');
+} else {
+  const editions = [];
+  for (const edition of pastEditions) {
+    const photos = [];
+    for (const photo of edition.photos) {
+      photos.push({ _key: photo.id, _type: 'pastEditionPhoto', alt: photo.alt, image: await imageReference(photo.src) });
+    }
+    editions.push({ _key: edition.year, _type: 'pastEdition', year: edition.year, title: edition.title, photos });
+  }
+  await client.createIfNotExists({
+    _id: 'pastEditions', _type: 'pastEditions', eyebrow: 'PAST EDITIONS',
+    heading: 'Every edition explores a defining question for the Indian industry.', editions,
+  });
+  console.log('Imported pastEditions.');
 }

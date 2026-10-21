@@ -87,6 +87,7 @@ export async function getSpatialGalleryContent(): Promise<SpatialGalleryContent>
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
       apiVersion: '2026-10-01',
       useCdn: true,
+      perspective: 'published',
     });
     const documents = await client.fetch(query, {}, { next: { revalidate: 60 } });
     const byId = Object.fromEntries((Array.isArray(documents) ? documents : []).map(item => [item._id, item]));

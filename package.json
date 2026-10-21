@@ -8,7 +8,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "sanity:import-gallery": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/import-spatial-gallery.mjs",
-    "inspect:model": "node scripts/inspect-model.mjs"
+    "inspect:model": "node scripts/inspect-model.mjs",
+    "sanity": "node --env-file-if-exists=.env.local node_modules/sanity/bin/sanity",
+    "sanity:seed": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/import-spatial-gallery.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.0",
@@ -19,9 +21,10 @@
     "lottie-web": "^5.13.0",
     "next": "^16.4.0",
     "next-sanity": "^13.3.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "sanity": "^6.20.0",
+    "styled-components": "^6.1.15",
     "three": "^0.180.0"
   },
   "devDependencies": {

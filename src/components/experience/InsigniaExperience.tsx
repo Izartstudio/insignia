@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Component, useRef, useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { HeroLoader } from "./HeroLoader";
 import { HeroBackground } from "./HeroBackground";
+import { ScrollIndicator } from "./ScrollIndicator";
 import { FullscreenHeading, type FullscreenHeadingHandle } from "./FullscreenHeading";
 import { InsigniaIntroduction } from "./InsigniaIntroduction";
 import { SpatialGallery } from "./spatial-gallery/SpatialGallery";
@@ -50,6 +51,7 @@ export function InsigniaExperience({ galleryContent, pastEditionsContent }: { ga
             <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} fullscreenHeadingRef={fullscreenHeadingRef} /><HeroLoader ready={ready} /></SceneErrorBoundary>
           </div>
           <FullscreenHeading ref={fullscreenHeadingRef} />
+          {ready && <ScrollIndicator />}
         </section>
       </div>
       <InsigniaIntroduction />

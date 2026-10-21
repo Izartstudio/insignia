@@ -34,3 +34,7 @@ Browser access to the local preview was denied in this session, so rendered appe
 ## Current asset
 
 The replacement `/Users/manyaagureja/Downloads/camcorder-2.glb` is copied unchanged to `public/models/camcorder.glb`. Its URL includes a content-hash revision to invalidate the previous useGLTF/browser cache. It contains 199,999 triangles and is 7.34 MiB; mobile transfer performance needs measurement before release. Its original `KHR_materials_unlit` material intentionally does not respond to scene lighting. Embedded metadata credits omegadarling under CC BY 4.0; attribution is displayed on the page. LCD geometry and hinge control remain unverified.
+
+## Sanity CMS
+
+The embedded Studio lives at `/studio`. Follow [the Sanity setup guide](docs/sanity-gallery.md) to connect your project, configure CORS, seed all three content documents, and deploy. Start by filling in `.env.local`, then run `npm run sanity:seed`.

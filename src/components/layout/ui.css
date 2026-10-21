@@ -37,6 +37,7 @@
 @media (prefers-reduced-motion: reduce) { .hero-loader { transition-duration: .15s; } }
 .scroll-indicator { position: absolute; z-index: var(--layer-indicator); bottom: max(6.5svh, calc(env(safe-area-inset-bottom) + 16px)); left: 50%; transform: translateX(-50%); width: 83px; height: 53px; pointer-events: none; }
 .scroll-indicator svg { position: absolute; inset: 0; display: block; }
+body.hero-loader-active .experience > .scroll-indicator { visibility: hidden; }
 .scroll-indicator-track { position: absolute; top: 0; left: 40.5px; width: 2px; height: 20px; overflow: hidden; background: rgb(254 210 1 / .25); }
 .scroll-indicator-line { position: absolute; top: 0; left: 0; width: 2px; height: 12px; background: #fed201; animation: scroll-line var(--scroll-cycle) linear infinite; will-change: transform; }
 .fullscreen-heading { position: absolute; inset: 0; z-index: var(--layer-heading); display: flex; align-items: flex-end; justify-content: center; padding: 0 clamp(24px, 5vw, 72px) max(9.25svh, calc(env(safe-area-inset-bottom) + 32px)); pointer-events: none; visibility: hidden; opacity: 0; }
