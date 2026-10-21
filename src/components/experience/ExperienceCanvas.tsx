@@ -13,7 +13,7 @@ function SceneReady({ onReady }: { onReady: () => void }) {
   return null;
 }
 
-export default function ExperienceCanvas({ heroRef, scrollIndicatorRef, fullscreenHeadingRef, onReady }: { onReady: () => void; heroRef: RefObject<HTMLElement | null>; scrollIndicatorRef: RefObject<HTMLDivElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null> }) {
+export default function ExperienceCanvas({ heroRef, fullscreenHeadingRef, onReady }: { onReady: () => void; heroRef: RefObject<HTMLElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null> }) {
   const video = useLCDVideo(heroRef);
   return (
     <>
@@ -31,7 +31,7 @@ export default function ExperienceCanvas({ heroRef, scrollIndicatorRef, fullscre
         <CanvasRuntime />
         <SceneLighting />
         <Suspense fallback={null}>
-          <CamcorderModel heroRef={heroRef} scrollIndicatorRef={scrollIndicatorRef} fullscreenHeadingRef={fullscreenHeadingRef} video={video.resource} hasFrame={video.hasFrame} />
+          <CamcorderModel heroRef={heroRef} fullscreenHeadingRef={fullscreenHeadingRef} video={video.resource} hasFrame={video.hasFrame} />
           <SceneReady onReady={onReady} />
         </Suspense>
       </Canvas>

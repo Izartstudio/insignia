@@ -32,7 +32,6 @@ type TimelineOptions = {
   viewport: { width: number; height: number };
   radius: number;
   halfHeight: number;
-  indicator: HTMLElement | null;
   heading: FullscreenHeadingHandle | null;
   invalidate: () => void;
 };
@@ -71,7 +70,7 @@ function createDebugPath(scene: Object3D): DebugPath | null {
 
 export function createCamcorderTimeline(options: TimelineOptions) {
   gsap.registerPlugin(ScrollTrigger);
-  const { section, modelGroup, screen, camera, viewport, radius, halfHeight, indicator, heading, invalidate } = options;
+  const { section, modelGroup, screen, camera, viewport, radius, halfHeight, heading, invalidate } = options;
   const { rotation, scroll, timeline: timing } = sceneConfig.hero;
   const media = gsap.matchMedia();
   const cameraScene = camera.parent;
@@ -135,9 +134,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
           renderCamera();
           return;
         }
-
         gsap.set(modelGroup.rotation, { y: rotation.initialY });
-        if (indicator) gsap.set(indicator, { opacity: 1 });
         const master = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
@@ -161,7 +158,6 @@ export function createCamcorderTimeline(options: TimelineOptions) {
           .fromTo(modelGroup.rotation, { y: rotation.initialY }, { y: rotation.finalY, duration: timing.rotationEnd }, 0)
           .to({}, { duration: timing.zoomStart - timing.rotationEnd }, timing.rotationEnd)
           .fromTo(zoom, { value: 0 }, { value: 1, duration: 1 - timing.zoomStart }, timing.zoomStart);
-        if (indicator) master.to(indicator, { opacity: 0, duration: 1 - timing.indicatorFadeStart }, timing.indicatorFadeStart);
 
         renderCamera();
         refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh(true));

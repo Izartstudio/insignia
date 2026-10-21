@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { Component, useRef, useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { HeroLoader } from "./HeroLoader";
 import { HeroBackground } from "./HeroBackground";
-import { ScrollIndicator } from "./ScrollIndicator";
 import { FullscreenHeading, type FullscreenHeadingHandle } from "./FullscreenHeading";
 import { InsigniaIntroduction } from "./InsigniaIntroduction";
 import { SpatialGallery } from "./spatial-gallery/SpatialGallery";
@@ -36,7 +35,6 @@ export function InsigniaExperience({ galleryContent }: { galleryContent: Spatial
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
   const heroRef = useRef<HTMLElement>(null);
-  const scrollIndicatorRef = useRef<HTMLDivElement>(null);
   const fullscreenHeadingRef = useRef<FullscreenHeadingHandle>(null);
   const trackStyle = {
     "--hero-track-length": 1 + sceneConfig.hero.scroll.distanceInViewports,
@@ -48,9 +46,8 @@ export function InsigniaExperience({ galleryContent }: { galleryContent: Spatial
         <section ref={heroRef} className="experience">
           <HeroBackground />
           <div className="canvas-shell" role="img" aria-label="An open-LCD camcorder rotates from a three-quarter view to a rear view as you scroll">
-            <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} scrollIndicatorRef={scrollIndicatorRef} fullscreenHeadingRef={fullscreenHeadingRef} /><HeroLoader ready={ready} /></SceneErrorBoundary>
+            <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} fullscreenHeadingRef={fullscreenHeadingRef} /><HeroLoader ready={ready} /></SceneErrorBoundary>
           </div>
-          <ScrollIndicator ref={scrollIndicatorRef} />
           <FullscreenHeading ref={fullscreenHeadingRef} />
         </section>
       </div>

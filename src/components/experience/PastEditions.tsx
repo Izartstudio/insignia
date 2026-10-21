@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { editionCells, pastEditions } from "@/content/past-editions";
@@ -12,6 +12,8 @@ export function PastEditions() {
   const trackRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const [canScrollPrevious, setCanScrollPrevious] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(true);
 
   const navigationRef = useRef<gsap.core.Tween | null>(null);
   const targetYearRef = useRef<number | null>(null);
@@ -85,6 +87,11 @@ export function PastEditions() {
     gsap.registerPlugin(ScrollTrigger);
     const media = gsap.matchMedia();
     const distance = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
+    const updateArrowVisibility = (offset: number) => {
+      const maxDistance = distance();
+      setCanScrollPrevious(offset > 2);
+      setCanScrollNext(maxDistance - offset > 2);
+    };
     const createTimeline = (trigger: HTMLElement) => {
       const timeline = gsap.timeline({
         defaults: { ease: "none" },
@@ -100,15 +107,24 @@ export function PastEditions() {
           scrub: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          onRefresh: self => updateArrowVisibility(self.progress * distance()),
+          onUpdate: self => updateArrowVisibility(self.progress * distance()),
         },
       });
       scrollTriggerRef.current = timeline.scrollTrigger ?? null;
+      updateArrowVisibility((timeline.scrollTrigger?.progress ?? 0) * distance());
       timeline.fromTo(track, { x: 0 }, { x: () => -distance(), duration: 1 }, 0)
         .fromTo(progress, { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
       return () => { scrollTriggerRef.current = null; };
     };
     media.add("(min-width: 1025px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage));
     media.add("(max-width: 1024px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage.parentElement ?? stage));
+    media.add("(prefers-reduced-motion: reduce)", () => {
+      const update = () => updateArrowVisibility(viewport.scrollLeft);
+      viewport.addEventListener("scroll", update, { passive: true });
+      update();
+      return () => viewport.removeEventListener("scroll", update);
+    });
     // Measure only on layout changes, never on animation frames.
     let frame = 0;
     let previousWidth = -1;
@@ -117,6 +133,8 @@ export function PastEditions() {
       if (width === previousWidth) return;
       previousWidth = width;
       cancelAnimationFrame(frame);
+      const trigger = scrollTriggerRef.current;
+      updateArrowVisibility(trigger ? trigger.progress * width : viewport.scrollLeft);
       frame = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     });
     observer.observe(viewport);
@@ -148,12 +166,12 @@ export function PastEditions() {
             ))}
           </div>
         </div>
-        <button type="button" className="past-editions-arrow is-previous" aria-label="Previous edition year" aria-controls="past-editions-photos" onClick={() => navigate(-1)}>
+        {canScrollPrevious && <button type="button" className="past-editions-arrow is-previous" aria-label="Previous edition year" aria-controls="past-editions-photos" onClick={() => navigate(-1)}>
           <img src="/assets/insignia/edition-arrow.svg" alt="" width="12" height="20" draggable={false} />
-        </button>
-        <button type="button" className="past-editions-arrow is-next" aria-label="Next edition year" aria-controls="past-editions-photos" onClick={() => navigate(1)}>
+        </button>}
+        {canScrollNext && <button type="button" className="past-editions-arrow is-next" aria-label="Next edition year" aria-controls="past-editions-photos" onClick={() => navigate(1)}>
           <img src="/assets/insignia/edition-arrow.svg" alt="" width="12" height="20" draggable={false} />
-        </button>
+        </button>}
         </div>
       </div>
     </section>

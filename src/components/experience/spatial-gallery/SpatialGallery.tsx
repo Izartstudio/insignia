@@ -157,6 +157,25 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
     let lastExplorableState: number | undefined;
+    const getPanBounds = (axis: 'x' | 'y') => {
+      const viewHeight = 2 * galleryConfig.distance * Math.tan(galleryConfig.fov * Math.PI / 360);
+      const viewSize = axis === 'x' ? viewHeight * section.clientWidth / section.clientHeight : viewHeight;
+      return { limit: viewSize * 1.25, resistance: viewSize * .18 };
+    };
+    const clampMobilePan = (value: number, axis: 'x' | 'y') => {
+      if (!mobileControls) return value;
+      const { limit, resistance } = getPanBounds(axis);
+      return Math.sign(value) * Math.min(Math.abs(value), limit + resistance * 2);
+    };
+    const resistMobilePan = (value: number, axis: 'x' | 'y') => {
+      if (!mobileControls) return value;
+      const { limit, resistance } = getPanBounds(axis);
+      const magnitude = Math.min(Math.abs(value), limit + resistance * 2);
+      const resisted = magnitude <= limit
+        ? magnitude
+        : limit + resistance * (1 - Math.exp(-(magnitude - limit) / resistance));
+      return Math.sign(value) * resisted;
+    };
     const syncPan = () => {
 
       const explorableState = getExplorableState(motion.current.travel, states.length);
@@ -171,7 +190,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       const to = Math.min(from + 1, states.length - 1);
       for (const axis of ['x', 'y'] as const) {
         const value = panOffsets.current[from][axis] + (panOffsets.current[to][axis] - panOffsets.current[from][axis]) * (travel - from);
-        if (axis === 'x') motion.current.panX = value; else motion.current.panY = value;
+        const resisted = resistMobilePan(value, axis);
+        if (axis === 'x') motion.current.panX = resisted; else motion.current.panY = resisted;
       }
       motion.current.invalidate();
     };
@@ -314,8 +334,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       }
       if (event.cancelable) event.preventDefault();
       const units = (mobileControls ? 8.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
-      panOffsets.current[drag.state].x -= dx*units;
-      panOffsets.current[drag.state].y += dy*units;
+      panOffsets.current[drag.state].x = clampMobilePan(panOffsets.current[drag.state].x - dx * units, 'x');
+      panOffsets.current[drag.state].y = clampMobilePan(panOffsets.current[drag.state].y + dy * units, 'y');
       const now = performance.now();
       const elapsed = Math.max(1, now - drag.time) / 1000;
       const blend = 1 - Math.exp(-25 * elapsed);
@@ -346,8 +366,8 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         const friction = mobileControls ? 6 : 10;
         const decay = Math.exp(-friction * delta);
         // Integrate exponential decay exactly for consistent travel at 30/60/120 Hz.
-        panOffsets.current[ended.state].x += ended.vx * (1 - decay) / friction;
-        panOffsets.current[ended.state].y += ended.vy * (1 - decay) / friction;
+        panOffsets.current[ended.state].x = clampMobilePan(panOffsets.current[ended.state].x + ended.vx * (1 - decay) / friction, 'x');
+        panOffsets.current[ended.state].y = clampMobilePan(panOffsets.current[ended.state].y + ended.vy * (1 - decay) / friction, 'y');
         ended.vx *= decay; ended.vy *= decay;
         syncPan();
         if (Math.hypot(ended.vx, ended.vy) > .01) momentumFrame = requestAnimationFrame(tick);
@@ -409,7 +429,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         <GalleryBoundary onFailure={onFailure}>
           {<Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
-            <SpatialGalleryScene motion={motion} onFailure={onFailure} states={states} />
+            <SpatialGalleryScene motion={motion} onFailure={onFailure} states={states} mobileControls={mobileControls} />
           </Canvas>}
         </GalleryBoundary>
       </div>
@@ -420,12 +440,20 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
             aria-label={`Show ${state.label}`} aria-pressed={index === mobileState}
             onClick={() => navigateMobile.current?.(index)}><span>{state.label}</span></button>)}
         </div>
-        <button type="button" className="spatial-mobile-next"
-          aria-label={mobileState === states.length - 1 ? 'Continue to next section' : `Next category: ${states[mobileState + 1].label}`}
-          onClick={() => navigateMobile.current?.(mobileState + 1)}>
-          <span aria-hidden="true">{mobileState === states.length - 1 ? 'EXIT' : copy.nextLabel}</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
-        </button>
+        <div className="spatial-mobile-navigation">
+          {mobileState > 0 && <button type="button" className="spatial-mobile-previous"
+            aria-label={`Previous category: ${states[mobileState - 1].label}`}
+            onClick={() => navigateMobile.current?.(mobileState - 1)}>
+            <span aria-hidden="true">PREV</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+          </button>}
+          <button type="button" className="spatial-mobile-next"
+            aria-label={mobileState === states.length - 1 ? 'Continue to next section' : `Next category: ${states[mobileState + 1].label}`}
+            onClick={() => navigateMobile.current?.(mobileState + 1)}>
+            <span aria-hidden="true">{mobileState === states.length - 1 ? 'EXIT' : copy.nextLabel}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+          </button>
+        </div>
       </nav>}
       {mobileControls && <button type="button" className="spatial-mobile-close" aria-label="Exit gallery experience" onClick={() => closeMobile()}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19" /></svg></button>}
       <div className="spatial-scroll-zone" aria-hidden="true">

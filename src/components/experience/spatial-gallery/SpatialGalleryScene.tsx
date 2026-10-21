@@ -5,7 +5,7 @@ import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 import { GalleryEnvironment, type GalleryMotion } from './GalleryEnvironment';
 import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
 
-export default function SpatialGalleryScene({ motion, onFailure, states }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void; states: GalleryState[] }) {
+export default function SpatialGalleryScene({ motion, onFailure, states, mobileControls }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void; states: GalleryState[]; mobileControls: boolean }) {
   const { camera, invalidate, scene, gl } = useThree();
   const [textures, setTextures] = useState<Record<string, Record<string, Texture>>>({});
   const offset = useRef({ x: 0, y: 0 });
@@ -82,8 +82,9 @@ export default function SpatialGalleryScene({ motion, onFailure, states }: { mot
     if (state.paused) return;
     const targetX = state.panX;
     const targetY = state.panY;
-    offset.current.x = state.dragging ? targetX : MathUtils.damp(offset.current.x, targetX, galleryConfig.exploration.damping, Math.min(delta, .05));
-    offset.current.y = state.dragging ? targetY : MathUtils.damp(offset.current.y, targetY, galleryConfig.exploration.damping, Math.min(delta, .05));
+    const damping = galleryConfig.exploration.damping * (mobileControls ? .7 : 1);
+    offset.current.x = state.dragging && !mobileControls ? targetX : MathUtils.damp(offset.current.x, targetX, damping, Math.min(delta, .05));
+    offset.current.y = state.dragging && !mobileControls ? targetY : MathUtils.damp(offset.current.y, targetY, damping, Math.min(delta, .05));
     camera.position.set(offset.current.x, offset.current.y, galleryConfig.distance - state.travel * galleryConfig.depthStep);
     camera.rotation.set(0, 0, 0);
     if (state.active && (Math.abs(offset.current.x - targetX) > .0001 || Math.abs(offset.current.y - targetY) > .0001)) invalidate();

@@ -1,11 +1,12 @@
 export const introductionSlides = [
   {
     number: "01",
-    text: "Once a year, Lumikai hosts Insignia, India’s signature event for interactive media and annual LP summit.",
+    text: "Lumikai’s annual LP summit - Insignia is India’s signature event for interactive media.",
   },
+
   {
     number: "02",
-    text: "An invite only gathering which brings together 100 of the industry's most consequential people. For two days, the conversations that shape the industry happen under one roof.",
+    text: "An invite only gathering which brings together 100 of the industry's most consequential decision makers. The conversations that shape the industry happen under one roof over two days.",
   },
   {
     number: "03",

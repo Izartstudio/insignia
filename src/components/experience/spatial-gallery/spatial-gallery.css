@@ -311,10 +311,13 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-mobile-states button.is-active { width: auto; min-width: 6.5rem; padding-inline: .75rem; }
  .spatial-mobile-states button.is-active::before { position: absolute; inset: .375rem 0; width: auto; height: auto; background: transparent; border: 1px solid #fed201; }
  .spatial-mobile-states button.is-active span { position: relative; display: block; max-width: 8.5rem; font-family: "PP Neue Montreal", Arial, sans-serif; font-size: .875rem; font-weight: 400; line-height: 1.4; letter-spacing: .25em; text-transform: uppercase; }
- .spatial-mobile-next { position: relative; display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; padding: .5rem; border: 0; background: transparent; color: #fed201; cursor: pointer; }
- .spatial-mobile-next span { position: absolute; bottom: calc(100% + .5rem); left: 50%; transform: translateX(-50%); font-size: .75rem; letter-spacing: .35em; white-space: nowrap; animation: spatial-next-blink 1.4s ease-in-out infinite; }
+ .spatial-mobile-navigation { display: flex; align-items: center; gap: .5rem; flex: none; }
+ .spatial-mobile-previous, .spatial-mobile-next { position: relative; display: grid; place-items: center; flex: none; width: 2.75rem; height: 2.75rem; padding: .5rem; border: 0; background: transparent; color: #fed201; cursor: pointer; }
+ .spatial-mobile-previous span, .spatial-mobile-next span { position: absolute; bottom: calc(100% + .5rem); left: 50%; transform: translateX(-50%); font-size: .75rem; letter-spacing: .25em; white-space: nowrap; }
+ .spatial-mobile-next span { letter-spacing: .35em; animation: spatial-next-blink 1.4s ease-in-out infinite; }
  @keyframes spatial-next-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
- .spatial-mobile-next svg { width: 2rem; height: 2rem; padding: .25rem; box-sizing: border-box; border: 1px solid #ffffff26; fill: none; stroke: currentColor; stroke-width: 2; }
+ .spatial-mobile-previous svg, .spatial-mobile-next svg { width: 2rem; height: 2rem; padding: .25rem; box-sizing: border-box; border: 1px solid #ffffff26; fill: none; stroke: currentColor; stroke-width: 2; }
+ .spatial-mobile-previous svg { transform: rotate(180deg); }
  .spatial-mobile-controls button:focus-visible { outline: 2px solid #fed201; outline-offset: 2px; }
  .spatial-gallery.has-photo-dialog .spatial-mobile-controls { opacity: 0; pointer-events: none; }
  .spatial-mobile-controls { transition: opacity 420ms ease; }
@@ -407,7 +410,7 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-gallery .spatial-heading p { max-width: 28rem; }
  .spatial-gallery .spatial-explore { font-size: 1rem; }
  .spatial-mobile-controls { padding-inline: clamp(2rem, 5vw, 4rem); }
- .spatial-mobile-states button.is-active span, .spatial-mobile-next span { font-size: 1rem; }
+ .spatial-mobile-states button.is-active span, .spatial-mobile-previous span, .spatial-mobile-next span { font-size: 1rem; }
  .gallery-photo-dialog h2 { font-size: clamp(2rem, 3.5vw, 2.5rem); }
  .gallery-dialog-name { font-size: clamp(1.75rem, 3vw, 2.25rem); }
  .gallery-dialog-bio { font-size: 1rem; }

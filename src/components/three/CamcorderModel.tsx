@@ -11,7 +11,7 @@ import type { LCDVideoResource } from "@/lib/three/useLCDVideo";
 import { CameraRig } from "./CameraRig";
 import type { FullscreenHeadingHandle } from "@/components/experience/FullscreenHeading";
 
-export function CamcorderModel({ heroRef, scrollIndicatorRef, fullscreenHeadingRef, video, hasFrame }: { heroRef: RefObject<HTMLElement | null>; scrollIndicatorRef: RefObject<HTMLDivElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null>; video: LCDVideoResource | null; hasFrame: boolean }) {
+export function CamcorderModel({ heroRef, fullscreenHeadingRef, video, hasFrame }: { heroRef: RefObject<HTMLElement | null>; fullscreenHeadingRef: RefObject<FullscreenHeadingHandle | null>; video: LCDVideoResource | null; hasFrame: boolean }) {
   const { scene } = useGLTF(sceneConfig.modelUrl);
   const gl = useThree((state) => state.gl);
   const model = useMemo(() => {
@@ -75,11 +75,10 @@ export function CamcorderModel({ heroRef, scrollIndicatorRef, fullscreenHeadingR
       viewport: viewport.current,
       radius,
       halfHeight: bounds.halfHeight * radius / bounds.radius,
-      indicator: scrollIndicatorRef.current,
       heading: fullscreenHeadingRef.current,
       invalidate,
     });
-  }, [heroRef, scrollIndicatorRef, fullscreenHeadingRef, video, camera, radius, bounds.halfHeight, bounds.radius, invalidate]);
+  }, [heroRef, fullscreenHeadingRef, video, camera, radius, bounds.halfHeight, bounds.radius, invalidate]);
 
   return (
     <>

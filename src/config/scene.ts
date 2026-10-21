@@ -15,7 +15,6 @@ export const sceneConfig = {
       zoomStart: 0.24,
       fullscreenStart: 0.85,
       fullscreenThreshold: 0.985,
-      indicatorFadeStart: 0.88,
     },
   },
   camera: {
