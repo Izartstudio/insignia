@@ -314,13 +314,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       }
       if (event.cancelable) event.preventDefault();
       const units = (mobileControls ? 8.5 : 1) * 2*galleryConfig.distance*Math.tan(galleryConfig.fov*Math.PI/360)/section.clientHeight;
-      const dragUnits = units * (mobileControls ? .45 : 1);
+      const dragUnits = units * (mobileControls ? .30 : 1);
       panOffsets.current[drag.state].x -= dx * dragUnits;
       panOffsets.current[drag.state].y += dy * dragUnits;
       const now = performance.now();
       const elapsed = Math.max(1, now - drag.time) / 1000;
       const blend = 1 - Math.exp(-25 * elapsed);
-      const maxVelocity = mobileControls ? 28 : 8;
+      const maxVelocity = mobileControls ? 18 : 8;
       drag.vx += (Math.max(-maxVelocity, Math.min(maxVelocity, -dx * dragUnits / elapsed)) - drag.vx) * blend;
       drag.vy += (Math.max(-maxVelocity, Math.min(maxVelocity, dy * dragUnits / elapsed)) - drag.vy) * blend;
       drag.time = now;
@@ -344,7 +344,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         if (getExplorableState(motion.current.travel, states.length) !== ended.state) return;
         const delta = Math.min((now - previous) / 1000, .05);
         previous = now;
-        const friction = mobileControls ? 6 : 10;
+        const friction = mobileControls ? 9 : 10;
         const decay = Math.exp(-friction * delta);
         // Integrate exponential decay exactly for consistent travel at 30/60/120 Hz.
         panOffsets.current[ended.state].x += ended.vx * (1 - decay) / friction;
