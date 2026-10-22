@@ -1,0 +1,210 @@
+{
+  "source": "https://docs.google.com/spreadsheets/d/1pCWYvGuVX9pcL-K-P9tKc9witv-XqoJ2/edit?gid=257094380",
+  "tab": "Insignia",
+  "attendees": {
+    "leaders": [
+      {
+        "name": "Padma Shri SS Rajamouli",
+        "bio": "Award Winning Indian Filmmaker & Time's List Of The 100 Most Influential People In The World\nDirector - Baahbali Franchise",
+        "learnMoreUrl": "https://en.wikipedia.org/wiki/S._S._Rajamouli",
+        "imageSource": "https://drive.google.com/file/d/1I1gpG9CNjSV40Nzo9OAOs2ebZVTu_Bw4/view?usp=drive_link",
+        "sourceRow": 9
+      },
+      {
+        "name": "Raja Koduri",
+        "bio": "Ex-EVP - Intel\nFounder - OXMIQ Labs",
+        "learnMoreUrl": "https://en.wikipedia.org/wiki/Raja_Koduri",
+        "imageSource": "https://drive.google.com/file/d/1QnHV6uz9iCUkdBQZocLKAw1WzL3Uw81t/view?usp=drive_link",
+        "sourceRow": 10
+      },
+      {
+        "name": "Rajeev Chandrasekhar",
+        "bio": "State President - BJP, Kerala\nFormer Union Minister Of State For Electronics & IT",
+        "learnMoreUrl": "https://rajeev.in/",
+        "imageSource": "https://drive.google.com/file/d/1i8bVsR0C03kYhKlPEGsrH_J2KZJgH8-a/view?usp=drive_link",
+        "sourceRow": 11
+      },
+      {
+        "name": "Amarjit Singh Batra",
+        "bio": "General Manager, SAMEA & MD - Spotify India",
+        "learnMoreUrl": "https://www.linkedin.com/in/amarjitbatra/",
+        "imageSource": "https://drive.google.com/file/d/1IiNo8DnPKpO6y1gNb9gZumpJh360VvoN/view?usp=drive_link",
+        "sourceRow": 12
+      },
+      {
+        "name": "Gaurav Gandhi",
+        "bio": "Vice President, Asia-Pacific & ANZ - Prime Video",
+        "learnMoreUrl": "https://www.linkedin.com/in/gaurav-gandhi-1961822/",
+        "imageSource": "https://drive.google.com/file/d/1h8_TXwCwHd0WAzOENpvhUFJt0XxlQ2pS/view?usp=drive_link",
+        "sourceRow": 13
+      },
+      {
+        "name": "Kiran Mani",
+        "bio": "Managing Director, APAC & Japan - OpenAI",
+        "learnMoreUrl": "https://www.linkedin.com/in/kiranmani/",
+        "imageSource": "https://drive.google.com/file/d/1CvLYb-Mew74hHEsPzZ8cDtRgrrXm_Zdy/view?usp=drive_link",
+        "sourceRow": 14
+      }
+    ],
+    "founders": [
+      {
+        "name": "Saurabh Pandey",
+        "bio": "Founder & CEO - Eloelo Group",
+        "learnMoreUrl": "https://www.linkedin.com/in/saurabh1609/",
+        "imageSource": null,
+        "sourceRow": 18
+      },
+      {
+        "name": "Cevat Yerli",
+        "bio": "Founder - Crytek\nFounder, Chairman & CEO - TMRW Foundation\nCreator - Fry Cry & Crysis",
+        "learnMoreUrl": "https://www.linkedin.com/in/cevatyerli/",
+        "imageSource": null,
+        "sourceRow": 19
+      },
+      {
+        "name": "Alexis Bonte",
+        "bio": "Group CEO & President - Stillfront Group",
+        "learnMoreUrl": "https://www.linkedin.com/in/alexisbonte/",
+        "imageSource": null,
+        "sourceRow": 20
+      },
+      {
+        "name": "Ashwin Jaishanker",
+        "bio": "CEO & Co-Founder - AutoVRse",
+        "learnMoreUrl": "https://www.linkedin.com/in/ashwin-jaishanker/",
+        "imageSource": null,
+        "sourceRow": 21
+      },
+      {
+        "name": "Shobu Yarlagadda",
+        "bio": "Producer - Baahubali Franchise\nCEO & Co-Founder - Arka Media Works & Mihira Visual Labs",
+        "learnMoreUrl": "https://www.linkedin.com/in/shobuyarlagadda/",
+        "imageSource": null,
+        "sourceRow": 22
+      },
+      {
+        "name": "Akshat Rathee",
+        "bio": "Co-Founder & MD - NODWIN Gaming",
+        "learnMoreUrl": "https://www.linkedin.com/in/akshatrathee/",
+        "imageSource": null,
+        "sourceRow": 23
+      },
+      {
+        "name": "Maharishi RB",
+        "bio": "Co-Founder & CEO - Supernova AI",
+        "learnMoreUrl": "https://linkedin.com/in/maharishirb-supernova-ai-app?originalSubdomain=in",
+        "imageSource": null,
+        "sourceRow": 24
+      }
+    ],
+    "experts": [
+      {
+        "name": "Arnd Benninghoff",
+        "bio": "EVP Gaming - Modern Times Group",
+        "learnMoreUrl": "https://www.linkedin.com/in/arnd-benninghoff-9897063/",
+        "imageSource": null,
+        "sourceRow": 28
+      },
+      {
+        "name": "Sean Hyunil Sohn",
+        "bio": "CEO - KRAFTON, Inc. India",
+        "learnMoreUrl": "https://www.linkedin.com/in/sean-hyunil-sohn-1670216/",
+        "imageSource": null,
+        "sourceRow": 29
+      },
+      {
+        "name": "Manoj Kohli",
+        "bio": "Ex-Country Head - SoftBank India",
+        "learnMoreUrl": "https://www.linkedin.com/in/manoj-kohli-34948b108/",
+        "imageSource": "https://bfsi.economictimes.indiatimes.com/news/nbfc/elara-capital-appoints-manoj-kohli-as-non-executive-chairman-of-board/108323114",
+        "sourceRow": 30
+      },
+      {
+        "name": "Nitish Mittersain",
+        "bio": "Founder & Ex-MD - Nazaara Technologies Limited",
+        "learnMoreUrl": "https://www.linkedin.com/in/mittersain/",
+        "imageSource": "https://www.linkedin.com/in/mittersain/",
+        "sourceRow": 31
+      },
+      {
+        "name": "Taewon Yun",
+        "bio": "SVP, Head Of New Ventures - NCSOFT",
+        "learnMoreUrl": "https://www.linkedin.com/in/taewonyun/",
+        "imageSource": "https://www.linkedin.com/in/taewonyun/",
+        "sourceRow": 32
+      },
+      {
+        "name": "Sean Lee",
+        "bio": "Chief CDO - Wargaming Group Limited",
+        "learnMoreUrl": "https://www.linkedin.com/in/97slee/",
+        "imageSource": null,
+        "sourceRow": 33
+      },
+      {
+        "name": "Je Alipio",
+        "bio": "Director & Head of BD (Games), APAC & MENA - The Walt Disney Company",
+        "learnMoreUrl": "https://www.linkedin.com/in/jealipio/",
+        "imageSource": null,
+        "sourceRow": 34
+      },
+      {
+        "name": "Kartik Prabhakara",
+        "bio": "Founding Partner - AREAM & Co.",
+        "learnMoreUrl": "https://www.linkedin.com/in/kartikprabhakara/",
+        "imageSource": null,
+        "sourceRow": 35
+      }
+    ],
+    "investors": [
+      {
+        "name": "Abdullah Alorainy",
+        "bio": "Investment Management, Saudi Arabia - Public Investment Fund",
+        "learnMoreUrl": "https://www.linkedin.com/in/aorainy/",
+        "imageSource": null,
+        "sourceRow": 39
+      },
+      {
+        "name": "Harri Manninen",
+        "bio": "Founding Partner - Play Ventures",
+        "learnMoreUrl": "https://www.linkedin.com/in/harrimanninen/",
+        "imageSource": null,
+        "sourceRow": 40
+      },
+      {
+        "name": "Shailesh Lakhani",
+        "bio": "Ex-MD PeakXV\nCo-Founder & MD - Ambition Capital",
+        "learnMoreUrl": "https://www.linkedin.com/in/shailesh-lakhani-b86409/",
+        "imageSource": "https://www.gamemakers.com/p/why-india-is-the-future-of-gaming",
+        "sourceRow": 41
+      },
+      {
+        "name": "Brett Karuse",
+        "bio": "Co-Founding General Partner - Transcend Fund",
+        "learnMoreUrl": "https://www.linkedin.com/in/brett-krause/",
+        "imageSource": "https://milkeninstitute.org/events/asia-summit-2024/speakers/brett-krause",
+        "sourceRow": 42
+      },
+      {
+        "name": "Evan Hoff",
+        "bio": "Founder & Partner - Velo Partners",
+        "learnMoreUrl": "https://www.linkedin.com/in/evan-hoff-099721/",
+        "imageSource": null,
+        "sourceRow": 43
+      },
+      {
+        "name": "Etsuko Horie",
+        "bio": "Director, Investment Strategy & Corporate Development - SEGA",
+        "learnMoreUrl": "https://www.linkedin.com/in/etsuko-horie-a274636a/",
+        "imageSource": null,
+        "sourceRow": 44
+      },
+      {
+        "name": "Michiko Kakiya",
+        "bio": "Founding Partner - EnFi",
+        "learnMoreUrl": "https://www.linkedin.com/in/michikokakiya/",
+        "imageSource": null,
+        "sourceRow": 45
+      }
+    ]
+  }
+}

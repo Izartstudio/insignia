@@ -23,45 +23,654 @@ export const galleryConfig = {
   exits: [0.15, 0.4, 0.65, 1],
 } as const;
 
-// Rectangles measured from the supplied 1440 × 3600 SVG, local to each 900px state.
-// Available portraits are intentionally reused across categories as requested.
+// Attendee copy from the Insignia source sheet (22 October 2026).
+// Neutral placeholders remain until each attendee portrait is supplied in Sanity.
 export const galleryStates: GalleryState[] = [
-  { id: 'leaders', category: 'LEADERS', label: 'Leaders', heading: "Who has been at Insignia.", subtitle: 'Leaders shaping the interactive media industry.', depth: 0, tile: { width: 1600, height: 1100 }, radius: 1075.5 / 900, photos: [
-    { src: "/assets/insignia/people/leaders-reference-1.webp", alt: "An attendee in conversation at Insignia", layout: [113, 125, 160, 185], mobileLayout: [90, 68, 240, 278], depthOffset: 0.3, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-2.webp", alt: "Guests speaking at a reception", layout: [1222, 219, 130, 150], mobileLayout: [84, 660, 200, 232], depthOffset: -0.3, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-3.webp", alt: "A speaker holding a microphone", layout: [448, 280, 51.7574, 59.72], mobileLayout: [-370, 210, 215, 250], depthOffset: -0.7, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-4.webp", alt: "A panel speaker gesturing with his hand", layout: [226.737, 419.799, 51.7574, 59.72], mobileLayout: [-355, 490, 215, 250], depthOffset: 0.2, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-5.webp", alt: "A seated speaker at the summit", layout: [938.699, 372.384, 33.3722, 38.5064], mobileLayout: [1580, 330, 200, 232], depthOffset: -1, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-6.webp", alt: "Guests in conversation", layout: [814.699, 549.384, 33.3722, 38.5064], mobileLayout: [1580, 630, 200, 232], depthOffset: -0.6, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-7.webp", alt: "Portrait of an Insignia guest", layout: [436.68, 531.34, 127.254, 146.831], mobileLayout: [1120, 208, 190, 220], depthOffset: 0.1, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-8.webp", alt: "An attendee seated at the summit", layout: [1063, 544.852, 209.11, 241.281], mobileLayout: [1068, 560, 305, 352], depthOffset: 0.5, referenceCrop: true },
-    { src: "/assets/insignia/people/leaders-reference-9.webp", alt: "An attendee at an Insignia gathering", layout: [59, 654, 161, 185], mobileLayout: [36, 254, 250, 290], depthOffset: 0.4, referenceCrop: true },
-  ] },
-  { id: 'founders', category: 'FOUNDERS', label: 'Founders', heading: 'Founders driving innovation.', depth: -16, tile: { width: 1600, height: 1100 }, radius: 732 / 900, photos: [
-    { src: "/assets/insignia/people/founders-reference-1.webp", alt: "A seated summit attendee", layout: [1316.0, 562.0, 203.0, 235.0], mobileLayout: [1050, 555, 310, 360], depthOffset: 0.2, referenceCrop: true },
-    { src: "/assets/insignia/people/founders-reference-2.webp", alt: "A speaker holding a microphone", layout: [628.0, 156.0, 207.0, 239.0], mobileLayout: [90, 70, 240, 278], depthOffset: 0.4, referenceCrop: true },
-    { src: "/assets/insignia/people/founders-reference-3.webp", alt: "A panel speaker gesturing", layout: [61.0, 397.0, 127.0, 147.0], mobileLayout: [40, 255, 245, 284], depthOffset: -0.4, referenceCrop: true },
-    { src: "/assets/insignia/people/founders-reference-4.webp", alt: "A seated panel speaker", layout: [1032.0, 311.0, 96.0, 111.0], mobileLayout: [1120, 205, 190, 220], depthOffset: 0.1, referenceCrop: true },
-    { src: "/assets/insignia/people/founders-reference-5.webp", alt: "Guests in conversation", layout: [870.0, 548.0, 114.0, 132.0], mobileLayout: [1590, 400, 190, 220], depthOffset: 0.3, referenceCrop: true },
-    { src: "/assets/insignia/people/founders-reference-6.webp", alt: "Portrait of a summit guest", layout: [394.0, 566.0, 210.0, 243.0], mobileLayout: [85, 660, 200, 232], depthOffset: -0.8, referenceCrop: true },
-  ] },
-  { id: 'experts', category: 'EXPERTS', label: 'Experts', heading: 'Industry experts defining trends.', depth: -32, tile: { width: 1600, height: 1100 }, radius: 626 / 900, photos: [
-    { src: "/assets/insignia/people/experts-reference-1.webp", alt: "A speaker holding a microphone", layout: [947.0, 411.0, 157.0, 181.0], mobileLayout: [1050, 555, 300, 347], depthOffset: 0.2, referenceCrop: true },
-    { src: "/assets/insignia/people/experts-reference-2.webp", alt: "A panel speaker gesturing", layout: [56.0, 141.0, 234.0, 270.0], mobileLayout: [90, 68, 240, 278], depthOffset: 0.4, referenceCrop: true },
-    { src: "/assets/insignia/people/experts-reference-3.webp", alt: "A seated panel speaker", layout: [1215.0, 70.0, 175.0, 202.0], mobileLayout: [1120, 200, 200, 231], depthOffset: -0.4, referenceCrop: true },
-    { src: "/assets/insignia/people/experts-reference-4.webp", alt: "Guests in conversation", layout: [1146.0, 601.0, 137.0, 158.0], mobileLayout: [1580, 450, 210, 243], depthOffset: 0.1, referenceCrop: true },
-    { src: "/assets/insignia/people/experts-reference-5.webp", alt: "Two guests at a reception", layout: [281.0, 660.0, 252.0, 291.0], mobileLayout: [85, 655, 200, 231], depthOffset: 0.3, referenceCrop: true },
-    { src: "/assets/insignia/people/experts-reference-6.webp", alt: "Guests in conversation", layout: [530.0, 392.0, 33.3722, 38.5064], mobileLayout: [-350, 450, 200, 231], depthOffset: -0.8, referenceCrop: true },
-    { src: "/assets/insignia/people/experts-reference-7.webp", alt: "A seated summit attendee", layout: [263.0, 487.0, 56.0, 65.0], mobileLayout: [36, 255, 245, 284], depthOffset: -0.3, referenceCrop: true },
-  ] },
-  { id: 'investors', category: 'INVESTORS', label: 'Investors', heading: 'Investors catalysing change.', depth: -48, tile: { width: 1600, height: 1100 }, radius: .5, photos: [
-    { src: "/assets/insignia/people/investors-reference-1.webp", alt: "Guests at a reception", layout: [1355.0, 92.0, 169.0, 194.0], mobileLayout: [1120, 200, 200, 231], depthOffset: 0.2, referenceCrop: true },
-    { src: "/assets/insignia/people/investors-reference-2.webp", alt: "A speaker holding a microphone", layout: [659.757, 230.0, 134.333, 155.0], mobileLayout: [90, 68, 240, 278], depthOffset: 0.4, referenceCrop: true },
-    { src: "/assets/insignia/people/investors-reference-3.webp", alt: "A panel speaker gesturing", layout: [142.757, 444.0, 111.0, 128.0], mobileLayout: [36, 255, 245, 284], depthOffset: -0.4, referenceCrop: true },
-    { src: "/assets/insignia/people/investors-reference-4.webp", alt: "A seated panel speaker", layout: [986.757, 370.0, 84.0, 97.0], mobileLayout: [1590, 350, 195, 225], depthOffset: 0.1, referenceCrop: true },
-    { src: "/assets/insignia/people/investors-reference-5.webp", alt: "Guests in conversation", layout: [845.757, 576.0, 100.0, 115.0], mobileLayout: [1050, 555, 300, 347], depthOffset: 0.3, referenceCrop: true },
-    { src: "/assets/insignia/people/investors-reference-6.webp", alt: "Two guests at a reception", layout: [432.757, 592.0, 183.0, 211.0], mobileLayout: [85, 655, 200, 231], depthOffset: -0.8, referenceCrop: true },
-  ] },
+  {
+    "id": "leaders",
+    "category": "LEADERS",
+    "label": "Leaders",
+    "heading": "Who has been at Insignia.",
+    "subtitle": "Leaders shaping the interactive media industry.",
+    "depth": 0,
+    "tile": {
+      "width": 1600,
+      "height": 1100
+    },
+    "radius": 1.195,
+    "photos": [
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Padma Shri SS Rajamouli",
+        "layout": [
+          113,
+          125,
+          160,
+          185
+        ],
+        "mobileLayout": [
+          90,
+          68,
+          240,
+          278
+        ],
+        "depthOffset": 0.3,
+        "referenceCrop": true,
+        "name": "Padma Shri SS Rajamouli",
+        "bio": "Award Winning Indian Filmmaker & Time's List Of The 100 Most Influential People In The World\nDirector - Baahbali Franchise",
+        "learnMoreUrl": "https://en.wikipedia.org/wiki/S._S._Rajamouli"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Raja Koduri",
+        "layout": [
+          1222,
+          219,
+          130,
+          150
+        ],
+        "mobileLayout": [
+          84,
+          660,
+          200,
+          232
+        ],
+        "depthOffset": -0.3,
+        "referenceCrop": true,
+        "name": "Raja Koduri",
+        "bio": "Ex-EVP - Intel\nFounder - OXMIQ Labs",
+        "learnMoreUrl": "https://en.wikipedia.org/wiki/Raja_Koduri"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Rajeev Chandrasekhar",
+        "layout": [
+          448,
+          280,
+          51.7574,
+          59.72
+        ],
+        "mobileLayout": [
+          -370,
+          210,
+          215,
+          250
+        ],
+        "depthOffset": -0.7,
+        "referenceCrop": true,
+        "name": "Rajeev Chandrasekhar",
+        "bio": "State President - BJP, Kerala\nFormer Union Minister Of State For Electronics & IT",
+        "learnMoreUrl": "https://rajeev.in/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Amarjit Singh Batra",
+        "layout": [
+          226.737,
+          419.799,
+          51.7574,
+          59.72
+        ],
+        "mobileLayout": [
+          -355,
+          490,
+          215,
+          250
+        ],
+        "depthOffset": 0.2,
+        "referenceCrop": true,
+        "name": "Amarjit Singh Batra",
+        "bio": "General Manager, SAMEA & MD - Spotify India",
+        "learnMoreUrl": "https://www.linkedin.com/in/amarjitbatra/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Gaurav Gandhi",
+        "layout": [
+          938.699,
+          372.384,
+          33.3722,
+          38.5064
+        ],
+        "mobileLayout": [
+          1580,
+          330,
+          200,
+          232
+        ],
+        "depthOffset": -1,
+        "referenceCrop": true,
+        "name": "Gaurav Gandhi",
+        "bio": "Vice President, Asia-Pacific & ANZ - Prime Video",
+        "learnMoreUrl": "https://www.linkedin.com/in/gaurav-gandhi-1961822/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Kiran Mani",
+        "layout": [
+          814.699,
+          549.384,
+          33.3722,
+          38.5064
+        ],
+        "mobileLayout": [
+          1580,
+          630,
+          200,
+          232
+        ],
+        "depthOffset": -0.6,
+        "referenceCrop": true,
+        "name": "Kiran Mani",
+        "bio": "Managing Director, APAC & Japan - OpenAI",
+        "learnMoreUrl": "https://www.linkedin.com/in/kiranmani/"
+      }
+    ]
+  },
+  {
+    "id": "founders",
+    "category": "FOUNDERS",
+    "label": "Founders",
+    "heading": "Founders driving innovation.",
+    "depth": -16,
+    "tile": {
+      "width": 1600,
+      "height": 1100
+    },
+    "radius": 0.8133333333333334,
+    "photos": [
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Saurabh Pandey",
+        "layout": [
+          1316,
+          562,
+          203,
+          235
+        ],
+        "mobileLayout": [
+          1050,
+          555,
+          310,
+          360
+        ],
+        "depthOffset": 0.2,
+        "referenceCrop": true,
+        "name": "Saurabh Pandey",
+        "bio": "Founder & CEO - Eloelo Group",
+        "learnMoreUrl": "https://www.linkedin.com/in/saurabh1609/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Cevat Yerli",
+        "layout": [
+          628,
+          156,
+          207,
+          239
+        ],
+        "mobileLayout": [
+          90,
+          70,
+          240,
+          278
+        ],
+        "depthOffset": 0.4,
+        "referenceCrop": true,
+        "name": "Cevat Yerli",
+        "bio": "Founder - Crytek\nFounder, Chairman & CEO - TMRW Foundation\nCreator - Fry Cry & Crysis",
+        "learnMoreUrl": "https://www.linkedin.com/in/cevatyerli/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Alexis Bonte",
+        "layout": [
+          61,
+          397,
+          127,
+          147
+        ],
+        "mobileLayout": [
+          40,
+          255,
+          245,
+          284
+        ],
+        "depthOffset": -0.4,
+        "referenceCrop": true,
+        "name": "Alexis Bonte",
+        "bio": "Group CEO & President - Stillfront Group",
+        "learnMoreUrl": "https://www.linkedin.com/in/alexisbonte/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Ashwin Jaishanker",
+        "layout": [
+          1032,
+          311,
+          96,
+          111
+        ],
+        "mobileLayout": [
+          1120,
+          205,
+          190,
+          220
+        ],
+        "depthOffset": 0.1,
+        "referenceCrop": true,
+        "name": "Ashwin Jaishanker",
+        "bio": "CEO & Co-Founder - AutoVRse",
+        "learnMoreUrl": "https://www.linkedin.com/in/ashwin-jaishanker/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Shobu Yarlagadda",
+        "layout": [
+          870,
+          548,
+          114,
+          132
+        ],
+        "mobileLayout": [
+          1590,
+          400,
+          190,
+          220
+        ],
+        "depthOffset": 0.3,
+        "referenceCrop": true,
+        "name": "Shobu Yarlagadda",
+        "bio": "Producer - Baahubali Franchise\nCEO & Co-Founder - Arka Media Works & Mihira Visual Labs",
+        "learnMoreUrl": "https://www.linkedin.com/in/shobuyarlagadda/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Akshat Rathee",
+        "layout": [
+          394,
+          566,
+          210,
+          243
+        ],
+        "mobileLayout": [
+          85,
+          660,
+          200,
+          232
+        ],
+        "depthOffset": -0.8,
+        "referenceCrop": true,
+        "name": "Akshat Rathee",
+        "bio": "Co-Founder & MD - NODWIN Gaming",
+        "learnMoreUrl": "https://www.linkedin.com/in/akshatrathee/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Maharishi RB",
+        "layout": [
+          1050,
+          90,
+          160,
+          185
+        ],
+        "mobileLayout": [
+          -350,
+          120,
+          210,
+          243
+        ],
+        "depthOffset": 0,
+        "referenceCrop": true,
+        "name": "Maharishi RB",
+        "bio": "Co-Founder & CEO - Supernova AI",
+        "learnMoreUrl": "https://linkedin.com/in/maharishirb-supernova-ai-app?originalSubdomain=in"
+      }
+    ]
+  },
+  {
+    "id": "experts",
+    "category": "EXPERTS",
+    "label": "Experts",
+    "heading": "Industry experts defining trends.",
+    "depth": -32,
+    "tile": {
+      "width": 1600,
+      "height": 1100
+    },
+    "radius": 0.6955555555555556,
+    "photos": [
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Arnd Benninghoff",
+        "layout": [
+          947,
+          411,
+          157,
+          181
+        ],
+        "mobileLayout": [
+          1050,
+          555,
+          300,
+          347
+        ],
+        "depthOffset": 0.2,
+        "referenceCrop": true,
+        "name": "Arnd Benninghoff",
+        "bio": "EVP Gaming - Modern Times Group",
+        "learnMoreUrl": "https://www.linkedin.com/in/arnd-benninghoff-9897063/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Sean Hyunil Sohn",
+        "layout": [
+          56,
+          141,
+          234,
+          270
+        ],
+        "mobileLayout": [
+          90,
+          68,
+          240,
+          278
+        ],
+        "depthOffset": 0.4,
+        "referenceCrop": true,
+        "name": "Sean Hyunil Sohn",
+        "bio": "CEO - KRAFTON, Inc. India",
+        "learnMoreUrl": "https://www.linkedin.com/in/sean-hyunil-sohn-1670216/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Manoj Kohli",
+        "layout": [
+          1215,
+          70,
+          175,
+          202
+        ],
+        "mobileLayout": [
+          1120,
+          200,
+          200,
+          231
+        ],
+        "depthOffset": -0.4,
+        "referenceCrop": true,
+        "name": "Manoj Kohli",
+        "bio": "Ex-Country Head - SoftBank India",
+        "learnMoreUrl": "https://www.linkedin.com/in/manoj-kohli-34948b108/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Nitish Mittersain",
+        "layout": [
+          1146,
+          601,
+          137,
+          158
+        ],
+        "mobileLayout": [
+          1580,
+          450,
+          210,
+          243
+        ],
+        "depthOffset": 0.1,
+        "referenceCrop": true,
+        "name": "Nitish Mittersain",
+        "bio": "Founder & Ex-MD - Nazaara Technologies Limited",
+        "learnMoreUrl": "https://www.linkedin.com/in/mittersain/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Taewon Yun",
+        "layout": [
+          281,
+          660,
+          252,
+          291
+        ],
+        "mobileLayout": [
+          85,
+          655,
+          200,
+          231
+        ],
+        "depthOffset": 0.3,
+        "referenceCrop": true,
+        "name": "Taewon Yun",
+        "bio": "SVP, Head Of New Ventures - NCSOFT",
+        "learnMoreUrl": "https://www.linkedin.com/in/taewonyun/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Sean Lee",
+        "layout": [
+          530,
+          392,
+          33.3722,
+          38.5064
+        ],
+        "mobileLayout": [
+          -350,
+          450,
+          200,
+          231
+        ],
+        "depthOffset": -0.8,
+        "referenceCrop": true,
+        "name": "Sean Lee",
+        "bio": "Chief CDO - Wargaming Group Limited",
+        "learnMoreUrl": "https://www.linkedin.com/in/97slee/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Je Alipio",
+        "layout": [
+          263,
+          487,
+          56,
+          65
+        ],
+        "mobileLayout": [
+          36,
+          255,
+          245,
+          284
+        ],
+        "depthOffset": -0.3,
+        "referenceCrop": true,
+        "name": "Je Alipio",
+        "bio": "Director & Head of BD (Games), APAC & MENA - The Walt Disney Company",
+        "learnMoreUrl": "https://www.linkedin.com/in/jealipio/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Kartik Prabhakara",
+        "layout": [
+          650,
+          650,
+          160,
+          185
+        ],
+        "mobileLayout": [
+          -350,
+          120,
+          210,
+          243
+        ],
+        "depthOffset": 0,
+        "referenceCrop": true,
+        "name": "Kartik Prabhakara",
+        "bio": "Founding Partner - AREAM & Co.",
+        "learnMoreUrl": "https://www.linkedin.com/in/kartikprabhakara/"
+      }
+    ]
+  },
+  {
+    "id": "investors",
+    "category": "INVESTORS",
+    "label": "Investors",
+    "heading": "Investors catalysing change.",
+    "depth": -48,
+    "tile": {
+      "width": 1600,
+      "height": 1100
+    },
+    "radius": 0.5,
+    "photos": [
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Abdullah Alorainy",
+        "layout": [
+          1355,
+          92,
+          169,
+          194
+        ],
+        "mobileLayout": [
+          1120,
+          200,
+          200,
+          231
+        ],
+        "depthOffset": 0.2,
+        "referenceCrop": true,
+        "name": "Abdullah Alorainy",
+        "bio": "Investment Management, Saudi Arabia - Public Investment Fund",
+        "learnMoreUrl": "https://www.linkedin.com/in/aorainy/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Harri Manninen",
+        "layout": [
+          659.757,
+          230,
+          134.333,
+          155
+        ],
+        "mobileLayout": [
+          90,
+          68,
+          240,
+          278
+        ],
+        "depthOffset": 0.4,
+        "referenceCrop": true,
+        "name": "Harri Manninen",
+        "bio": "Founding Partner - Play Ventures",
+        "learnMoreUrl": "https://www.linkedin.com/in/harrimanninen/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Shailesh Lakhani",
+        "layout": [
+          142.757,
+          444,
+          111,
+          128
+        ],
+        "mobileLayout": [
+          36,
+          255,
+          245,
+          284
+        ],
+        "depthOffset": -0.4,
+        "referenceCrop": true,
+        "name": "Shailesh Lakhani",
+        "bio": "Ex-MD PeakXV\nCo-Founder & MD - Ambition Capital",
+        "learnMoreUrl": "https://www.linkedin.com/in/shailesh-lakhani-b86409/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Brett Karuse",
+        "layout": [
+          986.757,
+          370,
+          84,
+          97
+        ],
+        "mobileLayout": [
+          1590,
+          350,
+          195,
+          225
+        ],
+        "depthOffset": 0.1,
+        "referenceCrop": true,
+        "name": "Brett Karuse",
+        "bio": "Co-Founding General Partner - Transcend Fund",
+        "learnMoreUrl": "https://www.linkedin.com/in/brett-krause/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Evan Hoff",
+        "layout": [
+          845.757,
+          576,
+          100,
+          115
+        ],
+        "mobileLayout": [
+          1050,
+          555,
+          300,
+          347
+        ],
+        "depthOffset": 0.3,
+        "referenceCrop": true,
+        "name": "Evan Hoff",
+        "bio": "Founder & Partner - Velo Partners",
+        "learnMoreUrl": "https://www.linkedin.com/in/evan-hoff-099721/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Etsuko Horie",
+        "layout": [
+          432.757,
+          592,
+          183,
+          211
+        ],
+        "mobileLayout": [
+          85,
+          655,
+          200,
+          231
+        ],
+        "depthOffset": -0.8,
+        "referenceCrop": true,
+        "name": "Etsuko Horie",
+        "bio": "Director, Investment Strategy & Corporate Development - SEGA",
+        "learnMoreUrl": "https://www.linkedin.com/in/etsuko-horie-a274636a/"
+      },
+      {
+        "src": "/assets/insignia/people/attendee-placeholder.png",
+        "alt": "Photo placeholder for Michiko Kakiya",
+        "layout": [
+          1140,
+          650,
+          160,
+          185
+        ],
+        "mobileLayout": [
+          -350,
+          120,
+          210,
+          243
+        ],
+        "depthOffset": 0,
+        "referenceCrop": true,
+        "name": "Michiko Kakiya",
+        "bio": "Founding Partner - EnFi",
+        "learnMoreUrl": "https://www.linkedin.com/in/michikokakiya/"
+      }
+    ]
+  }
 ];
 
 export const mobilePlacements: readonly Placement[] = [
