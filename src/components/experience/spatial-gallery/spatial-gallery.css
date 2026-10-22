@@ -430,3 +430,9 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-mobile-close { top: max(1.25rem, calc(env(safe-area-inset-top) + .75rem)); }
  .spatial-gallery-track::after { z-index: 101; }
 }
+
+/* Keep the preview boundary opaque while the preceding sun section unpins. */
+@media (max-width: 1024px) {
+ .spatial-gallery-track { position: relative; z-index: 11; background: #000; }
+ .spatial-gallery:not(.is-mobile-entered) { background: #000; }
+}
