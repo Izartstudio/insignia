@@ -127,12 +127,12 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
   const animated = enhanced && !failed;
 
   useLayoutEffect(() => {
-    if (!animated) return;
+    if (!animated || mobileControls) return;
     // Warm later categories alongside the eagerly initialized WebGL canvas.
     states.forEach((state, index) => state.photos.forEach(photo => {
       preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
     }));
-  }, [animated, states]);
+  }, [animated, states, mobileControls]);
 
 
   useLayoutEffect(() => {
@@ -408,7 +408,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     {animated && <>
       <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
         <GalleryBoundary onFailure={onFailure}>
-          {<Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
+          {ready && (!mobileControls || mobileEntered) && <Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
             <SpatialGalleryScene motion={motion} onFailure={onFailure} states={states} mobileControls={mobileControls} />
           </Canvas>}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { MathUtils, SRGBColorSpace, Texture, TextureLoader, Raycaster, Vector2, Mesh, MeshBasicMaterial } from 'three';
+import { LinearFilter, MathUtils, SRGBColorSpace, Texture, TextureLoader, Raycaster, Vector2, Mesh, MeshBasicMaterial } from 'three';
 import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 import { GalleryEnvironment, type GalleryMotion } from './GalleryEnvironment';
 import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
@@ -32,9 +32,21 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
     // Publish decoded/uploaded photos as they arrive, batching updates to one per frame.
     states.forEach((world, index) => {
       world.photos.forEach(photo => {
-        loader.loadAsync(photo.src).then(texture => {
+        // Bound decoded CMS image size before downloading, especially on iOS.
+        const url = new URL(photo.src, window.location.origin);
+        if (url.hostname === 'cdn.sanity.io') {
+          url.searchParams.set('w', mobileControls ? '512' : '1024');
+          url.searchParams.set('h', mobileControls ? '512' : '1024');
+          url.searchParams.set('fit', 'max');
+          url.searchParams.set('auto', 'format');
+        }
+        loader.loadAsync(url.href).then(texture => {
           if (disposed) { texture.dispose(); return; }
           texture.colorSpace = SRGBColorSpace;
+          if (mobileControls) {
+            texture.generateMipmaps = false;
+            texture.minFilter = LinearFilter;
+          }
           owned.push(texture);
           gl.initTexture(texture);
           (pending[world.id] ??= {})[photo.src] = texture;
@@ -51,7 +63,7 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
       cancelAnimationFrame(publishFrame);
       owned.forEach(texture => texture.dispose());
     };
-  }, [gl, invalidate, onFailure, states]);
+  }, [gl, invalidate, onFailure, states, mobileControls]);
 
   useEffect(() => {
     motion.current.invalidate = invalidate;
