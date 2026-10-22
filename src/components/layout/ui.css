@@ -309,3 +309,10 @@ html { scrollbar-gutter: stable; }
  .edition-label h3 { font-size: clamp(1.375rem, 2.6vw, 1.625rem); }
  .edition-label p { font-size: clamp(1rem, 2vw, 1.25rem); }
 }
+
+/* Touch layouts use native horizontal gestures; vertical scrolling stays on the page. */
+@media (max-width: 1024px) {
+  .past-editions-viewport { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .past-editions-viewport::-webkit-scrollbar { display: none; }
+  .past-editions-track { transform: none !important; will-change: auto; }
+}

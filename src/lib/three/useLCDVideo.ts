@@ -17,12 +17,19 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
     let heroVisible = false;
     const shouldPlay = () => heroVisible && !document.hidden;
     const video = document.createElement("video");
-    video.autoplay = false;
+    video.autoplay = true;
     video.muted = true;
     video.defaultMuted = true;
     video.loop = true;
     video.playsInline = true;
     video.preload = "auto";
+    video.setAttribute("muted", "");
+    video.setAttribute("autoplay", "");
+    // Keep the media element attached for WebKit's inline playback lifecycle.
+    video.style.cssText = "position:fixed;bottom:0;left:0;width:1px;height:1px;opacity:0.001;pointer-events:none";
+    video.setAttribute("aria-hidden", "true");
+    video.tabIndex = -1;
+    document.body.appendChild(video);
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
     const texture = new VideoTexture(video);
@@ -72,10 +79,19 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
     }, { threshold: 0 });
     if (heroRef.current) observer.observe(heroRef.current);
     document.addEventListener("visibilitychange", syncPlayback);
+    // Retry inside the user's gesture when browser policy blocks initial autoplay.
+    document.addEventListener("pointerdown", syncPlayback, { passive: true });
+    document.addEventListener("touchend", syncPlayback, { passive: true });
+    document.addEventListener("keydown", syncPlayback);
+    video.addEventListener("canplay", syncPlayback);
     return () => {
       disposed = true;
       observer.disconnect();
       document.removeEventListener("visibilitychange", syncPlayback);
+      document.removeEventListener("pointerdown", syncPlayback);
+      document.removeEventListener("touchend", syncPlayback);
+      document.removeEventListener("keydown", syncPlayback);
+      video.removeEventListener("canplay", syncPlayback);
       video.removeEventListener("loadeddata", ready);
       video.removeEventListener("playing", playing);
       video.removeEventListener("error", failed);
@@ -83,6 +99,7 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
       video.pause();
       video.removeAttribute("src");
       video.load();
+      video.remove();
       texture.dispose();
       poster.dispose();
       if (current.current === owned) current.current = null;

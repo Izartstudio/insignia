@@ -64,9 +64,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       setMobileEntered(false);
       revealTimer.current = window.setTimeout(() => {
         document.body.classList.remove('gallery-mobile-locked');
-        setMobileClosing(false);
-        closingRef.current = false;
+        // Re-measure after releasing the fixed gallery, then move under the fade.
+        ScrollTrigger.refresh();
         afterClose?.();
+        revealTimer.current = window.setTimeout(() => {
+          setMobileClosing(false);
+          closingRef.current = false;
+        }, 100);
       }, 40);
     }, 320);
   }, []);
@@ -233,7 +237,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           stopMomentum();
           release();
           if (index >= states.length) {
-            exitMobile.current?.(() => section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+            exitMobile.current?.(() => section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'instant', block: 'start' }));
             return;
           }
           const target = Math.max(0, index);

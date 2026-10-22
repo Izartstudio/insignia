@@ -38,6 +38,15 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       texture?.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
       return { ready: !!texture, bounds: null as string | null, layout, material: new MeshBasicMaterial({ map: texture ?? null, transparent: true, alphaTest: .02, toneMapped: false }) };
     });
+    if (size.width > 1024 && photos.length) {
+      // Center the full photo composition vertically, accounting for perspective.
+      const projected = photos.map(({ layout }) => {
+        const factor = galleryConfig.distance / (galleryConfig.distance - layout.position[2]);
+        return { layout, factor, bottom: (layout.position[1] - layout.scale[1] / 2) * factor, top: (layout.position[1] + layout.scale[1] / 2) * factor };
+      });
+      const center = (Math.min(...projected.map(p => p.bottom)) + Math.max(...projected.map(p => p.top))) / 2;
+      projected.forEach(({ layout, factor }) => { layout.position[1] -= center / factor; });
+    }
     const maxWidth = Math.max(...photos.map(({ layout }) => layout.scale[0]));
     const maxHeight = Math.max(...photos.map(({ layout }) => layout.scale[1]));
     const cellW = Math.max(width * .30, maxWidth * 1.55);
