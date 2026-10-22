@@ -26,11 +26,13 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       const texture = textures[photo.src];
       const image = texture?.image as HTMLImageElement | undefined;
       const layout = mapPhoto(photo, index, size.height * aspect, size.height, image ? image.width / image.height : photo.layout[2] / photo.layout[3]);
-      // Enlarge founders around their centers only at the desktop breakpoint.
+      // Enlarge leaders and their spacing only at the desktop breakpoint.
       // Use actual viewport width; the composition aspect above is capped.
-      if (world.id === 'founders' && size.width > 1024) {
+      if (world.id === 'leaders' && size.width > 1024) {
         layout.scale[0] *= 1.25;
         layout.scale[1] *= 1.25;
+        layout.position[0] *= 1.25;
+        layout.position[1] *= 1.25;
       }
       texture?.repeat.set(...layout.repeat);
       texture?.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
