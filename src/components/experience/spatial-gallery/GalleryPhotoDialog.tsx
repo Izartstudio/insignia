@@ -8,7 +8,7 @@ import { lockPageScroll } from './scrollLock';
 
 export type GallerySelection = { worldId: string; photoIndex: number };
 export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, copy }: { selection: GallerySelection; onClose: () => void; onCloseStart: () => void; states: GalleryState[]; copy: GalleryCopy }) {
-  const entries = states.flatMap(world => world.photos.map((photo, photoIndex) => ({ world, photo, photoIndex })));
+  const entries = states.filter(world => world.id === selection.worldId).flatMap(world => world.photos.map((photo, photoIndex) => ({ world, photo, photoIndex })));
   const [index, setIndex] = useState(() => Math.max(0, entries.findIndex(entry => entry.world.id === selection.worldId && entry.photoIndex === selection.photoIndex)));
   const dialog = useRef<HTMLDialogElement>(null);
   const content = useRef<HTMLDivElement>(null);

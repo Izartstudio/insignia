@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
-import { BufferGeometry, Float32BufferAttribute, CanvasTexture, Group, Mesh, SRGBColorSpace, Vector3 } from "three";
+import { BufferGeometry, Float32BufferAttribute, CanvasTexture, Group, Mesh, SRGBColorSpace, ShaderChunk, Vector2, Vector3 } from "three";
 import { lcdConfig } from "@/lib/three/lcd-config";
 import surface from "@/lib/three/lcd-surface-v2.json";
 import type { LCDVideoResource } from "@/lib/three/useLCDVideo";
@@ -25,26 +25,43 @@ function UVPattern() {
   return <meshBasicMaterial map={texture} toneMapped={false} />;
 }
 
-export type LCDSurfaceHandle = { root: Group; mesh: Mesh };
+export type LCDSurfaceHandle = { root: Group; mesh: Mesh; setFullscreenProgress: (progress: number) => void };
 
 export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideoResource; hasFrame: boolean }>(function LCDVideoSurface({ resource, hasFrame }, forwardedRef) {
   const invalidate = useThree(state => state.invalidate);
   const root = useRef<Group>(null);
   const screen = useRef<Mesh>(null);
+  const fit = useMemo(() => ({
+    progress: { value: 0 },
+    contain: { value: new Vector2(1, 1) },
+    cover: { value: new Vector2(1, 1) },
+  }), []);
+  useEffect(() => {
+    const update = () => {
+      const aspect = resource.video.videoWidth && resource.video.videoHeight
+        ? resource.video.videoWidth / resource.video.videoHeight : lcdConfig.videoAspect;
+      const screenAspect = lcdConfig.width / lcdConfig.height;
+      fit.contain.value.set(Math.max(1, screenAspect / aspect), Math.max(1, aspect / screenAspect));
+      fit.cover.value.set(Math.min(1, screenAspect / aspect), Math.min(1, aspect / screenAspect));
+      invalidate();
+    };
+    update();
+    resource.video.addEventListener("loadedmetadata", update);
+    return () => resource.video.removeEventListener("loadedmetadata", update);
+  }, [resource, fit, invalidate]);
   const geometry = useMemo(() => {
     const mesh = new BufferGeometry();
     const positions = surface.positions.map((value, i) => i % 3 === 0 ? value * lcdConfig.width : i % 3 === 1 ? value * lcdConfig.height : value + lcdConfig.normalOffset);
-    const screenAspect = lcdConfig.width / lcdConfig.height;
-    const cropX = Math.min(1, screenAspect / lcdConfig.videoAspect);
-    const cropY = Math.min(1, lcdConfig.videoAspect / screenAspect);
-    const uv = surface.uvs.map((value, i) => (value - 0.5) * (i % 2 === 0 ? cropX : cropY) + 0.5);
     mesh.setAttribute("position", new Float32BufferAttribute(positions, 3));
-    mesh.setAttribute("uv", new Float32BufferAttribute(debug && lcdConfig.debug.uvPattern ? surface.uvs : uv, 2));
+    mesh.setAttribute("uv", new Float32BufferAttribute(surface.uvs, 2));
     mesh.computeVertexNormals();
     return mesh;
   }, []);
 
-  useImperativeHandle(forwardedRef, () => ({ root: root.current!, mesh: screen.current! }), []);
+  useImperativeHandle(forwardedRef, () => ({
+    root: root.current!, mesh: screen.current!,
+    setFullscreenProgress: (progress: number) => { fit.progress.value = progress; },
+  }), [fit]);
 
   useEffect(() => {
     const { video } = resource;
@@ -68,7 +85,24 @@ export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideo
 
   return <group ref={root} position={lcdConfig.position} rotation={lcdConfig.rotation}>
     <mesh ref={screen} geometry={geometry} frustumCulled={false}>
-      {debug && lcdConfig.debug.uvPattern ? <UVPattern /> : <meshBasicMaterial map={hasFrame ? resource.texture : resource.poster} toneMapped={false} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />}
+      {debug && lcdConfig.debug.uvPattern ? <UVPattern /> : <meshBasicMaterial map={hasFrame ? resource.texture : resource.poster} toneMapped={false}
+        customProgramCacheKey={() => "lcd-contain-to-cover-v1"}
+        onBeforeCompile={shader => {
+          shader.uniforms.lcdFullscreen = fit.progress;
+          shader.uniforms.lcdContain = fit.contain;
+          shader.uniforms.lcdCover = fit.cover;
+          shader.fragmentShader = "uniform float lcdFullscreen; uniform vec2 lcdContain; uniform vec2 lcdCover;\n" + shader.fragmentShader;
+          shader.fragmentShader = shader.fragmentShader.replace("#include <map_fragment>", `
+            #ifdef USE_MAP
+            vec2 lcdUv = (vMapUv - 0.5) * mix(lcdContain, lcdCover, smoothstep(0.6, 1.0, lcdFullscreen)) + 0.5;
+            float lcdInside = step(0.0, lcdUv.x) * step(lcdUv.x, 1.0) * step(0.0, lcdUv.y) * step(lcdUv.y, 1.0);
+            #endif
+            ${ShaderChunk.map_fragment.replace(/vMapUv/g, "lcdUv")}
+            #ifdef USE_MAP
+            diffuseColor.rgb *= lcdInside;
+            #endif
+          `);
+        }} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />}
     </mesh>
     {debug && <>
       {lcdConfig.debug.wireframe && <mesh geometry={geometry}><meshBasicMaterial color="cyan" wireframe depthTest={false} /></mesh>}

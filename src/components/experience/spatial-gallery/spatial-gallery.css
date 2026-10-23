@@ -39,8 +39,9 @@
   .spatial-progress-item { font-size: clamp(1.125rem, 1.25vw, 1.5rem); height: auto; min-height: 1.5em; line-height: 1.5; }
 }
 
-.spatial-gallery.is-spatial { touch-action: pan-y; user-select: none; cursor: grab; }
-.spatial-gallery.is-dragging { cursor: grabbing; }
+.spatial-gallery.is-spatial { touch-action: pan-y; user-select: none; cursor: auto; }
+.spatial-gallery.is-explorable { cursor: grab; }
+.spatial-gallery.is-explorable.is-dragging { cursor: grabbing; }
 .spatial-scroll-zone { display: none; }
 
 
@@ -195,7 +196,7 @@ body.gallery-photo-open:not(.gallery-photo-closing) .site-header { opacity: 0; p
 .gallery-dialog-content > *, .gallery-dialog-bio { pointer-events: auto; }
 .gallery-dialog-arrow, .gallery-dialog-close, .gallery-dialog-link { touch-action: manipulation; }
 .spatial-gallery.is-photo-hover { cursor: pointer; }
-.spatial-gallery.is-pressed, .spatial-gallery.is-dragging { cursor: grabbing; }
+.spatial-gallery.is-explorable.is-pressed, .spatial-gallery.is-explorable.is-dragging { cursor: grabbing; }
 .spatial-gallery .spatial-canvas, .spatial-gallery .spatial-canvas * { cursor: inherit !important; }
 @media (max-width: 1024px) {
  .gallery-dialog-close { width: 3.75rem; height: 3.5rem; }

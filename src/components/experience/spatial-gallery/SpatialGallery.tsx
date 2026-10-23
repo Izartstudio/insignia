@@ -14,7 +14,7 @@ import type { GalleryMotion } from './GalleryEnvironment';
 import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog';
 import './spatial-gallery.css';
 import { lockPageScroll } from './scrollLock';
-import { canPanGallery, constrainGalleryPan } from './interaction';
+import { canPanGallery, resetStaticGalleryPan } from './interaction';
 
 // Share the landing tolerance between the instruction and pointer interaction.
 function getExplorableState(travel: number, count: number) {
@@ -166,7 +166,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
 
       const activeState = getExplorableState(motion.current.travel, states.length);
       const explorableState = activeState >= 0 && canPanGallery(states[activeState]) ? activeState : -1;
-      states.forEach((state, index) => constrainGalleryPan(state, panOffsets.current[index], section.clientWidth, section.clientHeight));
+      states.forEach((state, index) => resetStaticGalleryPan(state, panOffsets.current[index]));
       if (explorableState !== lastExplorableState) {
         hints.forEach((hint, index) => { hint.dataset.visible = String(index === explorableState); });
         section.classList.toggle('is-explorable', explorableState >= 0);

@@ -101,6 +101,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
 
   const renderCamera = () => {
     const progress = smoothProgress(Math.min(zoom.value / timing.fullscreenThreshold, 1));
+    screen.setFullscreenProgress(progress);
     // A single direct approach avoids the high waypoint and late correction.
     camera.position.lerpVectors(startPose.position, endPose.position, progress);
     // Center the LCD early, then keep looking at its center throughout the
