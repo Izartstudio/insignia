@@ -326,3 +326,25 @@ html { scrollbar-gutter: stable; }
  .introduction-composition { padding-inline: 1rem; }
  .introduction-copy { font-size: clamp(13px, 3.2svh, 16px); }
 }
+
+/* Touch heroes finish on the framed camcorder, then flow into the introduction. */
+@media (max-width: 1024px) {
+ .experience > .scroll-indicator { display: none; }
+ .experience .fullscreen-heading { padding-bottom: max(7svh, calc(env(safe-area-inset-bottom) + 24px)); }
+}
+@media (max-width: 1024px) and (max-height: 500px) {
+ .experience .fullscreen-heading { padding: 0 1.25rem max(1rem, env(safe-area-inset-bottom)); }
+ .experience .fullscreen-heading h1 { max-width: 36rem; font-size: clamp(18px, 5svh, 26px); }
+}
+
+@media (max-width: 374px) {
+ .experience .fullscreen-heading { padding-inline: 16px; padding-bottom: max(5svh, calc(env(safe-area-inset-bottom) + 16px)); }
+ .experience .fullscreen-heading h1 { font-size: clamp(20px, 6.5vw, 24px); line-height: 1.2; }
+}
+
+@media (max-width: 1024px) {
+ .experience .fullscreen-heading h1 { width: 100%; max-width: 54rem; }
+}
+
+.experience { background: #000; }
+.experience .hero-background { opacity: var(--hero-backdrop-opacity, 1); }

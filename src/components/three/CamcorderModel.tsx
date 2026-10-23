@@ -57,9 +57,11 @@ export function CamcorderModel({ heroRef, fullscreenHeadingRef, video, hasFrame 
   const radius = sceneConfig.model.normalizedRadius;
   // Keep timeline ownership stable across toolbar/orientation resize events.
   const viewport = useRef({ width: size.width, height: size.height });
+  const timeline = useRef<ReturnType<typeof createCamcorderTimeline> | null>(null);
   useLayoutEffect(() => {
     viewport.current.width = size.width;
     viewport.current.height = size.height;
+    timeline.current?.resize();
   }, [size.width, size.height]);
 
   useLayoutEffect(() => {
@@ -67,7 +69,7 @@ export function CamcorderModel({ heroRef, fullscreenHeadingRef, video, hasFrame 
     const group = animationGroup.current;
     const screen = lcdSurface.current;
     if (!section || !group || !screen || !(camera instanceof PerspectiveCamera)) return;
-    return createCamcorderTimeline({
+    const controller = createCamcorderTimeline({
       section,
       modelGroup: group,
       screen,
@@ -78,6 +80,11 @@ export function CamcorderModel({ heroRef, fullscreenHeadingRef, video, hasFrame 
       heading: fullscreenHeadingRef.current,
       invalidate,
     });
+    timeline.current = controller;
+    return () => {
+      timeline.current = null;
+      controller();
+    };
   }, [heroRef, fullscreenHeadingRef, video, camera, radius, bounds.halfHeight, bounds.radius, invalidate]);
 
   return (

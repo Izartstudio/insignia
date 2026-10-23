@@ -93,6 +93,8 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
       setCanScrollNext(maxDistance - offset > 2);
     };
     const createTimeline = (trigger: HTMLElement) => {
+      // Native touch offsets must not carry over into the desktop GSAP transform.
+      viewport.scrollLeft = 0;
       const timeline = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {

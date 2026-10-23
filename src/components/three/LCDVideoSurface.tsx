@@ -25,16 +25,14 @@ function UVPattern() {
   return <meshBasicMaterial map={texture} toneMapped={false} />;
 }
 
-export type LCDSurfaceHandle = { root: Group; mesh: Mesh; setFullscreenProgress: (progress: number) => void };
+export type LCDSurfaceHandle = { root: Group; mesh: Mesh };
 
 export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideoResource; hasFrame: boolean }>(function LCDVideoSurface({ resource, hasFrame }, forwardedRef) {
   const invalidate = useThree(state => state.invalidate);
   const root = useRef<Group>(null);
   const screen = useRef<Mesh>(null);
   const fit = useMemo(() => ({
-    progress: { value: 0 },
     contain: { value: new Vector2(1, 1) },
-    cover: { value: new Vector2(1, 1) },
   }), []);
   useEffect(() => {
     const update = () => {
@@ -42,7 +40,6 @@ export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideo
         ? resource.video.videoWidth / resource.video.videoHeight : lcdConfig.videoAspect;
       const screenAspect = lcdConfig.width / lcdConfig.height;
       fit.contain.value.set(Math.max(1, screenAspect / aspect), Math.max(1, aspect / screenAspect));
-      fit.cover.value.set(Math.min(1, screenAspect / aspect), Math.min(1, aspect / screenAspect));
       invalidate();
     };
     update();
@@ -60,7 +57,6 @@ export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideo
 
   useImperativeHandle(forwardedRef, () => ({
     root: root.current!, mesh: screen.current!,
-    setFullscreenProgress: (progress: number) => { fit.progress.value = progress; },
   }), [fit]);
 
   useEffect(() => {
@@ -86,15 +82,13 @@ export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideo
   return <group ref={root} position={lcdConfig.position} rotation={lcdConfig.rotation}>
     <mesh ref={screen} geometry={geometry} frustumCulled={false}>
       {debug && lcdConfig.debug.uvPattern ? <UVPattern /> : <meshBasicMaterial map={hasFrame ? resource.texture : resource.poster} toneMapped={false}
-        customProgramCacheKey={() => "lcd-contain-to-cover-v1"}
+        customProgramCacheKey={() => "lcd-always-contain-v2"}
         onBeforeCompile={shader => {
-          shader.uniforms.lcdFullscreen = fit.progress;
           shader.uniforms.lcdContain = fit.contain;
-          shader.uniforms.lcdCover = fit.cover;
-          shader.fragmentShader = "uniform float lcdFullscreen; uniform vec2 lcdContain; uniform vec2 lcdCover;\n" + shader.fragmentShader;
+          shader.fragmentShader = "uniform vec2 lcdContain;\n" + shader.fragmentShader;
           shader.fragmentShader = shader.fragmentShader.replace("#include <map_fragment>", `
             #ifdef USE_MAP
-            vec2 lcdUv = (vMapUv - 0.5) * mix(lcdContain, lcdCover, smoothstep(0.6, 1.0, lcdFullscreen)) + 0.5;
+            vec2 lcdUv = (vMapUv - 0.5) * lcdContain + 0.5;
             float lcdInside = step(0.0, lcdUv.x) * step(lcdUv.x, 1.0) * step(0.0, lcdUv.y) * step(lcdUv.y, 1.0);
             #endif
             ${ShaderChunk.map_fragment.replace(/vMapUv/g, "lcdUv")}

@@ -4,6 +4,7 @@ import { Mesh, MeshBasicMaterial, PlaneGeometry, MathUtils, type Texture } from 
 import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 import { fitPhotoLayouts, mapPhoto } from './layout';
 import { canPanGallery } from './interaction';
+import { hasDesktopComposition, mapDesktopReferencePhoto } from './desktop-composition';
 
 function tileHash(x: number, y: number, salt: number) {
   let value = Math.imul(x + 104729, 73856093) ^ Math.imul(y + 130363, 19349663) ^ Math.imul(salt + 37, 83492791);
@@ -21,10 +22,12 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
     const photos = world.photos.map((photo, index) => {
       const texture = textures[photo.src];
       const image = texture?.image as HTMLImageElement | undefined;
-      const layout = mapPhoto(photo, index, size.height * aspect, size.height, image ? image.width / image.height : photo.layout[2] / photo.layout[3], size.width <= 1024);
+      const imageAspect = image ? image.width / image.height : photo.layout[2] / photo.layout[3];
+      const reference = size.width > 1024 ? mapDesktopReferencePhoto(world.id, photo, index, world.photos.length, size.width, size.height, imageAspect) : null;
+      const layout = reference ?? mapPhoto(photo, index, size.height * aspect, size.height, imageAspect, size.width <= 1024);
       // Enlarge leaders and their spacing only at the desktop breakpoint.
       // Use actual viewport width; the composition aspect above is capped.
-      if (world.id === 'leaders' && size.width > 1024) {
+      if (!reference && world.id === 'leaders' && size.width > 1024) {
         layout.scale[0] *= 1.25;
         layout.scale[1] *= 1.25;
         layout.position[0] *= 1.25;
@@ -34,7 +37,9 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       texture?.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
       return { ready: !!texture, unique: world.photos.findIndex(item => item.src === photo.src) === index, layout, material: new MeshBasicMaterial({ map: texture ?? null, transparent: true, alphaTest: .02, toneMapped: false }) };
     });
-    fitPhotoLayouts(photos.filter(photo => photo.unique).map(photo => photo.layout), size.width, size.height);
+    if (size.width <= 1024 || !hasDesktopComposition(world.id, world.photos.length)) {
+      fitPhotoLayouts(photos.filter(photo => photo.unique).map(photo => photo.layout), size.width, size.height);
+    }
     const uniquePhotos = photos.filter(photo => photo.unique);
     const cellW = Math.max(...uniquePhotos.map(photo => photo.layout.scale[0])) * 1.55;
     const cellH = Math.max(...uniquePhotos.map(photo => photo.layout.scale[1])) * 1.55;
@@ -61,7 +66,7 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
       let x = layout.position[0], y = layout.position[1];
       let found = intersects(x, y, w, h);
       // Original photos win while on screen; only look for a tile after they leave.
-      if (!found && canPanGallery(world)) {
+      if (!found && canPanGallery(world, size.width <= 1024)) {
         const sourceIndex = uniquePhotos.indexOf(photo);
         let best = Infinity;
         const firstX = Math.floor((camera.position.x - halfW - w / 2) / cellW) - 1;
