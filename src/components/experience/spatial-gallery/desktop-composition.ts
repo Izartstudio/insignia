@@ -8,6 +8,12 @@ const compositions: Record<string, readonly Slot[]> = {
     ['rajeevchandrasekhar', [487,85,195,193]], ['amarjitsinghbatra', [971,158,208,205]],
     ['gauravgandhi', [179,558,225,224]], ['kiranmani', [912,653,202,201]],
   ],
+  founders: [
+    ['saurabhpandey', [200,211,205,202]], ['cevatyerli', [1073,405,171,169]],
+    ['alexisbonte', [988,131,195,192]], ['ashwinjaishanker', [1006,634,203,200]],
+    ['shobuyarlagadda', [550,87,195,193]], ['akshatrathee', [107,521,185,184]],
+    ['maharishirb', [475,614,180,178]],
+  ],
   experts: [
     ['arndbenninghoff', [152,193,193,190]], ['seanhyunilsohn', [77,475,147,146]],
     ['manojkohli', [496,100,190,188]], ['nitishmittersain', [1103,228,196,193]],
