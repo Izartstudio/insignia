@@ -26,6 +26,10 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
         layout.position[0] *= 1.25;
         layout.position[1] *= 1.25;
       }
+      if (size.width <= 1024) {
+        layout.scale[0] *= 1.2;
+        layout.scale[1] *= 1.2;
+      }
       texture?.repeat.set(...layout.repeat);
       texture?.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
       return { ready: !!texture, unique: world.photos.findIndex(item => item.src === photo.src) === index, layout, material: new MeshBasicMaterial({ map: texture ?? null, transparent: true, alphaTest: .02, toneMapped: false }) };

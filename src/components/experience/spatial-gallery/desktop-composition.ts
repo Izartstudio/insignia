@@ -35,8 +35,8 @@ export function hasDesktopComposition(id: string, count: number) {
 export function mapDesktopReferencePhoto(id: string, photo: GalleryPhoto, index: number, count: number, width: number, height: number, imageAspect: number) {
   if (!hasDesktopComposition(id, count)) return null;
   const slots = compositions[id];
-  const name = (photo.name ?? '').toLowerCase().replace(/[^a-z]/g, '');
-  const [x,y,w,h] = (slots.find(([key]) => name.includes(key)) ?? slots[index])[1];
+  // CMS array order controls the reference slots, so reordering cards moves photos.
+  const [x,y,w,h] = slots[index][1];
   // Uniformly contain the composition: resizing never stretches or shuffles slots.
   const fit = Math.min(width / 1440, height / 900);
   const units = 2 * galleryConfig.distance * Math.tan(galleryConfig.fov * Math.PI / 360) / height;

@@ -64,12 +64,15 @@ export function fitPhotoLayouts(layouts: ReturnType<typeof mapPhoto>[], width: n
   const bottom = Math.min(...boxes.map(b => b.y - b.h / 2));
   const top = Math.max(...boxes.map(b => b.y + b.h / 2));
   const mobile = width <= 1024;
-  const availableHeight = mobile ? .64 : .84;
-  const scale = Math.min(1, .90 / (right - left), availableHeight / (top - bottom));
+  const topInset = mobile ? Math.max(.10, 64 / height) : .08;
+  const bottomInset = mobile ? Math.max(.18, 104 / height) : .08;
+  const availableHeight = Math.max(.2, 1 - topInset - bottomInset);
+  const centerY = (bottomInset - topInset) / 2;
+  const scale = Math.min(mobile ? 1.35 : 1, (mobile ? .94 : .90) / (right - left), availableHeight / (top - bottom));
   boxes.forEach((b, i) => {
     const layout = layouts[i];
     layout.position = [(b.x - (left + right) / 2) * scale * visibleWidth,
-      ((b.y - (bottom + top) / 2) * scale + (mobile ? .06 : 0)) * visibleHeight, 0];
+      ((b.y - (bottom + top) / 2) * scale + centerY) * visibleHeight, 0];
     layout.scale = [b.w * scale * visibleWidth, b.h * scale * visibleHeight, 1];
   });
 }

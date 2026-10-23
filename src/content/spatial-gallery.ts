@@ -700,3 +700,14 @@ export const extendedGalleryMotionProfile: GalleryMotionProfile = {
     : (index * categoryScrollViewports + categoryHoldViewports) / extendedScrollViewports),
   travelEase: 'none',
 };
+
+// Safe default slots for newly uploaded photos; no CMS coordinates are required.
+export function automaticGalleryPlacement(index: number): Placement {
+  const slots: readonly Placement[] = [
+    [60,100,260,210], [590,70,240,200], [1110,100,260,210],
+    [30,340,240,210], [1170,340,240,210],
+    [50,590,260,210], [1120,590,260,210],
+    [350,680,220,190], [650,680,220,190], [910,680,220,190],
+  ];
+  return slots[index % slots.length];
+}
