@@ -454,3 +454,7 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-gallery .spatial-explore { font-size: .75rem; margin-top: .25rem; }
  .gallery-photo-dialog { max-height: calc(100dvh - 1rem); overflow-y: auto; }
 }
+
+@media (max-width: 1024px) {
+ .spatial-glass { height: clamp(8rem, 24svh, 12rem); }
+}
