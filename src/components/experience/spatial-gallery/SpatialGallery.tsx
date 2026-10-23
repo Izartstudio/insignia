@@ -14,6 +14,7 @@ import type { GalleryMotion } from './GalleryEnvironment';
 import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog';
 import './spatial-gallery.css';
 import { lockPageScroll } from './scrollLock';
+import { canPanGallery, constrainGalleryPan } from './interaction';
 
 // Share the landing tolerance between the instruction and pointer interaction.
 function getExplorableState(travel: number, count: number) {
@@ -163,7 +164,9 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     let lastExplorableState: number | undefined;
     const syncPan = () => {
 
-      const explorableState = getExplorableState(motion.current.travel, states.length);
+      const activeState = getExplorableState(motion.current.travel, states.length);
+      const explorableState = activeState >= 0 && canPanGallery(states[activeState]) ? activeState : -1;
+      states.forEach((state, index) => constrainGalleryPan(state, panOffsets.current[index], section.clientWidth, section.clientHeight));
       if (explorableState !== lastExplorableState) {
         hints.forEach((hint, index) => { hint.dataset.visible = String(index === explorableState); });
         section.classList.toggle('is-explorable', explorableState >= 0);
@@ -309,8 +312,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (!drag || event.pointerId !== drag.id) return;
       if (getExplorableState(motion.current.travel, states.length) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
+      if (!canPanGallery(states[drag.state])) {
+        // Still distinguish a tap from a swipe when movement is disabled.
+        if (Math.hypot(dx, dy) >= galleryConfig.drag.intentPixels) drag.captured = true;
+        return;
+      }
       if (!drag.captured) {
-        if (!mobileControls && Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
+        if (Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
         drag.captured = true;
         motion.current.dragging = true;
         if (!section.hasPointerCapture(event.pointerId)) section.setPointerCapture(event.pointerId);
