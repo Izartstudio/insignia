@@ -168,7 +168,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       const explorableState = activeState >= 0 && canPanGallery(states[activeState], mobileControls) ? activeState : -1;
       states.forEach((state, index) => resetStaticGalleryPan(state, panOffsets.current[index], mobileControls));
       hints.forEach((hint, index) => {
-        hint.dataset.visible = String(index === activeState && (!mobileControls || explorableState >= 0));
+        hint.dataset.visible = String(index === activeState);
       });
       if (explorableState !== lastExplorableState) {
         section.classList.toggle('is-explorable', explorableState >= 0);
@@ -460,7 +460,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           <div className={`spatial-heading ${index === 0 ? 'is-first' : ''}`}>
             <span className="spatial-eyebrow">{state.category}</span>
             <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-        <div className="spatial-explore" data-visible="false">{mobileControls && <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>}{!mobileControls && <img src="/assets/insignia/gallery-click.svg" width="18" height="18" alt="" aria-hidden="true" />}{mobileControls ? copy.explorePrompt : "Click on the image to know more"}</div>
+        <div className="spatial-explore" data-visible="false"><img src="/assets/insignia/gallery-click.svg" width="18" height="18" alt="" aria-hidden="true" />{mobileControls ? "Tap on an image to know more" : "Click on the image to know more"}</div>
           </div>
         </div>)}
         <div className="spatial-progress">{states.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>

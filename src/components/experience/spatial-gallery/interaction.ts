@@ -1,7 +1,8 @@
 import type { GalleryState } from '@/content/spatial-gallery';
 
-export function canPanGallery(state: Pick<GalleryState, 'photos'>, enabled = true) {
-  return enabled && new Set(state.photos.map(photo => photo.src)).size >= 6;
+// All categories are static on desktop, tablet and phone layouts.
+export function canPanGallery(_state: Pick<GalleryState, 'photos'>, _enabled = true) {
+  return false;
 }
 
 export function resetStaticGalleryPan(state: GalleryState, pan: { x: number; y: number }, enabled = true) {

@@ -397,7 +397,7 @@
         "title": "Photo link label"
       },
       {
-        "initialValue": "Who has been at Insignia",
+        "initialValue": "Who has been at Insignia.",
         "name": "entryTitle",
         "type": "string",
         "title": "Mobile entry heading"
@@ -489,7 +489,7 @@
   {
     "fields": [
       {
-        "initialValue": "Who has been at Insignia",
+        "initialValue": "Who has been at Insignia.",
         "validation": [
           {
             "level": "error",
@@ -574,7 +574,7 @@
         "title": "Photo link label"
       },
       {
-        "initialValue": "Who has been at Insignia",
+        "initialValue": "Who has been at Insignia.",
         "name": "entryTitle",
         "type": "string",
         "title": "Mobile entry heading"
