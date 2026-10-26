@@ -163,8 +163,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
     let lastExplorableState: number | undefined;
+    let lastDesktopState = -1;
     const syncPan = () => {
-      if (!mobileControls) setDesktopState(Math.max(0, Math.min(states.length - 1, Math.round(motion.current.travel))));
+      const desktopState = Math.max(0, Math.min(states.length - 1, Math.round(motion.current.travel)));
+      if (!mobileControls && desktopState !== lastDesktopState) {
+        lastDesktopState = desktopState;
+        setDesktopState(desktopState);
+      }
 
       const activeState = getExplorableState(motion.current.travel, states.length);
       const explorableState = activeState >= 0 && canPanGallery(states[activeState], mobileControls) ? activeState : -1;
@@ -204,7 +209,9 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           // Measure upstream pins first, regardless of asynchronous mount order.
           refreshPriority: 20,
           trigger: section, start: 'top top', end: () => `+=${section.clientHeight * motionProfile.scrollViewports}`,
-          pin: true, pinSpacing: false, scrub: motionProfile.scrub, anticipatePin: 1, invalidateOnRefresh: true,
+          // Lenis already smooths document scrolling. Follow that same position
+          // directly so camera travel does not lag behind a second scrub tween.
+          pin: true, pinSpacing: false, scrub: true, anticipatePin: 1, invalidateOnRefresh: true,
         },
         onUpdate: syncPan,
       });

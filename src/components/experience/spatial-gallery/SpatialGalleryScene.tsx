@@ -99,20 +99,23 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
   useEffect(() => {
     const raycaster = new Raycaster();
     const pointer = new Vector2();
+    // The photo objects only change when textures/layouts change. Avoid walking
+    // the entire scene for every desktop pointer event while scrolling.
+    const photos: Mesh[] = [];
+    scene.traverse(object => {
+      if (object instanceof Mesh && object.userData.galleryPhoto) photos.push(object);
+    });
     motion.current.pickPhoto = (x, y) => {
       const rect = gl.domElement.getBoundingClientRect();
       pointer.set((x - rect.left) / rect.width * 2 - 1, -(y - rect.top) / rect.height * 2 + 1);
       camera.updateMatrixWorld();
-      scene.updateMatrixWorld(true);
+      scene.updateMatrixWorld();
       raycaster.setFromCamera(pointer, camera);
-      const photos: Mesh[] = [];
-      scene.traverseVisible(object => {
-        if (object instanceof Mesh && object.userData.galleryPhoto && object.material instanceof MeshBasicMaterial && object.material.opacity > .05) photos.push(object);
-      });
-      return raycaster.intersectObjects(photos, false)[0]?.object.userData.galleryPhoto;
+      const visiblePhotos = photos.filter(object => object.visible && object.material instanceof MeshBasicMaterial && object.material.opacity > .05);
+      return raycaster.intersectObjects(visiblePhotos, false)[0]?.object.userData.galleryPhoto;
     };
     return () => { motion.current.pickPhoto = undefined; };
-  }, [camera, gl, motion, scene]);
+  }, [camera, gl, motion, scene, textures, size.width, size.height]);
 
   useFrame((_, delta) => {
     const state = motion.current;
