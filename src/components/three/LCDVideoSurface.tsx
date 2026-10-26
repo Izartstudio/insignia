@@ -82,14 +82,20 @@ export const LCDVideoSurface = forwardRef<LCDSurfaceHandle, { resource: LCDVideo
   return <group ref={root} position={lcdConfig.position} rotation={lcdConfig.rotation}>
     <mesh ref={screen} geometry={geometry} frustumCulled={false}>
       {debug && lcdConfig.debug.uvPattern ? <UVPattern /> : <meshBasicMaterial map={hasFrame ? resource.texture : resource.poster} toneMapped={false}
-        customProgramCacheKey={() => "lcd-always-contain-v2"}
+        customProgramCacheKey={() => "lcd-antialiased-contain-v3"}
         onBeforeCompile={shader => {
           shader.uniforms.lcdContain = fit.contain;
           shader.fragmentShader = "uniform vec2 lcdContain;\n" + shader.fragmentShader;
           shader.fragmentShader = shader.fragmentShader.replace("#include <map_fragment>", `
             #ifdef USE_MAP
             vec2 lcdUv = (vMapUv - 0.5) * lcdContain + 0.5;
-            float lcdInside = step(0.0, lcdUv.x) * step(lcdUv.x, 1.0) * step(0.0, lcdUv.y) * step(lcdUv.y, 1.0);
+            // Filter the letterbox boundary over one drawing-buffer pixel.
+            // MSAA smooths geometry edges, but not a hard cutoff inside a shader.
+            // Derivatives track perspective, viewport size and device pixel ratio.
+            vec2 lcdPixel = max(fwidth(lcdUv), vec2(0.000001));
+            vec2 lcdEdge = min(lcdUv, 1.0 - lcdUv);
+            vec2 lcdCoverage = smoothstep(-0.5 * lcdPixel, 0.5 * lcdPixel, lcdEdge);
+            float lcdInside = lcdCoverage.x * lcdCoverage.y;
             #endif
             ${ShaderChunk.map_fragment.replace(/vMapUv/g, "lcdUv")}
             #ifdef USE_MAP
