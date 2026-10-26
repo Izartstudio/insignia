@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { setAnimatedPageScroller } from "@/lib/page-scroll";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -19,6 +20,16 @@ export function SmoothScrolling() {
         syncTouch: false,
         anchors: true,
         prevent: (node) => node.classList.contains("menu-panel"),
+      });
+      setAnimatedPageScroller((top, { duration, onComplete }) => {
+        lenis.scrollTo(top, {
+          duration,
+          easing: t => t * t * (3 - 2 * t),
+          force: true,
+          lock: true,
+          onComplete,
+        });
+        return () => lenis.scrollTo(lenis.actualScroll, { immediate: true, force: true });
       });
       const updateScroll = () => ScrollTrigger.update();
       // Wall-clock time keeps Lenis independent of GSAP's global lag settings.
@@ -38,6 +49,7 @@ export function SmoothScrolling() {
       ScrollTrigger.addEventListener("refresh", resize);
 
       return () => {
+        setAnimatedPageScroller(null);
         lockObserver.disconnect();
         ScrollTrigger.removeEventListener("refresh", resize);
         gsap.ticker.remove(tick);

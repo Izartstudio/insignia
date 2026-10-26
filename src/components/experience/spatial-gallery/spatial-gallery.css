@@ -458,3 +458,7 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
 @media (max-width: 1024px) {
  .spatial-glass { height: clamp(8rem, 24svh, 12rem); }
 }
+
+@media (min-width: 1025px) {
+ .spatial-gallery .scroll-indicator-label { position: absolute; top: 38px; left: 50%; transform: translateX(-50%); color: #fed201; white-space: nowrap; font: 400 12px/1 "Aeonik Trial", Arial, sans-serif; letter-spacing: .6em; padding-left: .6em; text-transform: uppercase; }
+}
