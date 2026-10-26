@@ -25,7 +25,7 @@ export function InfiniteCanvasPlane({ world, textures }: { world: GalleryState; 
     const photos = world.photos.map((photo, index) => {
       const texture = textures[photo.src];
       const image = texture?.image as HTMLImageElement | undefined;
-      const layout = mapPhoto(photo, index, size.height * aspect, size.height, image ? image.width / image.height : photo.layout[2] / photo.layout[3]);
+      const layout = mapPhoto(photo, index, size.height * aspect, size.height, image ? image.width / image.height : photo.layout[2] / photo.layout[3], size.width <= 1024);
       texture?.repeat.set(...layout.repeat);
       texture?.offset.set((1-layout.repeat[0])/2, (1-layout.repeat[1])/2);
       return { ready: !!texture, bounds: null as string | null, layout, material: new MeshBasicMaterial({ map: texture ?? null, transparent: true, alphaTest: .02, toneMapped: false }) };
