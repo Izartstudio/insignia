@@ -69,13 +69,23 @@ export function getEndCameraPose(
   frame: LCDWorldFrame,
   viewportWidth: number,
   viewportHeight: number,
+  framing: "cover" | "camcorder" = "cover",
 ): CameraPose & { distance: number } {
   const aspect = viewportWidth / Math.max(viewportHeight, 1);
   const halfVertical = MathUtils.degToRad(camera.fov / 2);
   const halfHorizontal = Math.atan(Math.tan(halfVertical) * aspect);
   const verticalDistance = frame.height / 2 / Math.tan(halfVertical);
   const horizontalDistance = frame.width / 2 / Math.tan(halfHorizontal);
-  const distance = Math.min(verticalDistance, horizontalDistance) / sceneConfig.camera.fullscreenCoverage;
+  // Touch layouts retain the LCD bezel and surrounding camcorder at the endpoint.
+  // Gradually add bezel margin on narrow phones without switching to a body-wide shot.
+  const touchWidthCoverage = .78 + .10 * MathUtils.clamp((viewportWidth - 320) / 110, 0, 1);
+  const touchHeightCoverage = viewportHeight < 500 ? .42 : .5;
+  const distance = framing === "camcorder"
+    ? Math.max(verticalDistance / touchHeightCoverage, horizontalDistance / touchWidthCoverage)
+    : Math.max(
+      Math.min(frame.height, frame.width / lcdConfig.videoAspect) / 2 / Math.tan(halfVertical),
+      Math.min(frame.width, frame.height * lcdConfig.videoAspect) / 2 / Math.tan(halfHorizontal),
+    ) / .995;
   const position = frame.center.clone().addScaledVector(frame.normal, distance);
   lookMatrix.lookAt(position, frame.center, worldUp);
   return {
@@ -88,4 +98,22 @@ export function getEndCameraPose(
 
 export function smoothProgress(value: number) {
   return value * value * (3 - 2 * value);
+}
+
+/** Keep the complete letterboxed video inside the frustum during the approach too. */
+export function getVideoFitDistance(camera: PerspectiveCamera, screen: Object3D, target: Vector3, viewportWidth: number, viewportHeight: number) {
+  screen.updateWorldMatrix(true, false);
+  const width = Math.min(lcdConfig.width, lcdConfig.height * lcdConfig.videoAspect);
+  const height = width / lcdConfig.videoAspect;
+  const inverse = camera.quaternion.clone().invert();
+  const tanY = Math.tan(MathUtils.degToRad(camera.fov / 2));
+  const tanX = tanY * viewportWidth / Math.max(1, viewportHeight);
+  let distance = 0;
+  const point = new Vector3();
+  for (const x of [-width / 2, width / 2]) for (const y of [-height / 2, height / 2]) {
+    point.set(x, y, lcdConfig.normalOffset);
+    screen.localToWorld(point).sub(target).applyQuaternion(inverse);
+    distance = Math.max(distance, point.z + Math.abs(point.x) / (tanX * .995), point.z + Math.abs(point.y) / (tanY * .995));
+  }
+  return distance;
 }

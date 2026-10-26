@@ -39,8 +39,9 @@
   .spatial-progress-item { font-size: clamp(1.125rem, 1.25vw, 1.5rem); height: auto; min-height: 1.5em; line-height: 1.5; }
 }
 
-.spatial-gallery.is-spatial { touch-action: pan-y; user-select: none; cursor: grab; }
-.spatial-gallery.is-dragging { cursor: grabbing; }
+.spatial-gallery.is-spatial { touch-action: pan-y; user-select: none; cursor: auto; }
+.spatial-gallery.is-explorable { cursor: grab; }
+.spatial-gallery.is-explorable.is-dragging { cursor: grabbing; }
 .spatial-scroll-zone { display: none; }
 
 
@@ -195,7 +196,7 @@ body.gallery-photo-open:not(.gallery-photo-closing) .site-header { opacity: 0; p
 .gallery-dialog-content > *, .gallery-dialog-bio { pointer-events: auto; }
 .gallery-dialog-arrow, .gallery-dialog-close, .gallery-dialog-link { touch-action: manipulation; }
 .spatial-gallery.is-photo-hover { cursor: pointer; }
-.spatial-gallery.is-pressed, .spatial-gallery.is-dragging { cursor: grabbing; }
+.spatial-gallery.is-explorable.is-pressed, .spatial-gallery.is-explorable.is-dragging { cursor: grabbing; }
 .spatial-gallery .spatial-canvas, .spatial-gallery .spatial-canvas * { cursor: inherit !important; }
 @media (max-width: 1024px) {
  .gallery-dialog-close { width: 3.75rem; height: 3.5rem; }
@@ -429,4 +430,31 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
 @media (max-width: 767px) {
  .spatial-mobile-close { top: max(1.25rem, calc(env(safe-area-inset-top) + .75rem)); }
  .spatial-gallery-track::after { z-index: 101; }
+}
+
+/* Keep the preview boundary opaque while the preceding sun section unpins. */
+@media (max-width: 1024px) {
+ .spatial-gallery-track { position: relative; z-index: 11; background: #000; }
+ .spatial-gallery:not(.is-mobile-entered) { background: #000; }
+}
+
+/* Keep gallery copy and touch controls legible in short landscape viewports. */
+.spatial-heading { max-width: calc(100% - 2rem); }
+.spatial-heading h2 { overflow-wrap: anywhere; }
+@media (min-width: 1025px) and (max-height: 700px) {
+ .spatial-heading h2 { font-size: clamp(24px, 4.8svh, 40px); }
+ .spatial-heading { padding: 1rem; }
+}
+@media (max-width: 1024px) and (max-height: 600px) {
+ .spatial-mobile-controls { min-height: 4.5rem; padding: 1rem 1.25rem max(.75rem, env(safe-area-inset-bottom)); }
+ .spatial-mobile-next span, .spatial-mobile-previous span { bottom: calc(100% + .1rem); font-size: .625rem; }
+ .spatial-mobile-entry { padding-top: 4.5rem; }
+ .spatial-gallery .spatial-heading { gap: .4rem; padding: .75rem; }
+ .spatial-gallery .spatial-heading h2 { font-size: clamp(16px, 4svh, 22px); }
+ .spatial-gallery .spatial-explore { font-size: .75rem; margin-top: .25rem; }
+ .gallery-photo-dialog { max-height: calc(100dvh - 1rem); overflow-y: auto; }
+}
+
+@media (max-width: 1024px) {
+ .spatial-glass { height: clamp(8rem, 24svh, 12rem); }
 }

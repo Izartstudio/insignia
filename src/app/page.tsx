@@ -8,8 +8,8 @@ export default async function Home() {
     getPastEditionsContent(),
   ]);
   return <>
-    {galleryContent.desktop[0].photos.map(photo => <link key={`desktop-${photo.src}`} rel="preload" as="image" href={photo.src} media="(min-width: 1025px)" fetchPriority="high" />)}
-    {galleryContent.mobile[0].photos.map(photo => <link key={`mobile-${photo.src}`} rel="preload" as="image" href={photo.src} media="(max-width: 1024px)" fetchPriority="high" />)}
+    {[...new Set(galleryContent.desktop[0].photos.map(photo => photo.src))].map(src => <link key={`desktop-${src}`} rel="preload" as="image" href={src} media="(min-width: 1025px)" fetchPriority="high" />)}
+    {[...new Set(galleryContent.mobile[0].photos.map(photo => photo.src))].map(src => <link key={`mobile-${src}`} rel="preload" as="image" href={src} media="(max-width: 1024px)" fetchPriority="high" />)}
     <InsigniaExperience galleryContent={galleryContent} pastEditionsContent={pastEditionsContent} />
   </>;
 }

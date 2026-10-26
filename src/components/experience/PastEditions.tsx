@@ -43,7 +43,7 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
     const next = Math.max(0, Math.min(stops.length - 1, (targetYearRef.current ?? current) + direction));
     cancelNavigation();
     if (!trigger || distance === 0) {
-      viewport.scrollTo({ left: stops[next], behavior: 'auto' });
+      viewport.scrollTo({ left: stops[next], behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
       return;
     }
     targetYearRef.current = next;
@@ -93,6 +93,8 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
       setCanScrollNext(maxDistance - offset > 2);
     };
     const createTimeline = (trigger: HTMLElement) => {
+      // Native touch offsets must not carry over into the desktop GSAP transform.
+      viewport.scrollLeft = 0;
       const timeline = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
@@ -118,9 +120,12 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
       return () => { scrollTriggerRef.current = null; };
     };
     media.add("(min-width: 1025px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage));
-    media.add("(max-width: 1024px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage.parentElement ?? stage));
-    media.add("(prefers-reduced-motion: reduce)", () => {
-      const update = () => updateArrowVisibility(viewport.scrollLeft);
+
+    media.add("(max-width: 1024px), (prefers-reduced-motion: reduce)", () => {
+      const update = () => {
+        updateArrowVisibility(viewport.scrollLeft);
+        gsap.set(progress, { scaleX: distance() ? viewport.scrollLeft / distance() : 0 });
+      };
       viewport.addEventListener("scroll", update, { passive: true });
       update();
       return () => viewport.removeEventListener("scroll", update);
@@ -155,7 +160,7 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
       <div ref={stageRef} className="past-editions-stage">
         <div className="past-editions-divider" aria-hidden="true"><span ref={progressRef} /></div>
         <div className="past-editions-gallery">
-        <div id="past-editions-photos" ref={viewportRef} className="past-editions-viewport" tabIndex={0} role="region" aria-label="Past editions gallery">
+        <div id="past-editions-photos" ref={viewportRef} className="past-editions-viewport" data-lenis-prevent-touch tabIndex={0} role="region" aria-label="Past editions gallery">
           <div ref={trackRef} className="past-editions-track">
             {content.editions.map(edition => (
               <div className="past-editions-year" key={edition.year} role="group" aria-label={`${edition.year}: ${edition.title}`}>

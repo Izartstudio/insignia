@@ -16,6 +16,7 @@ import {
 import { sceneConfig } from "@/config/scene";
 import {
   getEndCameraPose,
+  getVideoFitDistance,
   getLCDWorldFrame,
   getStartCameraPose,
   smoothProgress,
@@ -78,10 +79,12 @@ export function createCamcorderTimeline(options: TimelineOptions) {
   const zoom = { value: 0 };
   const approach = new Vector3();
   const focus = new Vector3();
+  const videoDirection = new Vector3();
   let startPose = getStartCameraPose(camera, viewport.width, viewport.height, radius, halfHeight);
   let endPose = startPose;
   let endDistance = 0;
   let refreshFrame = 0;
+  let resizeTimer = 0;
   let headingVisible = false;
 
   const calculateTargets = () => {
@@ -90,7 +93,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
     modelGroup.rotation.y = rotation.finalY;
     modelGroup.updateWorldMatrix(true, true);
     const frame = getLCDWorldFrame(screen.root);
-    const calculatedEnd = getEndCameraPose(camera, frame, viewport.width, viewport.height);
+    const calculatedEnd = getEndCameraPose(camera, frame, viewport.width, viewport.height, viewport.width <= 1024 ? "camcorder" : "cover");
     endPose = calculatedEnd;
     endDistance = calculatedEnd.distance;
     approach.copy(frame.center).addScaledVector(frame.normal, endDistance * sceneConfig.camera.approachDistanceScale);
@@ -100,7 +103,10 @@ export function createCamcorderTimeline(options: TimelineOptions) {
   };
 
   const renderCamera = () => {
-    const progress = smoothProgress(Math.min(zoom.value / timing.fullscreenThreshold, 1));
+    const mobile = viewport.width <= 1024;
+    // Reach the framed camcorder early, leaving a final hold for the heading.
+    const progress = smoothProgress(Math.min(zoom.value / (mobile ? .72 : timing.fullscreenThreshold), 1));
+    section.style.setProperty("--hero-backdrop-opacity", String(mobile ? 1 : 1 - progress));
     // A single direct approach avoids the high waypoint and late correction.
     camera.position.lerpVectors(startPose.position, endPose.position, progress);
     // Center the LCD early, then keep looking at its center throughout the
@@ -109,13 +115,18 @@ export function createCamcorderTimeline(options: TimelineOptions) {
     focus.lerpVectors(startPose.target, endPose.target, focusProgress);
     camera.lookAt(focus);
     camera.fov = sceneConfig.camera.fov;
+    const fitDistance = getVideoFitDistance(camera, screen.root, focus, viewport.width, viewport.height);
+    if (fitDistance > camera.position.distanceTo(focus)) {
+      videoDirection.copy(camera.position).sub(focus).normalize();
+      camera.position.copy(focus).addScaledVector(videoDirection, fitDistance);
+    }
     camera.near = radius * sceneConfig.camera.nearRadiusRatio;
-    camera.far = Math.max(radius * (sceneConfig.camera.distanceInRadii + sceneConfig.camera.farRadiusPadding), startPose.position.distanceTo(startPose.target) + radius * sceneConfig.camera.farRadiusPadding);
+    camera.far = Math.max(camera.position.distanceTo(focus) + radius * sceneConfig.camera.farRadiusPadding, radius * (sceneConfig.camera.distanceInRadii + sceneConfig.camera.farRadiusPadding), startPose.position.distanceTo(startPose.target) + radius * sceneConfig.camera.farRadiusPadding);
     camera.updateProjectionMatrix();
-    if (!headingVisible && zoom.value >= sceneConfig.heading.revealThreshold) {
+    if (!headingVisible && zoom.value >= (mobile ? .76 : sceneConfig.heading.revealThreshold)) {
       headingVisible = true;
       heading?.reveal();
-    } else if (headingVisible && zoom.value <= sceneConfig.heading.hideThreshold) {
+    } else if (headingVisible && zoom.value <= (mobile ? .68 : sceneConfig.heading.hideThreshold)) {
       headingVisible = false;
       heading?.hide();
     }
@@ -129,7 +140,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
       (match) => {
         if (match.conditions?.reduced) {
           gsap.set(modelGroup.rotation, { y: rotation.finalY });
-          zoom.value = 0;
+          zoom.value = viewport.width <= 1024 ? 1 : 0;
           heading?.hide();
           renderCamera();
           return;
@@ -166,10 +177,21 @@ export function createCamcorderTimeline(options: TimelineOptions) {
     );
   }, section);
 
-  return () => {
+  const resize = () => {
+    // R3F has committed its new canvas size; update this pose without resetting scroll progress.
+    camera.aspect = viewport.width / Math.max(viewport.height, 1);
+    calculateTargets();
+    renderCamera();
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => ScrollTrigger.refresh(), 120);
+  };
+  const dispose = () => {
+    section.style.removeProperty("--hero-backdrop-opacity");
+    window.clearTimeout(resizeTimer);
     cancelAnimationFrame(refreshFrame);
     media.revert();
     context.revert();
     debug?.dispose();
   };
+  return Object.assign(dispose, { resize });
 }

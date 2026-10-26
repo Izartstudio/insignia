@@ -43,6 +43,33 @@ export const FullscreenHeading = forwardRef<FullscreenHeadingHandle>(function Fu
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const element = root.current;
+    const heading = element?.querySelector("h1");
+    if (!element || !heading) return;
+    let disposed = false;
+    const fit = () => {
+      if (disposed || heading.clientWidth === 0) return;
+      // Start with the responsive CSS size; only shrink when it exceeds 3 lines.
+      heading.style.removeProperty("font-size");
+      const base = parseFloat(getComputedStyle(heading).fontSize);
+      const fits = () => heading.scrollHeight <= parseFloat(getComputedStyle(heading).lineHeight) * 3 + 1;
+      if (fits()) return;
+      let low = 1, high = base;
+      for (let i = 0; i < 18; i++) {
+        const size = (low + high) / 2;
+        heading.style.fontSize = `${size}px`;
+        if (fits()) low = size; else high = size;
+      }
+      heading.style.fontSize = `${Math.floor(low * 10) / 10}px`;
+    };
+    const observer = new ResizeObserver(fit);
+    observer.observe(element);
+    void document.fonts.ready.then(fit);
+    fit();
+    return () => { disposed = true; observer.disconnect(); };
+  }, []);
+
   return (
     <div ref={root} className="fullscreen-heading">
       <h1>

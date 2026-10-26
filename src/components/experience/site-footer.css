@@ -52,3 +52,11 @@
  .footer-brand a { display: block; }
  .footer-brand p { line-height: 1.5; }
 }
+
+.site-footer-content > *, .footer-contact > div > * { min-width: 0; }
+.footer-contact { overflow-wrap: anywhere; }
+.footer-brand { max-width: 100%; }
+@media (max-width: 360px) {
+ .site-footer-content { padding-inline: 18px; column-gap: 18px; }
+ .footer-social { gap: 30px; }
+}

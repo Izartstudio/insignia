@@ -14,13 +14,13 @@ const photo = defineType({
   name: 'spatialPhoto', title: 'Gallery photo', type: 'object',
   fields: [
     defineField({ name: 'image', title: 'Image', type: 'image', options: { hotspot: true }, validation: rule => rule.required() }),
-    defineField({ name: 'alt', title: 'Image description', type: 'string', validation: rule => rule.required() }),
-    defineField({ name: 'placement', title: 'Canvas placement', type: 'spatialPlacement', validation: rule => rule.required() }),
-    defineField({ name: 'depthOffset', title: 'Depth offset', type: 'number', initialValue: 0 }),
-    defineField({ name: 'referenceCrop', title: 'Use reference crop', type: 'boolean', initialValue: false }),
-    defineField({ name: 'name', title: 'Detail card name', type: 'string', validation: rule => rule.required() }),
-    defineField({ name: 'bio', title: 'Detail card description', type: 'text', rows: 3, validation: rule => rule.required() }),
-    defineField({ name: 'learnMoreUrl', title: 'Learn more URL', type: 'url', validation: rule => rule.required().uri({ scheme: ['http', 'https'] }) }),
+    defineField({ name: 'alt', title: 'Image description (optional)', type: 'string' }),
+    defineField({ name: 'placement', title: 'Legacy placement', type: 'spatialPlacement', hidden: true }),
+    defineField({ name: 'depthOffset', title: 'Depth offset', type: 'number', initialValue: 0, hidden: true }),
+    defineField({ name: 'referenceCrop', title: 'Use reference crop', type: 'boolean', initialValue: false, hidden: true }),
+    defineField({ name: 'name', title: 'Name (optional)', type: 'string' }),
+    defineField({ name: 'bio', title: 'Description (optional)', type: 'text', rows: 3 }),
+    defineField({ name: 'learnMoreUrl', title: 'Learn more URL (optional)', type: 'url', validation: rule => rule.uri({ scheme: ['http', 'https'] }) }),
   ],
   preview: { select: { title: 'name', subtitle: 'alt', media: 'image' } },
 });
@@ -33,7 +33,15 @@ const category = defineType({
     defineField({ name: 'heading', type: 'string', validation: rule => rule.required() }),
     defineField({ name: 'subtitle', type: 'string' }),
     defineField({ name: 'radius', title: 'Background glow radius', type: 'number', validation: rule => rule.required().greaterThan(0) }),
-    defineField({ name: 'photos', type: 'array', of: [defineArrayMember({ type: 'spatialPhoto' })], validation: rule => rule.required().min(1) }),
+    defineField({ name: 'photos', title: 'Gallery images (up to 10)', type: 'array',
+      description: 'Add or replace images here. Drag cards to reorder. All images automatically fit one screen; coordinates are not needed. Desktop and Mobile galleries are edited separately.',
+      of: [defineArrayMember({ type: 'spatialPhoto' })],
+      validation: rule => rule.required().min(1).max(10).custom(photos => {
+        if (!Array.isArray(photos)) return true;
+        const refs = photos.map(photo => (photo as { image?: { asset?: { _ref?: string } } })?.image?.asset?._ref).filter(Boolean);
+        return new Set(refs).size === refs.length || 'Use each image only once in this category.';
+      }),
+    }),
   ],
 });
 

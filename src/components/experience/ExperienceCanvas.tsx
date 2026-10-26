@@ -35,13 +35,7 @@ export default function ExperienceCanvas({ heroRef, fullscreenHeadingRef, onRead
           <SceneReady onReady={onReady} />
         </Suspense>
       </Canvas>
-      <div className="film-controls">
-        {(video.status === "blocked" || video.status === "error") && (
-          <button type="button" onClick={video.resume}>
-            {video.status === "error" ? "Retry film" : "Play film"}
-          </button>
-        )}
-      </div>
+
     </>
   );
 }

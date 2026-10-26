@@ -1,5 +1,5 @@
 import { createClient, defineQuery } from 'next-sanity';
-import { galleryStates, type GalleryPhoto, type GalleryState, type Placement } from '@/content/spatial-gallery';
+import { automaticGalleryPlacement, galleryStates, type GalleryPhoto, type GalleryState, type Placement } from '@/content/spatial-gallery';
 
 export type GalleryCopy = { dialogTitle: string; explorePrompt: string; touchExplorePrompt: string; nextLabel: string; learnMoreLabel: string; entryTitle: string; entryNote: string; enterLabel: string; copyLinkLabel: string };
 export type SpatialGalleryContent = { desktop: GalleryState[]; mobile: GalleryState[]; desktopCopy: GalleryCopy; mobileCopy: GalleryCopy };
@@ -32,23 +32,22 @@ function normalize(document: unknown, mobile: boolean): GalleryState[] {
   const states = galleryStates.map(defaultState => {
     const raw = document[defaultState.id];
     if (!isObject(raw) || !Array.isArray(raw.photos) || raw.photos.length === 0) return null;
-    const photos = raw.photos.map((item): GalleryPhoto | null => {
+    const photos = raw.photos.slice(0, 10).map((item, index): GalleryPhoto | null => {
       if (!isObject(item) || typeof item.src !== 'string' || !item.src.startsWith('https://')) return null;
-      const position = placement(item.placement);
-      if (!position) return null;
+      const position = placement(item.placement) ?? automaticGalleryPlacement(index);
       return {
         src: item.src,
-        alt: text(item.alt, 'Insignia attendee'),
+        alt: text(item.alt, text(item.name, 'Insignia attendee')),
         layout: position,
         ...(mobile ? { mobileLayout: position } : {}),
         depthOffset: typeof item.depthOffset === 'number' && Number.isFinite(item.depthOffset) ? item.depthOffset : 0,
         referenceCrop: item.referenceCrop === true,
-        name: text(item.name, 'Lorem Ipsum'),
-        bio: text(item.bio, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
-        learnMoreUrl: typeof item.learnMoreUrl === 'string' && /^https?:\/\//.test(item.learnMoreUrl) ? item.learnMoreUrl : 'https://example.com',
+        name: text(item.name, ''),
+        bio: text(item.bio, ''),
+        learnMoreUrl: typeof item.learnMoreUrl === 'string' && /^https?:\/\//.test(item.learnMoreUrl) ? item.learnMoreUrl : undefined,
       };
-    });
-    if (photos.some(photo => photo === null)) return null;
+    }).filter((photo): photo is GalleryPhoto => photo !== null);
+    if (!photos.length) return null;
     return {
       ...defaultState,
       category: text(raw.category, defaultState.category),
@@ -59,7 +58,7 @@ function normalize(document: unknown, mobile: boolean): GalleryState[] {
       photos: photos as GalleryPhoto[],
     };
   });
-  return states.some(state => state === null) ? galleryStates : states as GalleryState[];
+  return states.map((state, index) => state ?? galleryStates[index]);
 }
 
 function normalizeCopy(document: unknown): GalleryCopy {

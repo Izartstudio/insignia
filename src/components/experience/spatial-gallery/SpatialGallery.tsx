@@ -14,6 +14,7 @@ import type { GalleryMotion } from './GalleryEnvironment';
 import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog';
 import './spatial-gallery.css';
 import { lockPageScroll } from './scrollLock';
+import { canPanGallery, resetStaticGalleryPan } from './interaction';
 
 // Share the landing tolerance between the instruction and pointer interaction.
 function getExplorableState(travel: number, count: number) {
@@ -64,9 +65,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       setMobileEntered(false);
       revealTimer.current = window.setTimeout(() => {
         document.body.classList.remove('gallery-mobile-locked');
-        setMobileClosing(false);
-        closingRef.current = false;
+        // Re-measure after releasing the fixed gallery, then move under the fade.
+        ScrollTrigger.refresh();
         afterClose?.();
+        revealTimer.current = window.setTimeout(() => {
+          setMobileClosing(false);
+          closingRef.current = false;
+        }, 100);
       }, 40);
     }, 320);
   }, []);
@@ -127,12 +132,12 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
   const animated = enhanced && !failed;
 
   useLayoutEffect(() => {
-    if (!animated) return;
+    if (!animated || mobileControls) return;
     // Warm later categories alongside the eagerly initialized WebGL canvas.
     states.forEach((state, index) => state.photos.forEach(photo => {
       preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
     }));
-  }, [animated, states]);
+  }, [animated, states, mobileControls]);
 
 
   useLayoutEffect(() => {
@@ -159,9 +164,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     let lastExplorableState: number | undefined;
     const syncPan = () => {
 
-      const explorableState = getExplorableState(motion.current.travel, states.length);
+      const activeState = getExplorableState(motion.current.travel, states.length);
+      const explorableState = activeState >= 0 && canPanGallery(states[activeState], mobileControls) ? activeState : -1;
+      states.forEach((state, index) => resetStaticGalleryPan(state, panOffsets.current[index], mobileControls));
+      hints.forEach((hint, index) => {
+        hint.dataset.visible = String(index === activeState);
+      });
       if (explorableState !== lastExplorableState) {
-        hints.forEach((hint, index) => { hint.dataset.visible = String(index === explorableState); });
         section.classList.toggle('is-explorable', explorableState >= 0);
         if (explorableState < 0) stopMomentum();
         lastExplorableState = explorableState;
@@ -233,7 +242,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           stopMomentum();
           release();
           if (index >= states.length) {
-            exitMobile.current?.(() => section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+            exitMobile.current?.(() => section.parentElement?.nextElementSibling?.scrollIntoView({ behavior: 'instant', block: 'start' }));
             return;
           }
           const target = Math.max(0, index);
@@ -305,8 +314,13 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (!drag || event.pointerId !== drag.id) return;
       if (getExplorableState(motion.current.travel, states.length) !== drag.state) { release(); return; }
       const dx = event.clientX-drag.x, dy = event.clientY-drag.y;
+      if (!canPanGallery(states[drag.state], mobileControls)) {
+        // Still distinguish a tap from a swipe when movement is disabled.
+        if (Math.hypot(dx, dy) >= galleryConfig.drag.intentPixels) drag.captured = true;
+        return;
+      }
       if (!drag.captured) {
-        if (!mobileControls && Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
+        if (Math.hypot(dx,dy) < galleryConfig.drag.intentPixels) return;
         drag.captured = true;
         motion.current.dragging = true;
         if (!section.hasPointerCapture(event.pointerId)) section.setPointerCapture(event.pointerId);
@@ -408,7 +422,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     {animated && <>
       <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
         <GalleryBoundary onFailure={onFailure}>
-          {<Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
+          {ready && (!mobileControls || mobileEntered) && <Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
             <SpatialGalleryScene motion={motion} onFailure={onFailure} states={states} mobileControls={mobileControls} />
           </Canvas>}
@@ -446,7 +460,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           <div className={`spatial-heading ${index === 0 ? 'is-first' : ''}`}>
             <span className="spatial-eyebrow">{state.category}</span>
             <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-        <div className="spatial-explore" data-visible="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"><path d="M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3" /></svg>{copy.explorePrompt}</div>
+        <div className="spatial-explore" data-visible="false"><img src="/assets/insignia/gallery-click.svg" width="18" height="18" alt="" aria-hidden="true" />{mobileControls ? "Tap on an image to know more" : "Click on the image to know more"}</div>
           </div>
         </div>)}
         <div className="spatial-progress">{states.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>
