@@ -14,7 +14,6 @@ import type { GalleryMotion } from './GalleryEnvironment';
 import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog';
 import './spatial-gallery.css';
 import { lockPageScroll } from './scrollLock';
-import { installGalleryScrollSnap } from './scrollSnap';
 import { canPanGallery, resetStaticGalleryPan } from './interaction';
 
 // Share the landing tolerance between the instruction and pointer interaction.
@@ -159,16 +158,14 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     if (!animated || !section) return;
     gsap.registerPlugin(ScrollTrigger);
     const unlockMobile = () => document.body.classList.remove('gallery-mobile-locked');
-    let desktopTimeline: gsap.core.Timeline | null = null;
-    let mobileIndex = preview ?? 0;
     let mobileTween: gsap.core.Tween | null = null;
     let momentumFrame = 0;
     const stopMomentum = () => { cancelAnimationFrame(momentumFrame); momentumFrame = 0; };
     const hints = Array.from(section.querySelectorAll<HTMLElement>('.spatial-explore'));
     let lastExplorableState: number | undefined;
     const syncPan = () => {
-
       if (!mobileControls) setDesktopState(Math.max(0, Math.min(states.length - 1, Math.round(motion.current.travel))));
+
       const activeState = getExplorableState(motion.current.travel, states.length);
       const explorableState = activeState >= 0 && canPanGallery(states[activeState], mobileControls) ? activeState : -1;
       states.forEach((state, index) => resetStaticGalleryPan(state, panOffsets.current[index], mobileControls));
@@ -207,11 +204,10 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           // Measure upstream pins first, regardless of asynchronous mount order.
           refreshPriority: 20,
           trigger: section, start: 'top top', end: () => `+=${section.clientHeight * motionProfile.scrollViewports}`,
-          pin: true, pinSpacing: false, scrub: true, anticipatePin: 1, invalidateOnRefresh: true,
+          pin: true, pinSpacing: false, scrub: motionProfile.scrub, anticipatePin: 1, invalidateOnRefresh: true,
         },
         onUpdate: syncPan,
       });
-      if (!mobileControls) desktopTimeline = timeline;
       states.forEach((state, index) => {
         const start = motionProfile.stops[index];
         const exit = motionProfile.exits[index];
@@ -231,7 +227,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (mobileControls) {
         const initial = preview ?? 0;
         let currentMobileState = initial;
-        mobileIndex = initial;
         timeline.seek(motionProfile.stops[initial], false);
         setMobileState(initial);
         resetMobile.current = () => {
@@ -240,13 +235,12 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           gsap.set(overlays, { autoAlpha: 0, y: 0 });
           gsap.set(overlays[0], { autoAlpha: 1 });
           currentMobileState = 0;
-          mobileIndex = 0;
           setMobileState(0);
           motion.current.travel = 0;
           syncPan();
         };
         navigateMobile.current = index => {
-          if (motion.current.paused || closingRef.current || mobileTween?.isActive()) return;
+          if (motion.current.paused || closingRef.current) return;
           stopMomentum();
           release();
           if (index >= states.length) {
@@ -257,7 +251,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           mobileTween?.kill();
           const isDirectJump = Math.abs(target - currentMobileState) > 1;
           currentMobileState = target;
-          mobileIndex = target;
           setMobileState(target);
           if (isDirectJump) {
             timeline.seek(motionProfile.stops[target], true);
@@ -280,9 +273,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       }
 
     }, section);
-    const removeScrollSnap = preview !== null ? () => {} : installGalleryScrollSnap(section, desktopTimeline, motionProfile.stops, mobileControls ? direction => {
-      if (!motion.current.paused && !mobileTween?.isActive() && !closingRef.current) navigateMobile.current?.(Math.max(0, mobileIndex + direction));
-    } : undefined);
     syncPan();
     const observer = new IntersectionObserver(([entry]) => {
       motion.current.active = entry.isIntersecting;
@@ -358,15 +348,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (event.pointerId !== drag?.id) return;
       const ended = drag;
       release();
-      if (mobileControls && ended?.touch && ended.captured && !canPanGallery(states[ended.state], mobileControls)) {
-        const dy = event.clientY - ended.y;
-        const dx = event.clientX - ended.x;
-        if (Math.abs(dy) >= 30 && Math.abs(dy) > Math.abs(dx) && !mobileTween?.isActive()) {
-          const direction = dy < 0 ? 1 : -1;
-          navigateMobile.current?.(Math.max(0, mobileIndex + direction));
-        }
-        return;
-      }
       if (ended && !ended.captured && Math.hypot(event.clientX - ended.x, event.clientY - ended.y) < galleryConfig.drag.intentPixels) {
         const selected = motion.current.pickPhoto?.(event.clientX, event.clientY);
         if (selected) { stopMomentum(); setSelection(selected); }
@@ -413,7 +394,6 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     section.addEventListener('pointerleave', leave);
     const refresh = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     return () => {
-      removeScrollSnap();
       unlockMobile();
       navigateMobile.current = null;
       cancelInteraction.current = null;
