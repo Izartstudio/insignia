@@ -86,11 +86,17 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
     if (!stage || !viewport || !track || !progress) return;
     gsap.registerPlugin(ScrollTrigger);
     const media = gsap.matchMedia();
-    const distance = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
+    let measuredDistance = Math.max(0, track.scrollWidth - viewport.clientWidth);
+    const measureDistance = () => { measuredDistance = Math.max(0, track.scrollWidth - viewport.clientWidth); };
+    const distance = () => measuredDistance;
+    let previousArrow: boolean | undefined;
+    let nextArrow: boolean | undefined;
     const updateArrowVisibility = (offset: number) => {
       const maxDistance = distance();
-      setCanScrollPrevious(offset > 2);
-      setCanScrollNext(maxDistance - offset > 2);
+      const previous = offset > 2;
+      const next = maxDistance - offset > 2;
+      if (previous !== previousArrow) { previousArrow = previous; setCanScrollPrevious(previous); }
+      if (next !== nextArrow) { nextArrow = next; setCanScrollNext(next); }
     };
     const createTimeline = (trigger: HTMLElement) => {
       // Native touch offsets must not carry over into the desktop GSAP transform.
@@ -109,6 +115,7 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
           scrub: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          onRefreshInit: measureDistance,
           onRefresh: self => updateArrowVisibility(self.progress * distance()),
           onUpdate: self => updateArrowVisibility(self.progress * distance()),
         },
@@ -122,25 +129,31 @@ export function PastEditions({ content }: { content: PastEditionsContent }) {
     media.add("(min-width: 1025px) and (prefers-reduced-motion: no-preference)", () => createTimeline(stage));
 
     media.add("(max-width: 1024px), (prefers-reduced-motion: reduce)", () => {
+      let scrollFrame = 0;
+      const setProgress = gsap.quickSetter(progress, 'scaleX');
       const update = () => {
+        scrollFrame = 0;
         updateArrowVisibility(viewport.scrollLeft);
-        gsap.set(progress, { scaleX: distance() ? viewport.scrollLeft / distance() : 0 });
+        setProgress(distance() ? viewport.scrollLeft / distance() : 0);
       };
-      viewport.addEventListener("scroll", update, { passive: true });
+      const onScroll = () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(update); };
+      viewport.addEventListener("scroll", onScroll, { passive: true });
       update();
-      return () => viewport.removeEventListener("scroll", update);
+      return () => { cancelAnimationFrame(scrollFrame); viewport.removeEventListener("scroll", onScroll); };
     });
     // Measure only on layout changes, never on animation frames.
     let frame = 0;
     let previousWidth = -1;
     const observer = new ResizeObserver(() => {
+      measureDistance();
       const width = distance();
       if (width === previousWidth) return;
       previousWidth = width;
       cancelAnimationFrame(frame);
       const trigger = scrollTriggerRef.current;
       updateArrowVisibility(trigger ? trigger.progress * width : viewport.scrollLeft);
-      frame = requestAnimationFrame(() => ScrollTrigger.refresh(true));
+      // Native horizontal scrolling has no pin to refresh on image/layout changes.
+      if (trigger) frame = requestAnimationFrame(() => ScrollTrigger.refresh(true));
     });
     observer.observe(viewport);
     observer.observe(track);

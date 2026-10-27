@@ -40,6 +40,8 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
     const owned: Texture[] = [];
     const loader = new TextureLoader();
     let publishFrame = 0;
+    let uploadFrame = 0;
+    const uploads: { texture: Texture; worldId: string; src: string }[] = [];
     const pending: Record<string, Record<string, Texture>> = {};
     const publish = () => {
       publishFrame = 0;
@@ -52,6 +54,16 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
         return next;
       });
       invalidate();
+    };
+    const uploadNext = () => {
+      uploadFrame = 0;
+      if (disposed) return;
+      const next = uploads.shift();
+      if (!next) return;
+      gl.initTexture(next.texture);
+      (pending[next.worldId] ??= {})[next.src] = next.texture;
+      if (!publishFrame) publishFrame = requestAnimationFrame(publish);
+      if (uploads.length) uploadFrame = requestAnimationFrame(uploadNext);
     };
     let initialFailures = 0;
     // Publish decoded/uploaded photos as they arrive, batching updates to one per frame.
@@ -73,6 +85,13 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
             texture.minFilter = LinearFilter;
           }
           owned.push(texture);
+          if (mobileControls) {
+            // Spread GPU uploads across frames instead of freezing touch input
+            // when several downloaded images finish decoding together.
+            uploads.push({ texture, worldId: world.id, src: photo.src });
+            if (!uploadFrame) uploadFrame = requestAnimationFrame(uploadNext);
+            return;
+          }
           gl.initTexture(texture);
           (pending[world.id] ??= {})[photo.src] = texture;
           if (!publishFrame) publishFrame = requestAnimationFrame(publish);
@@ -86,6 +105,8 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
     return () => {
       disposed = true;
       cancelAnimationFrame(publishFrame);
+      cancelAnimationFrame(uploadFrame);
+      uploads.length = 0;
       owned.forEach(texture => texture.dispose());
     };
   }, [gl, invalidate, onFailure, states, mobileControls]);

@@ -9,9 +9,14 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 export function SmoothScrolling() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
+    // Browser toolbar expansion is not a layout/orientation change. Re-pinning
+    // on those height-only mobile resize events causes visible scroll jumps.
+    ScrollTrigger.config({ ignoreMobileResize: true });
     const media = gsap.matchMedia();
 
-    media.add("(prefers-reduced-motion: no-preference)", () => {
+    // Keep touch scrolling and inertia owned by the mobile browser. ScrollTrigger
+    // listens to native scroll directly; Lenis is only needed on desktop.
+    media.add("(min-width: 1025px) and (prefers-reduced-motion: no-preference)", () => {
       const lenis = new Lenis({
         autoRaf: false,
         lerp: 0.1,

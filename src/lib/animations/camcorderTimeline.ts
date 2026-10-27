@@ -85,6 +85,7 @@ export function createCamcorderTimeline(options: TimelineOptions) {
   let endDistance = 0;
   let refreshFrame = 0;
   let resizeTimer = 0;
+  let measuredWidth = viewport.width;
   let headingVisible = false;
 
   const calculateTargets = () => {
@@ -182,6 +183,11 @@ export function createCamcorderTimeline(options: TimelineOptions) {
     camera.aspect = viewport.width / Math.max(viewport.height, 1);
     calculateTargets();
     renderCamera();
+    const widthChanged = Math.abs(viewport.width - measuredWidth) > 1;
+    measuredWidth = viewport.width;
+    // Toolbar/keyboard height changes must not refresh every pinned section.
+    // Still update the camera above, and refresh for rotation or desktop resize.
+    if (viewport.width <= 1024 && !widthChanged) return;
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => ScrollTrigger.refresh(), 120);
   };
