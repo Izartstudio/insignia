@@ -57,7 +57,7 @@ export const galleryStates: GalleryState[] = [
         "depthOffset": 0.3,
         "referenceCrop": true,
         "name": "Padma Shri SS Rajamouli",
-        "bio": "Award Winning Indian Filmmaker & Time's List Of The 100 Most Influential People In The World\nDirector - Baahbali Franchise",
+        "bio": "Award Winning Indian Filmmaker & Time's List Of The 100 Most Influential People In The World\nDirector - Baahubali Franchise",
         "learnMoreUrl": "https://en.wikipedia.org/wiki/S._S._Rajamouli"
       },
       {
