@@ -43,9 +43,9 @@ export function InsigniaExperience({ galleryContent, pastEditionsContent }: { ga
   } as CSSProperties;
 
   return (
-    <main aria-label="INSIGNIA camcorder experience">
+    <main aria-label="Insignia by Lumikai — Interactive Media and Gaming Summit">
       <div className="hero-track" style={trackStyle}>
-        <section ref={heroRef} className="experience">
+        <section id="insignia-hero" ref={heroRef} className="experience">
           <HeroBackground />
           <div className="canvas-shell" role="img" aria-label="An open-LCD camcorder rotates from a three-quarter view to a rear view as you scroll">
             <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} fullscreenHeadingRef={fullscreenHeadingRef} /><HeroLoader ready={ready} /></SceneErrorBoundary>

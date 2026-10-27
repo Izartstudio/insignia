@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import type { GalleryState } from '@/content/spatial-gallery';
 import type { GalleryCopy } from '@/sanity/galleryContent';
 import { lockPageScroll } from './scrollLock';
+import { trackEvent } from '@/lib/analytics';
 
 export type GallerySelection = { worldId: string; photoIndex: number };
 export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, copy }: { selection: GallerySelection; onClose: () => void; onCloseStart: () => void; states: GalleryState[]; copy: GalleryCopy }) {
@@ -62,6 +63,7 @@ export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, c
   };
 
   useLayoutEffect(() => {
+    trackEvent('portrait_view', { gallery_state: world.id, portrait_index: entries[index].photoIndex + 1 });
     animation.current?.cancel();
     animation.current = content.current!.animate([{ opacity: 0 }, { opacity: 1 }], { duration: duration(260), easing: 'ease-out' });
   }, [index]);

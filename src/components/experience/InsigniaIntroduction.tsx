@@ -98,7 +98,7 @@ export function InsigniaIntroduction() {
 
   return (
     <div className="introduction-track">
-    <section ref={sectionRef} className="introduction" aria-labelledby="introduction-title">
+    <section id="about-insignia" ref={sectionRef} className="introduction" aria-labelledby="introduction-title">
       <h2 id="introduction-title" className="sr-only">About Insignia</h2>
       <ol className="sr-only introduction-accessible-list">
         {introductionSlides.map((slide) => <li key={slide.number}>{slide.text}</li>)}

@@ -3,12 +3,17 @@ import "lenis/dist/lenis.css";
 import "./globals.css";
 import "@/components/layout/ui.css";
 import { SiteChrome } from '@/components/layout/SiteChrome';
-const description = "Insignia by Lumikai brings together leaders, founders, industry experts and investors for India’s signature interactive media event and annual LP summit.";
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { indexableDeployment, siteDescription as description, siteTitle, siteUrl } from '@/config/site';
 export const metadata: Metadata = {
-  title: "Insignia — Interactive Media & Gaming Summit | Lumikai",
+  metadataBase: new URL(siteUrl),
+  title: siteTitle,
   description,
-  openGraph: { title: "Insignia — Lumikai", description, type: "website", locale: "en_IN", siteName: "Lumikai" },
-  twitter: { card: "summary", title: "Insignia — Lumikai", description },
+  alternates: { canonical: '/' },
+  robots: { index: indexableDeployment, follow: true },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || undefined },
+  openGraph: { title: "Insignia — Lumikai", description, url: '/', type: "website", locale: "en_IN", siteName: "Lumikai", images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Insignia by Lumikai' }] },
+  twitter: { card: "summary_large_image", title: "Insignia — Lumikai", description, images: ['/opengraph-image'] },
 };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en">
@@ -16,6 +21,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <link rel="preload" href="/fonts/aeonik-regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       <link rel="preload" href="/fonts/aeonik-bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     </head>
-    <body><SiteChrome />{children}</body>
+    <body><SiteChrome />{children}<GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-FBKLWYJ4WZ'} enabled={process.env.NODE_ENV === 'production' && indexableDeployment} /></body>
   </html>;
 }

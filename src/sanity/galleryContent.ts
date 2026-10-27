@@ -86,6 +86,8 @@ export async function getSpatialGalleryContent(): Promise<SpatialGalleryContent>
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
       apiVersion: '2026-10-01',
       useCdn: true,
+      timeout: 10000,
+      maxRetries: 1,
       perspective: 'published',
     });
     const documents = await client.fetch(query, {}, { next: { revalidate: 60 } });
@@ -97,7 +99,7 @@ export async function getSpatialGalleryContent(): Promise<SpatialGalleryContent>
       mobileCopy: normalizeCopy(byId.spatialGalleryMobile),
     };
   } catch (error) {
-    console.error('Unable to load Sanity spatial gallery:', error);
+    console.warn('Using spatial gallery fallback:', error instanceof Error ? error.message : 'CMS request failed');
     return fallback;
   }
 }

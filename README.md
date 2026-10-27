@@ -1,40 +1,38 @@
-# INSIGNIA
+# Insignia by Lumikai
 
-Stage 1 scroll-driven camcorder hero for Lumikai. Next.js App Router, strict TypeScript, React Three Fiber, Drei, Three.js and Tailwind CSS. GSAP and ScrollTrigger drive one reversible, pinned hero rotation.
+Event website built with Next.js App Router, strict TypeScript, React, Three.js/React Three Fiber, GSAP ScrollTrigger, native mobile scrolling, Lenis on desktop, and Sanity CMS.
 
-## Run
+## Development
 
 ```sh
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-Open the URL printed by Next.js. Production checks: `npm run typecheck` and `npm run build`. Reproduce the model inventory with `npm run inspect:model`.
+Configure Sanity using [the CMS guide](docs/sanity-gallery.md). The Studio is available separately at https://insigniacms.sanity.studio/ and embedded at `/studio`. Seed content with `npm run sanity:seed`; write tokens are for local/server tooling only.
+
+## Production
+
+```sh
+npm run typecheck
+npm test
+npm run build
+npm start
+npm run check:production -- http://localhost:3000
+npm audit --omit=dev
+```
+
+[Production configuration, SEO, analytics events, Webflow cross-domain setup and release checks](docs/production-readiness.md).
+
+Public URL: https://insignia-lumikai.vercel.app/. Set `NEXT_PUBLIC_SITE_URL` and redeploy when connecting a custom domain. GA4 uses `G-FBKLWYJ4WZ` and is disabled in development, on Vercel previews and on Studio/development routes.
 
 ## Architecture
 
-- `InsigniaExperience`: client-only canvas loading, page shell and error boundary.
-- `ExperienceCanvas`: persistent demand-rendered canvas, DPR cap, loading and WebGL fallback.
-- `CamcorderModel`: cached GLB, cloned object hierarchy, original shared materials/geometries, measured parent centering.
-- `CameraRig`: fixed view and responsive framing for the Y-axis rotation. Updates only on camera/bounds/viewport changes.
-- `SceneLighting`: hemisphere and directional lights without shadow maps.
-- `src/config/scene.ts`: camera, lighting, model URL and renderer settings.
-- `docs/model-inspection.md`: asset evidence and unresolved LCD structure.
+- `src/app`: server-rendered content, metadata, structured data, robots, sitemap and social share image.
+- `src/components/experience`: hero/video, About Insignia, spatial gallery, photo dialog and past editions.
+- `src/components/three` and `src/lib/three`: model/camera control, LCD video texture, antialiased video boundaries and WebGL lifecycle.
+- `src/components/analytics` and `src/lib/analytics.ts`: deferred Google tag, section/interaction/video coverage.
+- `src/sanity`: published CMS queries, response normalization and local fallback content.
 
-The useGLTF cache owns shared geometry/material/texture resources; model unmounts deliberately do not dispose those cached resources. The canvas owns its renderer lifecycle. The GSAP timeline invalidates the demand-rendered canvas while scrubbing. No frame-by-frame React state, manual controls, remote textures, or postprocessing are used. ScrollTrigger and reduced-motion listeners are reverted on unmount.
-
-The source GLB is copied unchanged. No LCD part is targeted until its identity and pivot are verified. Video playback, LCD zoom and deployment are outside this phase. See `docs/hero-animation.md` for Stage 1 settings.
-
-## Verification
-
-Production build and strict TypeScript checks passed. Dependency installation reported zero known vulnerabilities after upgrading to Next.js 16.4.0. SHA-256 comparison confirms the public GLB matches the source byte-for-byte.
-
-Browser access to the local preview was denied in this session, so rendered appearance, loading/error behavior and physical-device responsiveness still require visual QA. Framing accounts for aspect ratio mathematically; no claim of device testing is made.
-
-## Current asset
-
-The replacement `/Users/manyaagureja/Downloads/camcorder-2.glb` is copied unchanged to `public/models/camcorder.glb`. Its URL includes a content-hash revision to invalidate the previous useGLTF/browser cache. It contains 199,999 triangles and is 7.34 MiB; mobile transfer performance needs measurement before release. Its original `KHR_materials_unlit` material intentionally does not respond to scene lighting. Embedded metadata credits omegadarling under CC BY 4.0; attribution is displayed on the page. LCD geometry and hinge control remain unverified.
-
-## Sanity CMS
-
-The embedded Studio lives at `/studio`. Follow [the Sanity setup guide](docs/sanity-gallery.md) to connect your project, configure CORS, seed all three content documents, and deploy. Start by filling in `.env.local`, then run `npm run sanity:seed`.
+The canvases render on demand and release owned GPU resources on cleanup. CMS/image failures use local fallbacks. Reduced-motion and accessible HTML alternatives are retained. The camcorder model is credited to omegadarling under CC BY 4.0; see the model inspection/animation documents for source and implementation details.

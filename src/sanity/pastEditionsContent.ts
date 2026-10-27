@@ -74,11 +74,13 @@ export async function getPastEditionsContent(): Promise<PastEditionsContent> {
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
       apiVersion: '2026-10-01',
       useCdn: true,
+      timeout: 10000,
+      maxRetries: 1,
       perspective: 'published',
     });
     return normalize(await client.fetch(query, {}, { next: { revalidate: 60 } }));
   } catch (error) {
-    console.error('Unable to load Sanity Past Editions:', error);
+    console.warn('Using Past Editions fallback:', error instanceof Error ? error.message : 'CMS request failed');
     return fallbackPastEditionsContent;
   }
 }

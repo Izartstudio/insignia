@@ -15,6 +15,7 @@ import { GalleryPhotoDialog, type GallerySelection } from './GalleryPhotoDialog'
 import './spatial-gallery.css';
 import { lockPageScroll } from './scrollLock';
 import { canPanGallery, resetStaticGalleryPan } from './interaction';
+import { trackEvent } from '@/lib/analytics';
 
 // Share the landing tolerance between the instruction and pointer interaction.
 function getExplorableState(travel: number, count: number) {
@@ -169,6 +170,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       if (!mobileControls && desktopState !== lastDesktopState) {
         lastDesktopState = desktopState;
         setDesktopState(desktopState);
+        if (motion.current.active) trackEvent('gallery_state_view', { gallery_state: states[desktopState].id, device_layout: 'desktop' });
       }
 
       const activeState = getExplorableState(motion.current.travel, states.length);
@@ -258,6 +260,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           mobileTween?.kill();
           const isDirectJump = Math.abs(target - currentMobileState) > 1;
           currentMobileState = target;
+          trackEvent('gallery_state_view', { gallery_state: states[target].id, device_layout: 'mobile' });
           setMobileState(target);
           if (isDirectJump) {
             timeline.seek(motionProfile.stops[target], true);

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { ClampToEdgeWrapping, LinearFilter, SRGBColorSpace, TextureLoader, VideoTexture, type Texture } from "three";
 import { lcdConfig } from "./lcd-config";
+import { trackEvent } from '@/lib/analytics';
 
 export type LCDVideoResource = { video: HTMLVideoElement; texture: VideoTexture; poster: Texture };
 export type VideoStatus = "loading" | "playing" | "paused" | "blocked" | "error";
@@ -15,6 +16,18 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
   useEffect(() => {
     let disposed = false;
     let heroVisible = false;
+    let reportedStart = false;
+    const reportedProgress = new Set<number>();
+    const reportProgress = () => {
+      if (!shouldPlay() || !Number.isFinite(video.duration) || video.duration <= 0) return;
+      const percent = video.currentTime / video.duration * 100;
+      [10, 25, 50, 75, 90].forEach(milestone => {
+        if (percent >= milestone && !reportedProgress.has(milestone)) {
+          reportedProgress.add(milestone);
+          trackEvent('video_progress', { video_title: 'Insignia Showreel', video_percent: milestone, video_duration: Math.round(video.duration), video_provider: 'self_hosted' });
+        }
+      });
+    };
     const shouldPlay = () => heroVisible && !document.hidden;
     const video = document.createElement("video");
     video.autoplay = true;
@@ -52,6 +65,10 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
     const playing = () => {
       if (disposed) return;
       if (!shouldPlay()) { video.pause(); return; }
+      if (!reportedStart) {
+        reportedStart = true;
+        trackEvent('video_start', { video_title: 'Insignia Showreel', video_provider: 'self_hosted' });
+      }
       setHasFrame(true);
       setStatus("playing");
     };
@@ -69,6 +86,7 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
       }
     };
     video.addEventListener("loadeddata", ready);
+    video.addEventListener('timeupdate', reportProgress);
     video.addEventListener("playing", playing);
     video.addEventListener("error", failed);
     video.addEventListener("pause", paused);
@@ -93,6 +111,7 @@ export function useLCDVideo(heroRef: RefObject<HTMLElement | null>) {
       document.removeEventListener("keydown", syncPlayback);
       video.removeEventListener("canplay", syncPlayback);
       video.removeEventListener("loadeddata", ready);
+      video.removeEventListener('timeupdate', reportProgress);
       video.removeEventListener("playing", playing);
       video.removeEventListener("error", failed);
       video.removeEventListener("pause", paused);
