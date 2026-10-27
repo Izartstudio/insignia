@@ -4,6 +4,7 @@ import { LinearFilter, MathUtils, SRGBColorSpace, Texture, TextureLoader, Raycas
 import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 import { GalleryEnvironment, type GalleryMotion } from './GalleryEnvironment';
 import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
+import { loadGalleryTexture } from './loadGalleryTexture';
 
 export default function SpatialGalleryScene({ motion, onFailure, states, mobileControls }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void; states: GalleryState[]; mobileControls: boolean }) {
   const { camera, invalidate, scene, gl, size } = useThree();
@@ -77,7 +78,8 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
           url.searchParams.set('fit', 'max');
           url.searchParams.set('auto', 'format');
         }
-        loader.loadAsync(url.href).then(texture => {
+        loadGalleryTexture(loader, url, () => !disposed).then(texture => {
+          if (!texture) return;
           if (disposed) { texture.dispose(); return; }
           texture.colorSpace = SRGBColorSpace;
           if (mobileControls) {
@@ -97,7 +99,7 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
           if (!publishFrame) publishFrame = requestAnimationFrame(publish);
         }).catch((error: unknown) => {
           if (disposed) return;
-          console.error(`Gallery image failed: ${photo.src}`, error);
+          console.warn(`Gallery portrait and local placeholder could not be loaded: ${photo.src}`, error);
           if (index === 0 && ++initialFailures === world.photos.length) onFailure();
         });
       });

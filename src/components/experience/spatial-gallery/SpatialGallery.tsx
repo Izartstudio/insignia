@@ -473,7 +473,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
           </div>
         </div>)}
         <div className="spatial-progress">{states.map(state => <div className="spatial-progress-item" key={state.id}><span>{state.label}</span><i /></div>)}</div>
-        <ScrollIndicator label={mobileControls ? undefined : desktopState === states.length - 1 ? "EXIT" : `UPNEXT: ${states[desktopState + 1].label}`} />
+        <ScrollIndicator label={mobileControls ? undefined : desktopState === states.length - 1 ? "EXIT" : `UP NEXT: ${states[desktopState + 1].label}`} />
       </div>
     </>}
     {mobileControls && <div className="spatial-mobile-entry">
