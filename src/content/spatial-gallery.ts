@@ -1,3 +1,5 @@
+import galleryDesign from "./gallery-design.json" with { type: 'json' };
+
 export type Placement = readonly [x: number, y: number, width: number, height: number];
 export type GalleryPhoto = { src: string; alt: string; layout: Placement; depthOffset: number; referenceCrop?: boolean; mobileLayout?: Placement; name?: string; bio?: string; learnMoreUrl?: string };
 export type GalleryState = { id: string; category: string; label: string; heading: string; subtitle?: string; depth: number; tile: { width: number; height: number }; radius: number; photos: GalleryPhoto[] };
@@ -24,8 +26,8 @@ export const galleryConfig = {
 } as const;
 
 // Attendee copy from the Insignia source sheet (22 October 2026).
-// Neutral placeholders remain until each attendee portrait is supplied in Sanity.
-export const galleryStates: GalleryState[] = [
+// Photo composition and supplied images are shared with the Sanity sync manifest.
+const attendeeContent: GalleryState[] = [
   {
     "id": "leaders",
     "category": "LEADERS",
@@ -672,6 +674,25 @@ export const galleryStates: GalleryState[] = [
     ]
   }
 ];
+
+/** Supplied source photographs remain complete; responsive fitting adds no crop. */
+export const galleryStates: GalleryState[] = attendeeContent.map(state => ({
+  ...state,
+  photos: galleryDesign[state.id as keyof typeof galleryDesign].map(slot => {
+    const existing = slot.legacyIndex === null ? undefined : state.photos[slot.legacyIndex];
+    return {
+      ...existing,
+      src: `/assets/insignia/gallery/${state.id}/${slot.file}.webp`,
+      alt: existing?.name || `Insignia ${state.label.toLowerCase()} photograph`,
+      name: existing?.name || '',
+      bio: existing?.bio || '',
+      layout: slot.rect as unknown as Placement,
+      mobileLayout: slot.rect as unknown as Placement,
+      depthOffset: 0,
+      referenceCrop: false,
+    };
+  }),
+}));
 
 export const mobilePlacements: readonly Placement[] = [
   [35,180,340,360], [1040,190,340,360], [570,240,155,177],

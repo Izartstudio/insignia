@@ -11,8 +11,9 @@
     "inspect:model": "node scripts/inspect-model.mjs",
     "sanity": "node --env-file-if-exists=.env.local node_modules/sanity/bin/sanity",
     "sanity:seed": "node --env-file-if-exists=.env.local --experimental-strip-types scripts/import-spatial-gallery.mjs",
-    "test": "node --test scripts/production.test.cjs",
-    "check:production": "node scripts/check-production.mjs"
+    "test": "node --test scripts/*.test.cjs",
+    "check:production": "node scripts/check-production.mjs",
+    "sanity:sync-design": "node --env-file-if-exists=.env.local scripts/sync-gallery-design.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.0",

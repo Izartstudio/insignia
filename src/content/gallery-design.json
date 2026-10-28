@@ -1,0 +1,39 @@
+{
+  "leaders": [
+    { "file": "leader1", "legacyIndex": 0, "rect": [340,547,228,225] },
+    { "file": "leader2", "legacyIndex": 2, "rect": [294,86,195,191] },
+    { "file": "leader3", "legacyIndex": 3, "rect": [971,158,208,205] },
+    { "file": "leader4", "legacyIndex": 4, "rect": [588,124,173,169] },
+    { "file": "leader5", "legacyIndex": 5, "rect": [912,653,202,201] },
+    { "file": "leader6", "legacyIndex": 1, "rect": [1185,461,170,170] },
+    { "file": "leader7", "legacyIndex": null, "rect": [93,355,171,170] }
+  ],
+  "founders": [
+    { "file": "founder1", "legacyIndex": 0, "rect": [156,211,205,202] },
+    { "file": "founder2", "legacyIndex": 4, "rect": [561,87,195,193] },
+    { "file": "founder3", "legacyIndex": 2, "rect": [988,139,195,192] },
+    { "file": "founder4", "legacyIndex": 5, "rect": [107,521,185,184] },
+    { "file": "founder5", "legacyIndex": 6, "rect": [475,614,180,178] },
+    { "file": "founder6", "legacyIndex": 3, "rect": [955,648,172,170] },
+    { "file": "founder7", "legacyIndex": 1, "rect": [1044,400,181,178] }
+  ],
+  "experts": [
+    { "file": "experts1", "legacyIndex": 0, "rect": [152,193,193,190] },
+    { "file": "experts2", "legacyIndex": 2, "rect": [496,100,190,188] },
+    { "file": "experts3", "legacyIndex": 4, "rect": [876,121,148,145] },
+    { "file": "experts4", "legacyIndex": 3, "rect": [1103,228,196,193] },
+    { "file": "experts5", "legacyIndex": 1, "rect": [77,475,147,146] },
+    { "file": "experts6", "legacyIndex": 5, "rect": [324,629,190,189] },
+    { "file": "experts7", "legacyIndex": 7, "rect": [875,601,180,179] },
+    { "file": "experts8", "legacyIndex": 6, "rect": [1177,633,147,145] }
+  ],
+  "investors": [
+    { "file": "ivestor1", "legacyIndex": 1, "rect": [223,153,190,189] },
+    { "file": "investor2", "legacyIndex": 5, "rect": [577,84,195,193] },
+    { "file": "investor3", "legacyIndex": 6, "rect": [932,136,195,191] },
+    { "file": "investor4", "legacyIndex": 0, "rect": [113,480,205,202] },
+    { "file": "investor5", "legacyIndex": 4, "rect": [520,589,180,178] },
+    { "file": "investor6", "legacyIndex": 2, "rect": [1078,405,203,200] },
+    { "file": "investor7", "legacyIndex": 3, "rect": [916,678,171,170] }
+  ]
+}

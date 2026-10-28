@@ -380,12 +380,12 @@ body.gallery-photo-open.gallery-photo-closing .site-header { opacity: 1; pointer
  .spatial-mobile-preview-wrap { position: relative; width: 100%; max-width: 29rem; flex: 1 0 auto; min-height: clamp(20rem, 59dvh, 34rem); }
  .spatial-mobile-preview { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(ellipse 100% 80% at 50% 53%, #f17800 0%, #bd0a00 43%, #990009 78%, #610000 100%); }
  .spatial-mobile-preview::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(90deg, transparent 32.7%, #e1601070 33%, transparent 33.3%, transparent 66%, #e1601070 66.3%, transparent 66.6%), linear-gradient(0deg, transparent 24.7%, #e1601070 25%, transparent 25.3%, transparent 49.7%, #e1601070 50%, transparent 50.3%, transparent 74.7%, #e1601070 75%, transparent 75.3%); }
- .spatial-mobile-preview-photo { position: absolute; width: 17%; height: 17%; object-fit: cover; filter: blur(2px); opacity: .86; }
- .spatial-mobile-preview-photo.photo-0 { top: 12%; left: -4%; }
+ .spatial-mobile-preview-photo { position: absolute; width: 17%; height: 17%; object-fit: contain; filter: blur(2px); opacity: .86; }
+ .spatial-mobile-preview-photo.photo-0 { top: 12%; left: 4%; }
  .spatial-mobile-preview-photo.photo-1 { top: 29%; right: 11%; }
- .spatial-mobile-preview-photo.photo-2 { top: 40%; left: -3%; }
- .spatial-mobile-preview-photo.photo-3 { top: 78%; right: -2%; }
- .spatial-mobile-preview-photo.photo-4 { bottom: -6%; left: 4%; }
+ .spatial-mobile-preview-photo.photo-2 { top: 40%; left: 3%; }
+ .spatial-mobile-preview-photo.photo-3 { top: 78%; right: 2%; }
+ .spatial-mobile-preview-photo.photo-4 { bottom: 3%; left: 4%; }
  .spatial-mobile-enter { position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 1rem; white-space: nowrap; min-height: 3.25rem; padding: .7rem 1rem; border: 0; clip-path: polygon(0 0, 96% 0, 100% 15%, 100% 100%, 4% 100%, 0 85%); background: #fed201; color: #000; font: 600 clamp(.75rem, 3.5vw, 1rem)/1 "Aeonik Trial", Arial, sans-serif; cursor: pointer; }
  .spatial-mobile-enter span { font-size: 1.3em; font-weight: 400; }
  .spatial-mobile-entry p { max-width: 19rem; margin: 1.5rem 0 1rem; font: 400 .875rem/1.5 "Aeonik Trial", Arial, sans-serif; }
