@@ -108,7 +108,7 @@ export function GalleryPhotoDialog({ selection, onClose, onCloseStart, states, c
       <h3 className="gallery-dialog-name">{photo.name || photo.alt}</h3>
       <img className="gallery-dialog-image" src={photo.src} alt={photo.alt} />
       <div className="gallery-dialog-bio">
-        <p id="gallery-dialog-description">{photo.bio || ''}</p>
+        <p id="gallery-dialog-description">{(photo.bio || '').replace(/\s*(Director\s*[-–—]\s*Baahubali\s+Franchise)/i, '\n$1').trim()}</p>
         {photo.learnMoreUrl && <a className="gallery-dialog-link" href={photo.learnMoreUrl} target="_blank" rel="noopener noreferrer">{copy.learnMoreLabel} <span aria-hidden="true">＋</span></a>}
       </div>
     <button type="button" className="gallery-dialog-arrow is-previous" aria-label="Previous photo" onClick={() => step(-1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg></button>
