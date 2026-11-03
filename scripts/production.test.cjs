@@ -93,6 +93,7 @@ test('corporate navigation uses the live domain and verified people route', () =
 test('static CMS images become bounded same-origin assets and duplicate downloads are shared', async () => {
   let requests = 0;
   const writes = [];
+  const requestedSizes = [];
   const { snapshotStaticImages } = load('src/sanity/staticAssets.ts', {
     process: { env: { CLOUDFLARE_PAGES: '1' }, cwd: () => '/tmp/insignia-test' },
     Buffer,
@@ -101,7 +102,8 @@ test('static CMS images become bounded same-origin assets and duplicate download
       requests++;
       const parsed = new URL(url);
       assert.equal(parsed.hostname, 'cdn.sanity.io');
-      assert.equal(parsed.searchParams.get('w'), '1600');
+      requestedSizes.push(parsed.searchParams.get('w'));
+      assert.ok(['512', '768', '1600'].includes(parsed.searchParams.get('w')));
       assert.equal(parsed.searchParams.get('fm'), 'webp');
       return { ok: true, headers: new Headers({ 'content-type': 'image/webp' }), arrayBuffer: async () => Buffer.from('image') };
     },
@@ -117,5 +119,21 @@ test('static CMS images become bounded same-origin assets and duplicate download
   assert.match(result.desktop[0].src, /^\/cms\/[a-f0-9]{24}\.webp$/);
   assert.equal(result.desktop[0].src, result.mobile[0].src);
   assert.equal(result.local.src, '/assets/portrait.webp');
+  const photo = { src, layout: [0, 0, 1, 1] };
+  const gallery = await snapshotStaticImages({ desktop: [photo], mobile: [photo] });
+  assert.ok(gallery.desktop[0].textureSrc.startsWith('/cms/'));
+  assert.ok(gallery.mobile[0].textureSrc.startsWith('/cms/'));
+  assert.deepEqual(requestedSizes.sort(), ['1600', '512', '768']);
+  assert.equal(requests, 3, 'Detail images should be shared while textures use device-specific bounds');
   await assert.rejects(snapshotStaticImages({ src: 'https://untrusted.example/image.webp' }), /Sanity image CDN/);
+});
+
+
+test('gallery preloads and texture requests share the same bounded URL', () => {
+  const { galleryTextureUrl } = load('src/components/experience/spatial-gallery/galleryTextureUrl.ts');
+  const origin = 'https://insignia.lumikai.com';
+  assert.equal(galleryTextureUrl({ src: '/cms/detail.webp', textureSrc: '/cms/mobile.webp' }, true, origin).href, `${origin}/cms/mobile.webp`);
+  const remote = { src: 'https://cdn.sanity.io/images/project/production/portrait.webp' };
+  assert.equal(galleryTextureUrl(remote, true, origin).searchParams.get('w'), '512');
+  assert.equal(galleryTextureUrl(remote, false, origin).searchParams.get('w'), '768');
 });

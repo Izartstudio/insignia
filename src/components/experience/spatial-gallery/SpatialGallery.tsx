@@ -2,6 +2,7 @@
 
 import { Component, useEffect, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { preload } from 'react-dom';
+import { galleryTextureUrl } from './galleryTextureUrl';
 import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -33,7 +34,7 @@ function AccessibleGallery({ visible, onSelect, states }: { visible: boolean; on
   return <div className={visible ? 'spatial-static' : 'sr-only'}>
     {states.map(state => <article key={state.id}>
       <h2>{state.heading}</h2>{state.subtitle && <p>{state.subtitle}</p>}
-      <div>{state.photos.map((photo, index) => <button type="button" key={index} onClick={() => onSelect({ worldId: state.id, photoIndex: index })} aria-label={`View details: ${photo.alt}`}><img src={photo.src} alt={photo.alt} width="240" height="275" loading="lazy" /></button>)}</div>
+      <div>{state.photos.map((photo, index) => <button type="button" key={index} onClick={() => onSelect({ worldId: state.id, photoIndex: index })} aria-label={`View details: ${photo.alt}`}><img src={visible ? photo.src : undefined} alt={photo.alt} width="240" height="275" loading="lazy" /></button>)}</div>
     </article>)}
   </div>;
 }
@@ -133,7 +134,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     if (!section) return;
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) { setNearViewport(true); observer.disconnect(); }
-    }, { rootMargin: '600px' });
+    }, { rootMargin: '1400px' });
     observer.observe(section);
     return () => observer.disconnect();
   }, []);
@@ -151,11 +152,14 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
   }, [failed]);
 
   useLayoutEffect(() => {
-    if (!animated || !nearViewport || mobileControls) return;
-    // Warm later categories alongside the eagerly initialized WebGL canvas.
-    states.forEach((state, index) => state.photos.forEach(photo => {
-      preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
-    }));
+    if (!animated || !nearViewport) return;
+    // Warm the first category before gallery entry, including on mobile. Later
+    // categories must not compete with these images or the hero download.
+    states[0]?.photos.forEach(photo => {
+      preload(galleryTextureUrl(photo, mobileControls, window.location.origin).href, {
+        as: 'image', crossOrigin: 'anonymous', fetchPriority: 'auto',
+      });
+    });
   }, [animated, nearViewport, states, mobileControls]);
 
 
@@ -504,7 +508,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
       <h2>{copy.entryTitle}</h2>
       <div className="spatial-mobile-preview-wrap">
         <div className="spatial-mobile-preview" aria-hidden="true">
-          {states[0]?.photos.slice(0, 5).map((photo, index) => <img key={`${photo.src}-${index}`} className={`spatial-mobile-preview-photo photo-${index}`} src={photo.src} alt="" loading="eager" />)}
+          {states[0]?.photos.slice(0, 5).map((photo, index) => <img key={`${photo.src}-${index}`} className={`spatial-mobile-preview-photo photo-${index}`} src={photo.textureSrc || photo.src} alt="" loading="eager" />)}
         </div>
         <button className="spatial-mobile-enter" type="button" onClick={enterMobile}>{copy.enterLabel}<span aria-hidden="true">＋</span></button>
       </div>

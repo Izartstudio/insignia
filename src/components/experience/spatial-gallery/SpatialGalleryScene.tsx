@@ -4,6 +4,7 @@ import { LinearFilter, MathUtils, SRGBColorSpace, Texture, TextureLoader, Raycas
 import { galleryConfig, type GalleryState } from '@/content/spatial-gallery';
 import { GalleryEnvironment, type GalleryMotion } from './GalleryEnvironment';
 import { InfiniteCanvasPlane } from './InfiniteCanvasPlane';
+import { galleryTextureUrl } from './galleryTextureUrl';
 import { loadGalleryTexture } from './loadGalleryTexture';
 
 export default function SpatialGalleryScene({ motion, onFailure, states, mobileControls }: { motion: MutableRefObject<GalleryMotion>; onFailure: () => void; states: GalleryState[]; mobileControls: boolean }) {
@@ -67,18 +68,9 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
       if (uploads.length) uploadFrame = requestAnimationFrame(uploadNext);
     };
     let initialFailures = 0;
-    // Publish decoded/uploaded photos as they arrive, batching updates to one per frame.
-    states.forEach((world, index) => {
-      world.photos.forEach(photo => {
-        // Bound decoded CMS image size before downloading, especially on iOS.
-        const url = new URL(photo.src, window.location.origin);
-        if (url.hostname === 'cdn.sanity.io') {
-          url.searchParams.set('w', mobileControls ? '512' : '1024');
-          url.searchParams.set('h', mobileControls ? '512' : '1024');
-          url.searchParams.set('fit', 'max');
-          url.searchParams.set('auto', 'format');
-        }
-        loadGalleryTexture(loader, url, () => !disposed).then(texture => {
+    const loadPhoto = async (world: GalleryState, index: number, photo: GalleryState['photos'][number]) => {
+        const url = galleryTextureUrl(photo, mobileControls, window.location.origin);
+        await loadGalleryTexture(loader, url, () => !disposed).then(texture => {
           if (!texture) return;
           if (disposed) { texture.dispose(); return; }
           texture.colorSpace = SRGBColorSpace;
@@ -87,23 +79,28 @@ export default function SpatialGalleryScene({ motion, onFailure, states, mobileC
             texture.minFilter = LinearFilter;
           }
           owned.push(texture);
-          if (mobileControls) {
-            // Spread GPU uploads across frames instead of freezing touch input
-            // when several downloaded images finish decoding together.
-            uploads.push({ texture, worldId: world.id, src: photo.src });
-            if (!uploadFrame) uploadFrame = requestAnimationFrame(uploadNext);
-            return;
-          }
-          gl.initTexture(texture);
-          (pending[world.id] ??= {})[photo.src] = texture;
-          if (!publishFrame) publishFrame = requestAnimationFrame(publish);
+          // Spread uploads across frames on desktop as well as touch devices.
+          uploads.push({ texture, worldId: world.id, src: photo.src });
+          if (!uploadFrame) uploadFrame = requestAnimationFrame(uploadNext);
         }).catch((error: unknown) => {
           if (disposed) return;
           console.warn(`Gallery portrait and local placeholder could not be loaded: ${photo.src}`, error);
           if (index === 0 && ++initialFailures === world.photos.length) onFailure();
         });
-      });
-    });
+    };
+    const loadCategories = async () => {
+      // Complete the initial category first so all 29 portraits do not compete.
+      if (states[0]) await Promise.all(states[0].photos.map(photo => loadPhoto(states[0], 0, photo)));
+      const later = states.slice(1).flatMap((world, index) => world.photos.map(photo => ({ world, index: index + 1, photo })));
+      let cursor = 0;
+      await Promise.all(Array.from({ length: 4 }, async () => {
+        while (!disposed && cursor < later.length) {
+          const job = later[cursor++];
+          await loadPhoto(job.world, job.index, job.photo);
+        }
+      }));
+    };
+    void loadCategories();
     return () => {
       disposed = true;
       cancelAnimationFrame(publishFrame);

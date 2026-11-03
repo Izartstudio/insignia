@@ -5,13 +5,13 @@ import path from 'node:path';
 const downloads = new Map<string, Promise<string>>();
 
 /** Publish immutable CMS images alongside the static site, avoiding cross-origin WebGL requests. */
-async function snapshotImage(source: string): Promise<string> {
+async function snapshotImage(source: string, size = 1600): Promise<string> {
   const url = new URL(source);
   if (url.protocol !== 'https:' || url.hostname !== 'cdn.sanity.io' || !url.pathname.startsWith('/images/')) {
     throw new Error('Static CMS images must use the Sanity image CDN.');
   }
-  url.searchParams.set('w', '1600');
-  url.searchParams.set('h', '1600');
+  url.searchParams.set('w', String(size));
+  url.searchParams.set('h', String(size));
   url.searchParams.set('fit', 'max');
   url.searchParams.set('fm', 'webp');
   url.searchParams.delete('auto');
@@ -37,12 +37,16 @@ async function snapshotImage(source: string): Promise<string> {
 
 export async function snapshotStaticImages<T>(content: T): Promise<T> {
   if (process.env.CLOUDFLARE_PAGES !== '1') return content;
-  async function visit(value: unknown): Promise<unknown> {
-    if (Array.isArray(value)) return Promise.all(value.map(visit));
+  async function visit(value: unknown, mobile = false): Promise<unknown> {
+    if (Array.isArray(value)) return Promise.all(value.map(item => visit(item, mobile)));
     if (value && typeof value === 'object') {
-      return Object.fromEntries(await Promise.all(Object.entries(value).map(async ([key, item]) => [
-        key, key === 'src' && typeof item === 'string' && item.startsWith('https://') ? await snapshotImage(item) : await visit(item),
+      const object = value as Record<string, unknown>;
+      const textureSrc = typeof object.src === 'string' && object.src.startsWith('https://') && 'layout' in object
+        ? await snapshotImage(object.src, mobile ? 512 : 768) : undefined;
+      const result = Object.fromEntries(await Promise.all(Object.entries(value).map(async ([key, item]) => [
+        key, key === 'src' && typeof item === 'string' && item.startsWith('https://') ? await snapshotImage(item) : await visit(item, mobile || key === 'mobile'),
       ])));
+      return textureSrc ? { ...result, textureSrc } : result;
     }
     return value;
   }

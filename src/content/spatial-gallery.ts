@@ -1,7 +1,7 @@
 import galleryDesign from "./gallery-design.json" with { type: 'json' };
 
 export type Placement = readonly [x: number, y: number, width: number, height: number];
-export type GalleryPhoto = { src: string; alt: string; layout: Placement; depthOffset: number; referenceCrop?: boolean; mobileLayout?: Placement; name?: string; bio?: string; learnMoreUrl?: string };
+export type GalleryPhoto = { src: string; textureSrc?: string; alt: string; layout: Placement; depthOffset: number; referenceCrop?: boolean; mobileLayout?: Placement; name?: string; bio?: string; learnMoreUrl?: string };
 export type GalleryState = { id: string; category: string; label: string; heading: string; subtitle?: string; depth: number; tile: { width: number; height: number }; radius: number; photos: GalleryPhoto[] };
 export type GalleryMotionProfile = {
   readonly scrollViewports: number;
