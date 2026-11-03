@@ -1,23 +1,19 @@
 # Production readiness and analytics
 
-The visual components, styling, content and layout are unchanged by this audit.
+Cloudflare deployment and browser-runtime fixes are recorded in the deployment guide.
 
 ## Configuration
 
-- `NEXT_PUBLIC_SITE_URL`: current canonical origin `https://insignia-lumikai.vercel.app`. Set the custom domain here and redeploy when ready. The canonical tag, sitemap, robots sitemap URL, social sharing URLs and JSON-LD all use it.
+- `NEXT_PUBLIC_SITE_URL`: current canonical origin `https://insignia.lumikai.com`. Set the custom domain here and redeploy when ready. The canonical tag, sitemap, robots sitemap URL, social sharing URLs and JSON-LD all use it.
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID`: `G-FBKLWYJ4WZ`. This ID is public and also has a code default to cover the Vercel deployment.
 - `GOOGLE_SITE_VERIFICATION`: optional Search Console HTML verification token. Verification/indexing is separate from Google Analytics.
 - Keep Sanity write tokens server-side; never prefix them with `NEXT_PUBLIC_`.
 
 Analytics runs only in production, on `/`. Local development, Vercel preview deployments, Studio and development routes are excluded. A disabled tag or an ad blocker can prevent events from arriving.
 
-## Cross-domain measurement with Webflow
+## Independent Cloudflare hosting
 
-Use the same measurement ID on Webflow and Insignia if they should share reporting and sessions. Do not install a second copy through GTM if the Google tag is already installed directly.
-
-In GA4, go to Admin → Data streams → your Web stream → Configure tag settings → Configure your domains. Add `lumikai.webflow.io` and `insignia-lumikai.vercel.app`. Add the future custom domain when it goes live. The Insignia tag accepts incoming linker parameters and decorates links to the Webflow domain. Keep the `_gl` parameter through any redirects. Both sites must load the Google tag, and their consent settings must agree, for cross-domain sessions to work reliably.
-
-Install and publish the same tag in Webflow's Google Analytics integration (or its existing tag manager). Changes to Webflow or GA4 admin settings are not made by editing this repository.
+See [the Cloudflare and Squarespace deployment guide](cloudflare-deployment.md). The production canonical is `https://insignia.lumikai.com`. Corporate links go to `https://www.lumikai.com`; no Webflow staging linker is configured. Cloudflare branch previews and `SITE_INDEXABLE=false` builds disable indexing and analytics. Static CMS content updates require a rebuild.
 
 ## Measurement coverage
 
@@ -46,7 +42,7 @@ After deployment:
 
 1. Confirm `/robots.txt`, `/sitemap.xml`, and `/opengraph-image` return 200 on the production domain.
 2. Verify domain ownership in Google Search Console and submit `/sitemap.xml`; use URL Inspection to request indexing of `/`.
-3. In GA4 Realtime, open the production home page, scroll through sections, open a portrait and use an edition button. Confirm events arrive in the correct property. Test Webflow → Insignia → Webflow with Tag Assistant and verify one session. Standard reporting can take time to populate.
+3. In GA4 Realtime, open the production home page, scroll through sections, open a portrait and use an edition button. Confirm events arrive in the correct property. Verify outbound links reach the live corporate site. Standard reporting can take time to populate.
 4. Test mobile hardware, Safari, Chrome and a reduced-motion setting. Run PageSpeed Insights against the deployed site. Build success alone does not certify real-device performance or Core Web Vitals.
 
 Google Analytics does not submit a site for Google Search indexing. Search visibility, account ownership, reporting and session stitching must be verified in the relevant Google accounts after deployment.

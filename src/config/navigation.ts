@@ -1,15 +1,15 @@
-const origin = "https://lumikai.webflow.io";
+const origin = "https://www.lumikai.com";
 export const navigation = {
   home: origin,
   primary: [
     { label: "Thesis", href: `${origin}/thesis` },
-    { label: "Team", href: `${origin}/the-team` },
+    { label: "Team", href: `${origin}/people` },
     { label: "Portfolio", href: `${origin}/portfolio` },
     { label: "Insignia", href: "/" },
   ],
   secondary: [
     { label: "Pixels", href: `${origin}/pixels` },
-    { label: "Research", href: `${origin}/research` },
+    { label: "About Us", href: `${origin}/about-us` },
     { label: "Media", href: `${origin}/media` },
     { label: "Contact Us", href: `${origin}/contact-us` },
   ],

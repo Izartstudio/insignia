@@ -1,3 +1,4 @@
+import { snapshotStaticImages } from './staticAssets';
 import { createClient, defineQuery } from 'next-sanity';
 import { pastEditions as fallbackEditions, type PastEdition, type PastEditionsContent } from '@/content/past-editions';
 
@@ -78,7 +79,7 @@ export async function getPastEditionsContent(): Promise<PastEditionsContent> {
       maxRetries: 1,
       perspective: 'published',
     });
-    return normalize(await client.fetch(query, {}, { next: { revalidate: 60 } }));
+    return await snapshotStaticImages(normalize(await client.fetch(query, {}, { next: { revalidate: process.env.CLOUDFLARE_PAGES === '1' ? false : 60 } })));
   } catch (error) {
     console.warn('Using Past Editions fallback:', error instanceof Error ? error.message : 'CMS request failed');
     return fallbackPastEditionsContent;

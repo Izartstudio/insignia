@@ -1,3 +1,4 @@
+export const dynamic = 'force-static';
 import { ImageResponse } from 'next/og';
 
 export const alt = 'Insignia by Lumikai — Interactive Media & Gaming Summit';

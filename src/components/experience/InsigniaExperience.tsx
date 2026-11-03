@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useRef, useState, useCallback, type CSSProperties, type ReactNode } from "react";
+import { Component, useEffect, useRef, useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { HeroLoader } from "./HeroLoader";
 import { HeroBackground } from "./HeroBackground";
 import { ScrollIndicator } from "./ScrollIndicator";
@@ -36,6 +36,13 @@ class SceneErrorBoundary extends Component<{ children: ReactNode }, { failed: bo
 export function InsigniaExperience({ galleryContent, pastEditionsContent }: { galleryContent: SpatialGalleryContent; pastEditionsContent: PastEditionsContent }) {
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
+  useEffect(() => {
+    // Keep the heading available when a model never reaches its first frame.
+    const timer = window.setTimeout(() => {
+      if (!ready) fullscreenHeadingRef.current?.reveal();
+    }, 8000);
+    return () => window.clearTimeout(timer);
+  }, [ready]);
   const heroRef = useRef<HTMLElement>(null);
   const fullscreenHeadingRef = useRef<FullscreenHeadingHandle>(null);
   const trackStyle = {

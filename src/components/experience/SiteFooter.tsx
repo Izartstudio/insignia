@@ -4,7 +4,7 @@ import { navigation, navMotion } from "@/config/navigation";
 import "./site-footer.css";
 import { LumikaiLogo } from "../layout/LumikaiLogo";
 
-const base = "https://lumikai.webflow.io";
+const base = "https://www.lumikai.com";
 
 function FooterLink({ href, children }: { href: string; children: string }) {
   return <a className="footer-link" href={href}>
@@ -22,13 +22,13 @@ export function SiteFooter() {
         <div className="footer-column footer-quick-links">
           <h2>Who we are</h2>
           <FooterLink href={`${base}/thesis`}>Thesis</FooterLink>
-          <FooterLink href={`${base}/the-team`}>Team</FooterLink>
+          <FooterLink href={`${base}/people`}>Team</FooterLink>
           <FooterLink href={`${base}/portfolio`}>Portfolio</FooterLink>
           <FooterLink href={`${base}/contact-us`}>Contact Us</FooterLink>
         </div>
         <div className="footer-column footer-legal">
           <h2>What we do</h2>
-          <FooterLink href={`${base}/research`}>Research</FooterLink>
+          <FooterLink href={`${base}/media`}>Media</FooterLink>
           <FooterLink href={`${base}/pixels`}>Pixels</FooterLink>
           <FooterLink href="/">Insignia</FooterLink>
         </div>
@@ -38,7 +38,7 @@ export function SiteFooter() {
         </div>
         <div className="footer-brand">
           <a href={navigation.home} aria-label="Lumikai home"><LumikaiLogo /></a>
-          <p>India&apos;s first specialist interactive media, digital platforms, and games VC.</p>
+          <p>India&apos;s pioneering interactive media, digital platforms, and games VC.</p>
         </div>
         <nav className="footer-social" aria-label="Social media">
           <a href="https://www.youtube.com/@LumikaiFund" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 25 25" fill="none"><path d="M22.981 7.229C22.8564 6.76523 22.6123 6.3423 22.2729 6.00253C21.9336 5.66276 21.511 5.41808 21.0474 5.29297C19.3408 4.83398 12.5 4.83398 12.5 4.83398C12.5 4.83398 5.65918 4.83398 3.95264 5.29053C3.48882 5.41523 3.06598 5.65978 2.72658 5.99961C2.38718 6.33944 2.14316 6.76259 2.01904 7.22656C1.5625 8.93555 1.5625 12.5 1.5625 12.5C1.5625 12.5 1.5625 16.0645 2.01904 17.771C2.27051 18.7134 3.0127 19.4556 3.95264 19.707C5.65918 20.166 12.5 20.166 12.5 20.166C12.5 20.166 19.3408 20.166 21.0474 19.707C21.9897 19.4556 22.7295 18.7134 22.981 17.771C23.4375 16.0645 23.4375 12.5 23.4375 12.5C23.4375 12.5 23.4375 8.93555 22.981 7.229ZM10.3271 15.7715V9.22852L15.9912 12.4756L10.3271 15.7715Z" fill="currentColor"></path></svg></a>

@@ -19,6 +19,11 @@ export function HeroLoader({ ready }: { ready: boolean }) {
     };
   }, [removed]);
   useEffect(() => {
+    // A failed GPU, model request or animation callback must never trap page scrolling.
+    const timer = window.setTimeout(() => setFinished(true), 8000);
+    return () => window.clearTimeout(timer);
+  }, []);
+  useEffect(() => {
     readyRef.current = ready;
     if (ready && played.current && window.matchMedia("(prefers-reduced-motion: reduce)").matches) setFinished(true);
   }, [ready]);

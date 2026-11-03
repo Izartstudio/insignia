@@ -20,7 +20,6 @@ export function GoogleAnalytics({ measurementId, enabled }: { measurementId: str
         send_page_view: false,
         allow_google_signals: false,
         allow_ad_personalization_signals: false,
-        linker: { domains: ['lumikai.webflow.io', window.location.hostname], accept_incoming: true },
         page_location: `${window.location.origin}${pathname}`,
         page_referrer: document.referrer ? new URL(document.referrer).origin : '',
       });
@@ -90,5 +89,5 @@ export function GoogleAnalytics({ measurementId, enabled }: { measurementId: str
     };
   }, [active, measurementId, pathname]);
 
-  return active ? <Script id="insignia-google-analytics" src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="afterInteractive" /> : null;
+  return active ? <Script id="insignia-google-analytics" src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="lazyOnload" /> : null;
 }

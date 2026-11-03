@@ -55,3 +55,67 @@ test('patched typeid UUID dependency preserves the Sanity CLI ID round trip', as
   const id = typeid('attendee');
   assert.equal(toUUID(fromString(id.toString())), id.toUUID());
 });
+
+test('patched minimatch remains compatible with the Sanity CLI plugin matcher', () => {
+  const { createRequire } = require('node:module');
+  const cliRequire = createRequire(require.resolve('@oclif/core'));
+  const { minimatch, Minimatch } = cliRequire('minimatch');
+  const dependencies = ['@sanity/plugin-a', '@sanity/plugin-b', 'sanity', 'other-tool'];
+  assert.deepEqual(dependencies.filter(name => minimatch(name, '@sanity/*')), ['@sanity/plugin-a', '@sanity/plugin-b']);
+  assert.equal(minimatch('sanity', 'san*'), true);
+  assert.equal(minimatch('other-tool', 'san*'), false);
+  assert.equal(new Minimatch('src/**/gallery*.ts', { optimizationLevel: 2 }).match('src/components/gallery.ts'), true);
+});
+
+
+test('Cloudflare previews and explicitly disabled indexing stay out of search', () => {
+  for (const env of [
+    { CF_PAGES: '1', CF_PAGES_BRANCH: 'feature/test' },
+    { SITE_INDEXABLE: 'false' },
+  ]) {
+    const config = load('src/config/site.ts', { process: { env } });
+    assert.equal(config.indexableDeployment, false);
+  }
+  const production = load('src/config/site.ts', { process: { env: { CF_PAGES: '1', CF_PAGES_BRANCH: 'main' } } });
+  assert.equal(production.indexableDeployment, true);
+  assert.equal(production.siteUrl, 'https://insignia.lumikai.com');
+});
+
+test('corporate navigation uses the live domain and verified people route', () => {
+  const { navigation } = load('src/config/navigation.ts');
+  assert.equal(navigation.home, 'https://www.lumikai.com');
+  assert.equal(navigation.primary.find(link => link.label === 'Team').href, 'https://www.lumikai.com/people');
+  for (const link of [...navigation.primary, ...navigation.secondary]) {
+    assert.ok(link.href === '/' || new URL(link.href).origin === navigation.home);
+  }
+});
+
+test('static CMS images become bounded same-origin assets and duplicate downloads are shared', async () => {
+  let requests = 0;
+  const writes = [];
+  const { snapshotStaticImages } = load('src/sanity/staticAssets.ts', {
+    process: { env: { CLOUDFLARE_PAGES: '1' }, cwd: () => '/tmp/insignia-test' },
+    Buffer,
+    AbortSignal,
+    fetch: async url => {
+      requests++;
+      const parsed = new URL(url);
+      assert.equal(parsed.hostname, 'cdn.sanity.io');
+      assert.equal(parsed.searchParams.get('w'), '1600');
+      assert.equal(parsed.searchParams.get('fm'), 'webp');
+      return { ok: true, headers: new Headers({ 'content-type': 'image/webp' }), arrayBuffer: async () => Buffer.from('image') };
+    },
+  }, {
+    'node:crypto': require('node:crypto'),
+    'node:fs/promises': { mkdir: async () => {}, writeFile: async (...args) => writes.push(args) },
+    'node:path': { default: path },
+  });
+  const src = 'https://cdn.sanity.io/images/project/production/image.webp';
+  const result = await snapshotStaticImages({ desktop: [{ src }], mobile: [{ src }], local: { src: '/assets/portrait.webp' } });
+  assert.equal(requests, 1);
+  assert.equal(writes.length, 1);
+  assert.match(result.desktop[0].src, /^\/cms\/[a-f0-9]{24}\.webp$/);
+  assert.equal(result.desktop[0].src, result.mobile[0].src);
+  assert.equal(result.local.src, '/assets/portrait.webp');
+  await assert.rejects(snapshotStaticImages({ src: 'https://untrusted.example/image.webp' }), /Sanity image CDN/);
+});

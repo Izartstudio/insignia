@@ -1,3 +1,4 @@
+import { snapshotStaticImages } from './staticAssets';
 import { createClient, defineQuery } from 'next-sanity';
 import { automaticGalleryPlacement, galleryStates, type GalleryPhoto, type GalleryState, type Placement } from '@/content/spatial-gallery';
 
@@ -90,14 +91,14 @@ export async function getSpatialGalleryContent(): Promise<SpatialGalleryContent>
       maxRetries: 1,
       perspective: 'published',
     });
-    const documents = await client.fetch(query, {}, { next: { revalidate: 60 } });
+    const documents = await client.fetch(query, {}, { next: { revalidate: process.env.CLOUDFLARE_PAGES === '1' ? false : 60 } });
     const byId = Object.fromEntries((Array.isArray(documents) ? documents : []).map(item => [item._id, item]));
-    return {
+    return await snapshotStaticImages({
       desktop: normalize(byId.spatialGalleryDesktop, false),
       mobile: normalize(byId.spatialGalleryMobile, true),
       desktopCopy: normalizeCopy(byId.spatialGalleryDesktop),
       mobileCopy: normalizeCopy(byId.spatialGalleryMobile),
-    };
+    });
   } catch (error) {
     console.warn('Using spatial gallery fallback:', error instanceof Error ? error.message : 'CMS request failed');
     return fallback;

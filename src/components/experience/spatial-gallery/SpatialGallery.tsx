@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Component, useEffect, useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { preload } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
@@ -26,7 +26,7 @@ function getExplorableState(travel: number, count: number) {
 class GalleryBoundary extends Component<{ children: ReactNode; onFailure: () => void }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch() { this.props.onFailure(); }
+  componentDidCatch(error: Error) { console.error("Spatial gallery render failed:", error); this.props.onFailure(); }
   render() { return this.state.failed ? null : this.props.children; }
 }
 function AccessibleGallery({ visible, onSelect, states }: { visible: boolean; onSelect: (selection: GallerySelection) => void; states: GalleryState[] }) {
@@ -127,19 +127,36 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     return () => { motion.current.paused = false; };
   }, [selection]);
   const [preview, setPreview] = useState<number | null>(null);
+  const [nearViewport, setNearViewport] = useState(false);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setNearViewport(true); observer.disconnect(); }
+    }, { rootMargin: '600px' });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
   const [enhanced, setEnhanced] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const onFailure = useCallback(() => { console.error("Spatial gallery entered WebGL/asset fallback"); setFailed(true); }, []);
   const animated = enhanced && !failed;
+  useEffect(() => {
+    if (!failed) return;
+    unlockExperience.current?.();
+    unlockExperience.current = null;
+    document.body.classList.remove('gallery-mobile-locked');
+    setMobileEntered(false);
+  }, [failed]);
 
   useLayoutEffect(() => {
-    if (!animated || mobileControls) return;
+    if (!animated || !nearViewport || mobileControls) return;
     // Warm later categories alongside the eagerly initialized WebGL canvas.
     states.forEach((state, index) => state.photos.forEach(photo => {
       preload(photo.src, { as: 'image', fetchPriority: index === 0 ? 'auto' : 'low' });
     }));
-  }, [animated, states, mobileControls]);
+  }, [animated, nearViewport, states, mobileControls]);
 
 
   useLayoutEffect(() => {
@@ -147,7 +164,11 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     const requested = new URLSearchParams(window.location.search).get('galleryPreview');
     const index = process.env.NODE_ENV === 'development' ? states.findIndex(s => s.id === requested) : -1;
     setPreview(index >= 0 ? index : null);
-    const update = () => setEnhanced(index >= 0 || !query.matches);
+    const probe = document.createElement('canvas');
+    const context = probe.getContext('webgl2');
+    const supported = !!context;
+    context?.getExtension('WEBGL_lose_context')?.loseContext();
+    const update = () => setEnhanced(supported && (index >= 0 || !query.matches));
     update();
     setReady(true);
     query.addEventListener('change', update);
@@ -434,7 +455,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     {animated && <>
       <div className="spatial-canvas" data-lenis-prevent-touch aria-hidden="true">
         <GalleryBoundary onFailure={onFailure}>
-          {ready && (!mobileControls || mobileEntered) && <Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
+          {ready && nearViewport && (!mobileControls || mobileEntered) && <Canvas key={mobileControls ? 'mobile' : 'desktop'} frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, galleryConfig.distance], fov: galleryConfig.fov, near: .05, far: 100 }} gl={{ alpha: true, antialias: true }} fallback={<span>WebGL is unavailable.</span>}>
             <CanvasRuntime />
             <SpatialGalleryScene motion={motion} onFailure={onFailure} states={states} mobileControls={mobileControls} />
           </Canvas>}
@@ -479,7 +500,7 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
         <ScrollIndicator label={mobileControls ? undefined : desktopState === states.length - 1 ? "EXIT" : `UP NEXT: ${states[desktopState + 1].label}`} />
       </div>
     </>}
-    {mobileControls && <div className="spatial-mobile-entry">
+    {mobileControls && animated && <div className="spatial-mobile-entry">
       <h2>{copy.entryTitle}</h2>
       <div className="spatial-mobile-preview-wrap">
         <div className="spatial-mobile-preview" aria-hidden="true">

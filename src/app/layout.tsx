@@ -21,6 +21,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <link rel="preload" href="/fonts/aeonik-regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       <link rel="preload" href="/fonts/aeonik-bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     </head>
-    <body><SiteChrome />{children}<GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-FBKLWYJ4WZ'} enabled={process.env.NODE_ENV === 'production' && indexableDeployment} /></body>
+    <body><noscript><style>{`.hero-loader{display:none!important}.fullscreen-heading{visibility:visible!important;opacity:1!important}.hero-track{height:100svh!important}.spatial-gallery-track{height:auto!important}.spatial-static{position:static!important;width:auto!important;height:auto!important;clip-path:none!important;overflow:visible!important}`}</style></noscript><SiteChrome />{children}<GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-FBKLWYJ4WZ'} enabled={process.env.NODE_ENV === 'production' && indexableDeployment} /></body>
   </html>;
 }

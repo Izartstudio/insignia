@@ -3,6 +3,8 @@ import config from '../../../../sanity.config';
 import { metadata as studioMetadata } from 'next-sanity/studio';
 
 export const dynamic = 'force-static';
+export const dynamicParams = false;
+export function generateStaticParams() { return [{ tool: [] }]; }
 export { viewport } from 'next-sanity/studio';
 export const metadata = { ...studioMetadata, robots: { index: false, follow: false }, alternates: { canonical: null } };
 

@@ -1,5 +1,5 @@
 export const lcdConfig = {
-  videoUrl: "/videos/insignia-film.mp4?v=1fdca2753274",
+  videoUrl: "/videos/insignia-film.mp4?v=9cb4337f3a8c",
   posterUrl: "/videos/insignia-poster.jpg?v=699488cfb1e7",
   videoAspect: 854 / 480,
   // Imported scene coordinates, before the existing centering/normalization wrappers.

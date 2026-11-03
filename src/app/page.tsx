@@ -17,8 +17,6 @@ export default async function Home() {
         { '@type': 'WebPage', '@id': `${siteUrl}/#webpage`, url: `${siteUrl}/`, name: siteTitle, description: siteDescription, isPartOf: { '@id': `${siteUrl}/#website` }, about: ['Interactive media', 'Gaming', 'Digital entertainment'] },
       ],
     }).replace(/</g, '\\u003c') }} />
-    {[...new Set(galleryContent.desktop[0].photos.map(photo => photo.src))].map(src => <link key={`desktop-${src}`} rel="preload" as="image" href={src} media="(min-width: 1025px)" fetchPriority="high" />)}
-    {[...new Set(galleryContent.mobile[0].photos.map(photo => photo.src))].map(src => <link key={`mobile-${src}`} rel="preload" as="image" href={src} media="(max-width: 1024px)" fetchPriority="high" />)}
     <InsigniaExperience galleryContent={galleryContent} pastEditionsContent={pastEditionsContent} />
   </>;
 }
