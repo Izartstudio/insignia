@@ -11,7 +11,7 @@ export const fallbackGalleryCopy: GalleryCopy = {
 };
 
 const query = defineQuery(`*[_id in ["spatialGalleryDesktop", "spatialGalleryMobile"]]{
-  _id,dialogTitle,explorePrompt,touchExplorePrompt,nextLabel,learnMoreLabel,entryTitle,entryNote,enterLabel,copyLinkLabel,
+  _id,_rev,_updatedAt,dialogTitle,explorePrompt,touchExplorePrompt,nextLabel,learnMoreLabel,entryTitle,entryNote,enterLabel,copyLinkLabel,
   leaders{category,label,heading,subtitle,radius,photos[]{"src":image.asset->url,alt,placement,depthOffset,referenceCrop,name,bio,learnMoreUrl}},
   founders{category,label,heading,subtitle,radius,photos[]{"src":image.asset->url,alt,placement,depthOffset,referenceCrop,name,bio,learnMoreUrl}},
   experts{category,label,heading,subtitle,radius,photos[]{"src":image.asset->url,alt,placement,depthOffset,referenceCrop,name,bio,learnMoreUrl}},
@@ -80,19 +80,39 @@ function normalizeCopy(document: unknown): GalleryCopy {
 export async function getSpatialGalleryContent(): Promise<SpatialGalleryContent> {
   const fallback = { desktop: galleryStates, mobile: galleryStates, desktopCopy: fallbackGalleryCopy, mobileCopy: fallbackGalleryCopy };
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-  if (!projectId) return fallback;
+  const staticBuild = process.env.CLOUDFLARE_PAGES === '1';
+  if (!projectId) {
+    if (staticBuild) throw new Error('Cloudflare build requires NEXT_PUBLIC_SANITY_PROJECT_ID and NEXT_PUBLIC_SANITY_DATASET. Set them in the Production build environment and redeploy.');
+    return fallback;
+  }
   try {
     const client = createClient({
       projectId,
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
       apiVersion: '2026-10-01',
-      useCdn: true,
+      useCdn: !staticBuild,
       timeout: 10000,
       maxRetries: 1,
       perspective: 'published',
     });
-    const documents = await client.fetch(query, {}, { next: { revalidate: process.env.CLOUDFLARE_PAGES === '1' ? false : 60 } });
+    // Static exports must fetch a fresh published snapshot on every build, even
+    // when Cloudflare restores Next's persistent fetch cache from an older build.
+    const documents = await client.fetch(query, staticBuild ? { _build: Date.now().toString() } : {}, { next: { revalidate: staticBuild ? false : 60 } });
     const byId = Object.fromEntries((Array.isArray(documents) ? documents : []).map(item => [item._id, item]));
+    if (staticBuild) {
+      for (const id of ['spatialGalleryDesktop', 'spatialGalleryMobile']) {
+        const document = byId[id];
+        if (!isObject(document)) throw new Error(`Missing published Sanity document: ${id}`);
+        for (const { id: category } of galleryStates) {
+          const group = document[category];
+          if (!isObject(group) || !Array.isArray(group.photos) || !group.photos.length ||
+            group.photos.some(photo => !isObject(photo) || typeof photo.src !== 'string' || !photo.src.startsWith('https://cdn.sanity.io/images/'))) {
+            throw new Error(`Sanity ${id}/${category} has missing or invalid published images; refusing to substitute fallback attendees.`);
+          }
+        }
+      }
+      console.info(`Published gallery snapshot: project=${projectId}, dataset=${process.env.NEXT_PUBLIC_SANITY_DATASET || 'production'}, desktop=${byId.spatialGalleryDesktop._rev}, mobile=${byId.spatialGalleryMobile._rev}`);
+    }
     return await snapshotStaticImages({
       desktop: normalize(byId.spatialGalleryDesktop, false),
       mobile: normalize(byId.spatialGalleryMobile, true),
@@ -100,6 +120,7 @@ export async function getSpatialGalleryContent(): Promise<SpatialGalleryContent>
       mobileCopy: normalizeCopy(byId.spatialGalleryMobile),
     });
   } catch (error) {
+    if (staticBuild) throw new Error('Cloudflare gallery build failed; the existing deployment should be kept. ' + (error instanceof Error ? error.message : 'Sanity request or image snapshot failed'));
     console.warn('Using spatial gallery fallback:', error instanceof Error ? error.message : 'CMS request failed');
     return fallback;
   }

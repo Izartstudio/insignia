@@ -137,3 +137,43 @@ test('gallery preloads and texture requests share the same bounded URL', () => {
   assert.equal(galleryTextureUrl(remote, true, origin).searchParams.get('w'), '512');
   assert.equal(galleryTextureUrl(remote, false, origin).searchParams.get('w'), '768');
 });
+
+function galleryReader(env, fetch) {
+  const galleryStates = ['leaders', 'founders', 'experts', 'investors'].map(id => ({ id, photos: [{ src: '/fallback.webp', name: 'Fallback attendee' }] }));
+  return load('src/sanity/galleryContent.ts', {
+    process: { env },
+    console: { info() {}, warn() {} },
+  }, {
+    './staticAssets': { snapshotStaticImages: async content => content },
+    'next-sanity': { defineQuery: query => query, createClient: options => {
+      if (env.CLOUDFLARE_PAGES === '1') assert.equal(options.useCdn, false);
+      return { fetch };
+    } },
+    '@/content/spatial-gallery': { galleryStates, automaticGalleryPlacement: () => [0, 0, 1, 1] },
+  }).getSpatialGalleryContent;
+}
+
+test('Cloudflare builds reject missing Sanity configuration, failed requests and missing published records', async () => {
+  await assert.rejects(galleryReader({ CLOUDFLARE_PAGES: '1' })(), /requires NEXT_PUBLIC_SANITY_PROJECT_ID/);
+  const env = { CLOUDFLARE_PAGES: '1', NEXT_PUBLIC_SANITY_PROJECT_ID: 'project' };
+  await assert.rejects(galleryReader(env, async () => { throw new Error('CMS unavailable'); })(), /Cloudflare gallery build failed.*CMS unavailable/);
+  await assert.rejects(galleryReader(env, async () => [])(), /Missing published Sanity document/);
+});
+
+test('Cloudflare gallery builds use fresh published names with their own images', async () => {
+  const documents = ['spatialGalleryDesktop', 'spatialGalleryMobile'].map(_id => ({
+    _id, _rev: 'published-revision',
+    ...Object.fromEntries(['leaders', 'founders', 'experts', 'investors'].map(id => [id, {
+      photos: [{ name: `${id} published name`, src: `https://cdn.sanity.io/images/project/production/${id}.webp` }],
+    }])),
+  }));
+  const get = galleryReader({ CLOUDFLARE_PAGES: '1', NEXT_PUBLIC_SANITY_PROJECT_ID: 'project' }, async (query, params) => {
+    assert.ok(params._build, 'Restored build caches must not reuse an old CMS query response');
+    return documents;
+  });
+  const result = await get();
+  for (const layout of ['desktop', 'mobile']) for (const group of result[layout]) {
+    assert.equal(group.photos[0].name, `${group.id} published name`);
+    assert.equal(group.photos[0].src, `https://cdn.sanity.io/images/project/production/${group.id}.webp`);
+  }
+});

@@ -68,19 +68,27 @@ function normalize(document: unknown): PastEditionsContent {
 
 export async function getPastEditionsContent(): Promise<PastEditionsContent> {
   const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-  if (!projectId) return fallbackPastEditionsContent;
+  const staticBuild = process.env.CLOUDFLARE_PAGES === '1';
+  if (!projectId) {
+    if (staticBuild) throw new Error('Cloudflare build requires NEXT_PUBLIC_SANITY_PROJECT_ID.');
+    return fallbackPastEditionsContent;
+  }
   try {
     const client = createClient({
       projectId,
       dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
       apiVersion: '2026-10-01',
-      useCdn: true,
+      useCdn: !staticBuild,
       timeout: 10000,
       maxRetries: 1,
       perspective: 'published',
     });
-    return await snapshotStaticImages(normalize(await client.fetch(query, {}, { next: { revalidate: process.env.CLOUDFLARE_PAGES === '1' ? false : 60 } })));
+    const document = await client.fetch(query, staticBuild ? { _build: Date.now().toString() } : {}, { next: { revalidate: staticBuild ? false : 60 } });
+    const content = normalize(document);
+    if (staticBuild && content === fallbackPastEditionsContent) throw new Error('Missing or invalid published Past Editions content.');
+    return await snapshotStaticImages(content);
   } catch (error) {
+    if (staticBuild) throw new Error('Cloudflare Past Editions build failed: ' + (error instanceof Error ? error.message : 'Sanity request failed'));
     console.warn('Using Past Editions fallback:', error instanceof Error ? error.message : 'CMS request failed');
     return fallbackPastEditionsContent;
   }

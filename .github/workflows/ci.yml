@@ -7,6 +7,9 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SANITY_PROJECT_ID: 7oktj4g3
+      NEXT_PUBLIC_SANITY_DATASET: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
