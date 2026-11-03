@@ -2,5 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "insignia",
   "pages_build_output_dir": "./out",
-  "compatibility_date": "2026-11-03"
+  "compatibility_date": "2026-11-03",
+  "vars": {
+    "NEXT_PUBLIC_SANITY_PROJECT_ID": "7oktj4g3",
+    "NEXT_PUBLIC_SANITY_DATASET": "production"
+  }
 }
