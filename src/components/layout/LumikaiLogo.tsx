@@ -9,7 +9,9 @@ export function LumikaiLogo({ alt = "Lumikai", dotsOnly = false, onCycle }: { al
   useEffect(() => {
     const svg = root.current;
     const link = svg?.closest("a");
-    if (!svg || (!link && !dotsOnly)) return;
+    if (!svg) return;
+    // Footer artwork is intentionally unlinked; it still owns its hover animation.
+    const target = link ?? svg;
     gsap.registerPlugin(CustomEase);
     const ease = CustomEase.create("logo-reference-ease", ".25,.1,.25,1");
     const dots = [".p-1", ".p-2", ".p-3"].map(selector => svg.querySelector(selector)!);
@@ -30,11 +32,11 @@ export function LumikaiLogo({ alt = "Lumikai", dotsOnly = false, onCycle }: { al
       timeline.play();
     }
     const play = () => { if (!reduced.matches && !timeline.isActive()) timeline.restart(); };
-    link?.addEventListener("pointerenter", play);
-    link?.addEventListener("focus", play);
+    target.addEventListener("pointerenter", play);
+    target.addEventListener("focus", play);
     return () => {
-      link?.removeEventListener("pointerenter", play);
-      link?.removeEventListener("focus", play);
+      target.removeEventListener("pointerenter", play);
+      target.removeEventListener("focus", play);
       timeline.kill();
     };
   }, [dotsOnly, onCycle]);
