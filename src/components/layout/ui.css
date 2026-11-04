@@ -278,11 +278,10 @@ html { scrollbar-gutter: stable; }
   .past-editions-desktop-break { display: none; }
   .past-editions-stage { min-height: 560px; }
 }
-/* Keep the existing composition. Only lift portrait copy if its bottom edge,
-   including the 35px entrance motion, would reach Safari's bottom safe area.
-   CSS translate composes with GSAP's transform rather than replacing it. */
+/* On phones, place the copy at the start of its row to remove the large
+   empty gap below the sun. Retain room for the entrance motion and safe area. */
 @media (max-width: 1024px) and (orientation: portrait) {
-  .introduction-copy { translate: 0 min(0px, calc(17svh - 50% - 35px - env(safe-area-inset-bottom, 0px))); }
+  .introduction-copy { align-self: start; translate: 0 min(0px, calc(34svh - 100% - 35px - env(safe-area-inset-bottom, 0px))); }
 }
 @media (max-width: 1024px) {
   .fullscreen-heading { padding: 0 30px max(11svh, 40px); }
