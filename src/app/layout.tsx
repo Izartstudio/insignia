@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description,
   alternates: { canonical: '/' },
   robots: { index: indexableDeployment, follow: true },
-  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || undefined },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || 'v89BZAkmds9z3IljamW2_lkhPYwhWsVGoYtoe6Y0B-Q' },
   openGraph: { title: "Insignia — Lumikai", description, url: '/', type: "website", locale: "en_IN", siteName: "Lumikai", images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Insignia by Lumikai' }] },
   twitter: { card: "summary_large_image", title: "Insignia — Lumikai", description, images: ['/opengraph-image'] },
 };

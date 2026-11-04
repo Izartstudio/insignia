@@ -259,7 +259,7 @@ html { scrollbar-gutter: stable; }
 
 @media (max-width: 1024px) {
   .introduction-track { height: 320svh; }
-  .introduction { height: 100svh; min-height: 0; }
+  .introduction { height: 100svh; min-height: 0; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .introduction-composition { padding: 0 30px; display: grid; grid-template-columns: 1fr; grid-template-rows: 24% 42% 34%; gap: 0; text-align: center; }
   .introduction-number { grid-column: 1; grid-row: 1; align-self: center; font-size: 18px; }
   .introduction-divider { display: none; }
@@ -277,6 +277,12 @@ html { scrollbar-gutter: stable; }
   .past-editions-heading > p { font-size: 12px; }
   .past-editions-desktop-break { display: none; }
   .past-editions-stage { min-height: 560px; }
+}
+/* Keep the existing composition. Only lift portrait copy if its bottom edge,
+   including the 35px entrance motion, would reach Safari's bottom safe area.
+   CSS translate composes with GSAP's transform rather than replacing it. */
+@media (max-width: 1024px) and (orientation: portrait) {
+  .introduction-copy { translate: 0 min(0px, calc(17svh - 50% - 35px - env(safe-area-inset-bottom, 0px))); }
 }
 @media (max-width: 1024px) {
   .fullscreen-heading { padding: 0 30px max(11svh, 40px); }
