@@ -5,6 +5,7 @@
   "compatibility_date": "2026-11-03",
   "vars": {
     "NEXT_PUBLIC_SANITY_PROJECT_ID": "7oktj4g3",
-    "NEXT_PUBLIC_SANITY_DATASET": "production"
+    "NEXT_PUBLIC_SANITY_DATASET": "production",
+    "NEXT_PUBLIC_SITE_URL": "https://insignia.lumikai.com"
   }
 }

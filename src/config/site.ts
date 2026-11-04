@@ -1,5 +1,5 @@
 const cloudflarePreview = process.env.CF_PAGES === '1' && process.env.CF_PAGES_BRANCH !== (process.env.PRODUCTION_BRANCH || 'main');
-const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.CF_PAGES_URL || 'https://insignia.lumikai.com';
+const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://insignia.lumikai.com';
 const parsedUrl = new URL(configuredUrl);
 if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
   throw new Error('NEXT_PUBLIC_SITE_URL must be a public HTTP(S) website URL.');

@@ -177,3 +177,15 @@ test('Cloudflare gallery builds use fresh published names with their own images'
     assert.equal(group.photos[0].src, `https://cdn.sanity.io/images/project/production/${group.id}.webp`);
   }
 });
+
+
+test('Cloudflare deployment URLs never replace the production canonical or sitemap origin', () => {
+  const config = load('src/config/site.ts', { process: { env: {
+    CF_PAGES: '1', CF_PAGES_BRANCH: 'main', CF_PAGES_URL: 'https://d2071bce.insignia-a54.pages.dev',
+  } } });
+  assert.equal(config.siteUrl, 'https://insignia.lumikai.com');
+  const sitemap = load('src/app/sitemap.ts', {}, { '@/config/site': config }).default();
+  assert.equal(sitemap[0].url, 'https://insignia.lumikai.com/');
+  const robots = load('src/app/robots.ts', {}, { '@/config/site': config }).default();
+  assert.equal(robots.sitemap, 'https://insignia.lumikai.com/sitemap.xml');
+});
