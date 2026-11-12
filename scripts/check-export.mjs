@@ -28,9 +28,9 @@ assert.match(await read('_redirects'), /\/studio https:\/\/insigniacms\.sanity\.
 for (const file of ['out/dev/leaders.html', 'out/studio.html']) {
   await assert.rejects(stat(file), { code: 'ENOENT' });
 }
-const image = await readFile('out/opengraph-image');
-assert.equal(image.readUInt32BE(16), 1200);
-assert.equal(image.readUInt32BE(20), 630);
+const image = await readFile('out/insignia-social.png');
+assert.equal(image.readUInt32BE(16), 2400);
+assert.equal(image.readUInt32BE(20), 1260);
 // Catch missing exported JS/CSS/fonts/images referenced by HTML before uploading.
 const refs = new Set([...html.matchAll(/(?:src|href)="(\/[^"?#]*)/g)].map(match => match[1]));
 for (const ref of refs) {

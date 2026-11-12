@@ -4,17 +4,23 @@ import "./globals.css";
 import "@/components/layout/ui.css";
 import { SiteChrome } from '@/components/layout/SiteChrome';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
-import { indexableDeployment, siteDescription as description, siteTitle, siteUrl } from '@/config/site';
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: siteTitle,
-  description,
-  alternates: { canonical: '/' },
-  robots: { index: indexableDeployment, follow: true },
-  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || 'v89BZAkmds9z3IljamW2_lkhPYwhWsVGoYtoe6Y0B-Q' },
-  openGraph: { title: "Insignia — Lumikai", description, url: '/', type: "website", locale: "en_IN", siteName: "Lumikai", images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Insignia by Lumikai' }] },
-  twitter: { card: "summary_large_image", title: "Insignia — Lumikai", description, images: ['/opengraph-image'] },
-};
+import { indexableDeployment, siteTitle, siteUrl } from '@/config/site';
+import { getSocialPreview } from '@/sanity/socialPreview';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { description, image } = await getSocialPreview();
+  return {
+    metadataBase: new URL(siteUrl),
+    title: siteTitle,
+    description,
+    alternates: { canonical: '/' },
+    robots: { index: indexableDeployment, follow: true },
+    verification: { google: process.env.GOOGLE_SITE_VERIFICATION || 'v89BZAkmds9z3IljamW2_lkhPYwhWsVGoYtoe6Y0B-Q' },
+    openGraph: { title: "Insignia — Lumikai", description, url: '/', type: "website", locale: "en_IN", siteName: "Lumikai", images: [image] },
+    twitter: { card: "summary_large_image", title: "Insignia — Lumikai", description, images: [image] },
+  };
+}
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en">
     <head>

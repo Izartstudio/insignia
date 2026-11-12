@@ -34,12 +34,12 @@ await check('robots and sitemap', async () => {
   assert.doesNotMatch(xml, /<loc>[^<]*(?:studio|\/dev\/)/);
 });
 await check('social sharing image', async () => {
-  const image = await fetch(`${origin}/opengraph-image`);
+  const image = await fetch(`${origin}/insignia-social.png`);
   assert.equal(image.status, 200);
   assert.match(image.headers.get('content-type') || '', /image\/png/);
   const bytes = Buffer.from(await image.arrayBuffer());
-  assert.equal(bytes.readUInt32BE(16), 1200);
-  assert.equal(bytes.readUInt32BE(20), 630);
+  assert.equal(bytes.readUInt32BE(16), 2400);
+  assert.equal(bytes.readUInt32BE(20), 1260);
 });
 await check('development preview is not a production page', async () => {
   const response = await fetch(`${origin}/dev/leaders`);

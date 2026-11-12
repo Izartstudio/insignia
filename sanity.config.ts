@@ -3,6 +3,7 @@
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import { spatialGallerySchema } from './src/sanity/schemaTypes/spatialGallery';
+import { socialPreviewSchema } from './src/sanity/schemaTypes/socialPreview';
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || process.env.SANITY_STUDIO_PROJECT_ID;
 if (!projectId || projectId === 'placeholder') {
@@ -19,8 +20,9 @@ export default defineConfig({
     S.listItem().title('Desktop gallery').id('desktop').child(S.document().schemaType('spatialGalleryDesktop').documentId('spatialGalleryDesktop')),
     S.listItem().title('Mobile gallery').id('mobile').child(S.document().schemaType('spatialGalleryMobile').documentId('spatialGalleryMobile')),
     S.listItem().title('Past Editions').id('past-editions').child(S.document().schemaType('pastEditions').documentId('pastEditions')),
+    S.listItem().title('Social Preview').id('social-preview').child(S.document().schemaType('socialPreview').documentId('socialPreview')),
   ]) })],
-  schema: { types: spatialGallerySchema },
+  schema: { types: [...spatialGallerySchema, socialPreviewSchema] },
   document: {
     newDocumentOptions: () => [],
     actions: (actions) => actions.filter(({ action }) => action !== 'duplicate' && action !== 'delete'),

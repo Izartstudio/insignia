@@ -40,7 +40,7 @@ The home page has an absolute canonical, metadata, Open Graph/Twitter sharing im
 
 After deployment:
 
-1. Confirm `/robots.txt`, `/sitemap.xml`, and `/opengraph-image` return 200 on the production domain.
+1. Confirm `/robots.txt`, `/sitemap.xml`, and `/insignia-social.png` return 200 on the production domain.
 2. Verify domain ownership in Google Search Console and submit `/sitemap.xml`; use URL Inspection to request indexing of `/`.
 3. In GA4 Realtime, open the production home page, scroll through sections, open a portrait and use an edition button. Confirm events arrive in the correct property. Verify outbound links reach the live corporate site. Standard reporting can take time to populate.
 4. Test mobile hardware, Safari, Chrome and a reduced-motion setting. Run PageSpeed Insights against the deployed site. Build success alone does not certify real-device performance or Core Web Vitals.

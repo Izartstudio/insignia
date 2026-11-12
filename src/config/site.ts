@@ -7,5 +7,5 @@ if (!['http:', 'https:'].includes(parsedUrl.protocol) || parsedUrl.username || p
 
 export const siteUrl = parsedUrl.origin;
 export const siteTitle = 'Insignia — Interactive Media & Gaming Summit | Lumikai';
-export const siteDescription = 'Insignia by Lumikai brings together leaders, founders, industry experts and investors for India’s signature interactive media event and annual LP summit.';
+export const siteDescription = 'India’s signature interactive media summit.';
 export const indexableDeployment = process.env.SITE_INDEXABLE !== 'false' && !cloudflarePreview && process.env.VERCEL_ENV !== 'preview' && process.env.VERCEL_ENV !== 'development';

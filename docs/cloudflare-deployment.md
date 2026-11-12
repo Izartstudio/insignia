@@ -43,7 +43,7 @@ Sources: https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-
 
 1. In the Pages project, open Settings → Builds & deployments → Deploy hooks. Create a production hook for your production branch and copy its URL.
 2. In Sanity Manage → your project → API → Webhooks, add a webhook targeting that URL, using the website dataset, POST method and create/update/delete triggers. Keep draft and version events disabled so editing an unpublished draft does not rebuild the site.
-3. Use this GROQ filter: `_id in ["spatialGalleryDesktop", "spatialGalleryMobile", "pastEditions"]` for this site's current documents.
+3. Use this GROQ filter: `_id in ["spatialGalleryDesktop", "spatialGalleryMobile", "pastEditions", "socialPreview"]` for this site's current documents.
 4. Keep the hook URL private. It triggers builds and belongs in Sanity's webhook settings, never source code or NEXT_PUBLIC variables.
 5. Publish one small change in the existing Studio; confirm a Pages deployment starts, succeeds, and the live site reflects it. A failed build leaves the previous deployment live.
 
