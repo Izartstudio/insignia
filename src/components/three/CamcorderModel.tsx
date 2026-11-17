@@ -2,7 +2,6 @@ import { useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { Mesh, MeshStandardMaterial, PerspectiveCamera, type Group } from "three";
-import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { sceneConfig } from "@/config/scene";
 import { measureModel } from "@/lib/three/modelUtils";
 import { createCamcorderTimeline } from "@/lib/animations/camcorderTimeline";
@@ -18,13 +17,7 @@ export function CamcorderModel({ heroRef, fullscreenHeadingRef, video, hasFrame 
     const clone = scene.clone(true);
     clone.traverse((object) => {
       if (!(object instanceof Mesh)) return;
-      // Smooth curved surfaces while retaining sharp casing and bezel edges.
-      // Work at a larger scale so the utility's vertex tolerance does not
-      // merge the small model's nearby bezel and body details.
-      const geometry = object.geometry.clone().scale(100, 100, 100);
-      object.geometry = toCreasedNormals(geometry, Math.PI / 3);
-      if (object.geometry !== geometry) geometry.dispose();
-      object.geometry.scale(0.01, 0.01, 0.01);
+      object.geometry = object.geometry.clone();
       const refine = (source: MeshStandardMaterial) => {
         const material = source.clone();
         if (material instanceof MeshStandardMaterial) {

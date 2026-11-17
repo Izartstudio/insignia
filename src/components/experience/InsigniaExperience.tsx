@@ -55,7 +55,7 @@ export function InsigniaExperience({ galleryContent, pastEditionsContent }: { ga
         <section id="insignia-hero" ref={heroRef} className="experience">
           <HeroBackground />
           <div className="canvas-shell" role="img" aria-label="An open-LCD camcorder rotates from a three-quarter view to a rear view as you scroll">
-            <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} fullscreenHeadingRef={fullscreenHeadingRef} /><HeroLoader ready={ready} /></SceneErrorBoundary>
+            <SceneErrorBoundary><ExperienceCanvas onReady={onReady} heroRef={heroRef} fullscreenHeadingRef={fullscreenHeadingRef} /></SceneErrorBoundary><HeroLoader ready={ready} />
           </div>
           <FullscreenHeading ref={fullscreenHeadingRef} />
           {ready && <ScrollIndicator />}

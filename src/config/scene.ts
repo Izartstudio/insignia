@@ -1,7 +1,7 @@
 const radians = (degrees: number) => degrees * Math.PI / 180;
 
 export const sceneConfig = {
-  modelUrl: "/models/camcorder-realism-v2.glb",
+  modelUrl: "/models/camcorder-prepared.glb",
   dpr: [1, 1.5] as [number, number],
   model: {
     normalizedRadius: 1,

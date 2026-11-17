@@ -9,7 +9,7 @@ export const navigation = {
   ],
   secondary: [
     { label: "Pixels", href: `${origin}/pixels` },
-    { label: "About Us", href: `${origin}/about-us` },
+    { label: "Research", href: `${origin}/research` },
     { label: "Media", href: `${origin}/media` },
     { label: "Contact Us", href: `${origin}/contact-us` },
   ],
