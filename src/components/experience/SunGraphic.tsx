@@ -21,10 +21,11 @@ export function SunGraphic() {
         {rays.map(({ angle, stage }) => (
           <span
             className="sun-ray"
-            data-ray-stage={stage}
             key={angle}
             style={{ "--ray-angle": `${angle}deg` } as React.CSSProperties}
-          />
+          >
+            <span className="sun-ray-line" data-ray-stage={stage} />
+          </span>
         ))}
       </div>
     </div>

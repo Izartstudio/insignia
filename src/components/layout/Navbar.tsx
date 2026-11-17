@@ -68,7 +68,7 @@ export function Navbar() {
         if (main) main.inert = previousInert ?? false;
       };
     }
-    panel.current?.querySelector<HTMLAnchorElement>("a")?.focus({ preventScroll: true });
+    button.current?.focus({ preventScroll: true });
     const keyboard = (event: KeyboardEvent) => {
       if (event.key === "Escape") { event.preventDefault(); setOpen(false); }
       if (event.key !== "Tab") return;

@@ -12,6 +12,16 @@ export function SmoothScrolling() {
     // Browser toolbar expansion is not a layout/orientation change. Re-pinning
     // on those height-only mobile resize events causes visible scroll jumps.
     ScrollTrigger.config({ ignoreMobileResize: true });
+    // Device emulation can resize a page while its sections have fixed pin dimensions.
+    let viewportWidth = window.innerWidth;
+    let resizeFrame = 0;
+    const refreshWidth = () => {
+      if (window.innerWidth === viewportWidth) return;
+      viewportWidth = window.innerWidth;
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+    };
+    window.addEventListener("resize", refreshWidth);
     const media = gsap.matchMedia();
 
     // Keep touch scrolling and inertia owned by the mobile browser. ScrollTrigger
@@ -51,7 +61,11 @@ export function SmoothScrolling() {
       };
     });
 
-    return () => media.revert();
+    return () => {
+      window.removeEventListener("resize", refreshWidth);
+      cancelAnimationFrame(resizeFrame);
+      media.revert();
+    };
   }, []);
 
   return null;

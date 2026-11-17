@@ -84,7 +84,13 @@ export function InsigniaIntroduction() {
           transition(master, 1, 2, introductionConfig.secondTransition.start, introductionConfig.secondTransition.end, stageThreeRays, 0.9, 1);
           master.to({}, { duration: 1 - introductionConfig.secondTransition.end }, introductionConfig.secondTransition.end);
 
-          return () => entrance.kill();
+          const track = section.parentElement;
+          const observer = new ResizeObserver(() => ScrollTrigger.refresh(true));
+          if (track) observer.observe(track);
+          return () => {
+            observer.disconnect();
+            entrance.kill();
+          };
 
         },
       );
