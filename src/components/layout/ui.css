@@ -119,7 +119,7 @@ html { scrollbar-gutter: stable; }
 .introduction-sun { grid-column: 3; grid-row: 1; position: relative; justify-self: center; width: 176px; height: 176px; }
 .sun-core { position: absolute; top: 50%; left: 50%; width: 112px; height: 112px; border: 1px solid rgb(217 217 217 / .15); border-radius: 5.625rem; opacity: .9; background: linear-gradient(180deg, #fed201 0%, #d13536 37.02%, #aa0009 60.14%, #000 100%); filter: blur(12.5px); transform: translate(-50%, -50%); transform-origin: center; }
 .sun-rays { position: absolute; inset: 0; }
-.sun-ray { --ray-angle: 0deg; position: absolute; top: 50%; left: 50%; width: 18px; height: 1px; transform: rotate(var(--ray-angle)) translateX(68px); }
+.sun-ray { --ray-angle: 0deg; position: absolute; top: calc(50% - .5px); left: 50%; width: 18px; height: 1px; transform-origin: left center; transform: rotate(var(--ray-angle)) translateX(68px); }
 .sun-ray-line { display: block; width: 100%; height: 100%; background: #fed201; transform-origin: left center; }
 .introduction-copy { grid-column: 4; grid-row: 1; align-self: center; width: min(100%, 400px); margin: 0; padding-left: 31px; color: #fff; font-family: "Aeonik Trial", Arial, sans-serif; font-size: clamp(18px, 1.4vw, 20px); font-weight: 400; line-height: 1.5; letter-spacing: 0; }
 .introduction-reduced-list { display: none; }

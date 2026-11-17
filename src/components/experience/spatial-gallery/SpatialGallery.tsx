@@ -39,7 +39,7 @@ function AccessibleGallery({ visible, onSelect, states }: { visible: boolean; on
   </div>;
 }
 
-export function SpatialGallery({ content, motionProfile = extendedGalleryMotionProfile }: { content: SpatialGalleryContent; motionProfile?: GalleryMotionProfile }) {
+export function SpatialGallery({ content, motionProfile = extendedGalleryMotionProfile, warmImages = false }: { content: SpatialGalleryContent; motionProfile?: GalleryMotionProfile; warmImages?: boolean }) {
   const [mobileControls, setMobileControls] = useState(false);
   const states = mobileControls ? content.mobile : content.desktop;
   const copy = mobileControls ? content.mobileCopy : content.desktopCopy;
@@ -151,16 +151,16 @@ export function SpatialGallery({ content, motionProfile = extendedGalleryMotionP
     setMobileEntered(false);
   }, [failed]);
 
-  useLayoutEffect(() => {
-    if (!animated || !nearViewport) return;
-    // Warm the first category before gallery entry, including on mobile. Later
-    // categories must not compete with these images or the hero download.
+  useEffect(() => {
+    if (!animated || (!warmImages && !nearViewport)) return;
+    // Start first-category downloads once the hero renders, while the visitor
+    // is still above the gallery. Keep the proximity trigger if the hero fails.
     states[0]?.photos.forEach(photo => {
       preload(galleryTextureUrl(photo, mobileControls, window.location.origin).href, {
-        as: 'image', crossOrigin: 'anonymous', fetchPriority: 'auto',
+        as: 'image', crossOrigin: 'anonymous', fetchPriority: nearViewport ? 'auto' : 'low',
       });
     });
-  }, [animated, nearViewport, states, mobileControls]);
+  }, [animated, nearViewport, states, mobileControls, warmImages]);
 
 
   useLayoutEffect(() => {

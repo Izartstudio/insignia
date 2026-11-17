@@ -62,7 +62,7 @@ export function InsigniaExperience({ galleryContent, pastEditionsContent }: { ga
         </section>
       </div>
       <InsigniaIntroduction />
-      <SpatialGallery content={galleryContent} />
+      <SpatialGallery content={galleryContent} warmImages={ready} />
       <PastEditions content={pastEditionsContent} />
       <SiteFooter />
     </main>
